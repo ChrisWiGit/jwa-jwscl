@@ -43,7 +43,7 @@
 {******************************************************************************}
 {$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaShLWAPI;
-{$I jediapilib.inc}
+{$I ..\Includes\JediAPILib.inc}
 
 
 interface
@@ -55,11 +55,16 @@ interface
 {$HPPEMIT 'interface DECLSPEC_UUID("C46CA590-3C3F-11D2-BEE6-0000F805CA57") IQueryAssociations;'}
 {$HPPEMIT 'typedef System::DelphiInterface<IQueryAssociations> _di_IQueryAssociations;'}
 
+{$IFDEF DELPHI6_UP}
 {$ALIGN 8}
+{$ELSE}
+{$A+}
+//Warning: Record alignment 4
+{$ENDIF DELPHI6_UP}
 
 uses
-  Windows, CommCtrl,ActiveX, msxml,
-
+  Windows, CommCtrl,ActiveX,
+  {$IFDEF DELPHI6_UP}msxml,{$ENDIF DELPHI6_UP}
   JwaWinBase, JwaWinUser, JwaWinType,
   JwaShlObj, JwaActiveX, JwaWinReg;
 
@@ -243,12 +248,14 @@ function wvnsprintfA(lpOut: PAnsiChar; cchLimitIn: Integer; lpFmt: PAnsiChar; ar
 function wvnsprintfW(lpOut: PWideChar; cchLimitIn: Integer; lpFmt: PWideChar; arglist: Pointer): Integer; stdcall;
 {$EXTERNALSYM wvnsprintf}
 function wvnsprintf(lpOut: PTSTR; cchLimitIn: Integer; lpFmt: PTSTR; arglist: Pointer): Integer; stdcall;
+{$IFDEF DELPHI6_UP}
 {$EXTERNALSYM wnsprintfA}
 function wnsprintfA(lpOut: PAnsiChar; cchLimitIn: Integer; lpFmt: PAnsiChar): Integer; cdecl; varargs;
 {$EXTERNALSYM wnsprintfW}
 function wnsprintfW(lpOut: PWideChar; cchLimitIn: Integer; lpFmt: PWideChar): Integer; cdecl; varargs;
 {$EXTERNALSYM wnsprintf}
 function wnsprintf(lpOut: PTSTR; cchLimitIn: Integer; lpFmt: PTSTR): Integer; cdecl; varargs;
+{$ENDIF DELPHI6_UP}
 
 {$EXTERNALSYM StrIntlEqNA}
 function StrIntlEqNA(s1, s2: PAnsiChar; nChar: Integer): BOOL;
@@ -1612,7 +1619,7 @@ type
   end;
 
 {$EXTERNALSYM AssocCreate}
-function AssocCreate(clsid: TCLSID; riid: TIID; out ppv: Pointer): HResult; stdcall;
+function AssocCreate(clsid: TCLSID; const riid: TIID; ppv: PPointer): HResult; stdcall;
 
 //  wrappers for the interface
 {$EXTERNALSYM AssocQueryStringA}
@@ -2115,10 +2122,12 @@ begin
 end;
 
 
+{$IFDEF DELPHI6_UP}
 //only available as static
 function wnsprintfA; external shlwapidll name 'wnsprintfA';
 function wnsprintfW; external shlwapidll name 'wnsprintfW';
 function wnsprintf; external shlwapidll name 'wnsprintf'+AWSuffix;
+{$ENDIF DELPHI6_UP}
 
 {$IFNDEF DYNAMIC_LINK}
 

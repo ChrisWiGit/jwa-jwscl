@@ -53,7 +53,7 @@ unit JwaImageHlp;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I jediapilib.inc}
+{$I ..\Includes\JediAPILib.inc}
 
 interface
 
@@ -2796,7 +2796,8 @@ end;
 
 function RVA_TO_ADDR(Mapping, Rva: Pointer): Pointer;
 begin
-  Result := Pointer(Cardinal(Mapping) + Cardinal(Rva));
+//64bit Warning: Converting a pointer to Cardinal may conflict with 64bit
+  Result := Pointer(DWORD_PTR(Mapping) + DWORD_PTR(Rva));
 end;
 
 

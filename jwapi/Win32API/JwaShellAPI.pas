@@ -43,7 +43,7 @@
 {******************************************************************************}
 {$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaShellAPI;
-{$I jediapilib.inc}
+{$I ..\Includes\JediAPILib.inc}
 
 interface
 
@@ -150,10 +150,19 @@ type
   DRAGINFOW = _DRAGINFOW;
   TDragInfoW = DRAGINFOW;
 
+
+
+{$IFDEF UNICODE}
+  {$EXTERNALSYM DRAGINFO}
+  DRAGINFO = DRAGINFOW;
+  TDragInfo = TDragInfoW;
+  PDragInfo = PDragInfoW;
+{$ELSE}
   {$EXTERNALSYM DRAGINFO}
   DRAGINFO = DRAGINFOA;
   TDragInfo = TDragInfoA;
   PDragInfo = PDragInfoA;
+{$ENDIF}
 
 
 ////
@@ -224,6 +233,8 @@ type
   {$EXTERNALSYM APPBARDATA}
   APPBARDATA = _AppBarData;
   TAppBarData = APPBARDATA;
+
+
 
 {$EXTERNALSYM SHAppBarMessage}
 function SHAppBarMessage(dwMessage: DWORD; var Data: TAppBarData): UINT; stdcall;
@@ -365,10 +376,16 @@ type
   SHFILEOPSTRUCTW = _SHFILEOPSTRUCTW;
   TSHFileOpStructW = SHFILEOPSTRUCTW;
 
+{$IFDEF UNICODE}
   {$EXTERNALSYM SHFILEOPSTRUCT}
+  SHFILEOPSTRUCT = SHFILEOPSTRUCTW;
+  TSHFileOpStruct = TSHFileOpStructW;
+  PSHFileOpStruct = PSHFileOpStructW;
+{$ELSE}                                             {$EXTERNALSYM SHFILEOPSTRUCT}
   SHFILEOPSTRUCT = SHFILEOPSTRUCTA;
   TSHFileOpStruct = TSHFileOpStructA;
   PSHFileOpStruct = PSHFileOpStructA;
+{$ENDIF}
 
 {$EXTERNALSYM SHFileOperationA}
 function SHFileOperationA(var lpFileOp: TSHFileOpStructA): Integer; stdcall;
@@ -404,10 +421,19 @@ type
   SHNAMEMAPPINGW = _SHNAMEMAPPINGW;
   TSHNameMappingW = SHNAMEMAPPINGW;
 
+
+
+{$IFDEF UNICODE}
+  {$EXTERNALSYM SHNAMEMAPPING}
+  SHNAMEMAPPING = SHNAMEMAPPINGW;
+  PSHNameMapping = PSHNameMappingW;
+  TSHNameMapping = TSHNameMappingW;
+{$ELSE}
   {$EXTERNALSYM SHNAMEMAPPING}
   SHNAMEMAPPING = SHNAMEMAPPINGA;
   PSHNameMapping = PSHNameMappingA;
   TSHNameMapping = TSHNameMappingA;
+{$ENDIF}
 
 ////
 //// End Shell File Operations
@@ -547,10 +573,20 @@ type
   SHELLEXECUTEINFOW = _SHELLEXECUTEINFOW;
   TShellExecuteInfoW = SHELLEXECUTEINFOW;
 
+
+{$IFDEF UNICODE}
+  {$EXTERNALSYM SHELLEXECUTEINFO}
+  SHELLEXECUTEINFO = SHELLEXECUTEINFOW;
+
+  PShellExecuteInfo = PShellExecuteInfoW;
+  TShellExecuteInfo = TShellExecuteInfoW;
+{$ELSE}
   {$EXTERNALSYM SHELLEXECUTEINFO}
   SHELLEXECUTEINFO = SHELLEXECUTEINFOA;
+
   PShellExecuteInfo = PShellExecuteInfoA;
   TShellExecuteInfo = TShellExecuteInfoA;
+{$ENDIF}
 
 
 
@@ -1023,12 +1059,16 @@ function SHSetLocalizedName(pszPath, pszResModule: PWideChar; idsRes: Integer): 
 //                         like wsprintf
 //
 
+{$IFDEF DELPHI6_UP}
+//variable arguments are not supported in delphi 5
+//maybe this also applies to d6
 {$EXTERNALSYM ShellMessageBoxA}
 function ShellMessageBoxA(hAppInst: THandle; hWnd: HWND; lpcText, lpcTitle: PAnsiChar; fuStyle: UINT): Integer; cdecl; varargs;
 {$EXTERNALSYM ShellMessageBoxW}
 function ShellMessageBoxW(hAppInst: THandle; hWnd: HWND; lpcText, lpcTitle: PWideChar; fuStyle: UINT): Integer; cdecl; varargs;
 {$EXTERNALSYM ShellMessageBox}
 function ShellMessageBox(hAppInst: THandle; hWnd: HWND; lpcText, lpcTitle: PTSTR; fuStyle: UINT): Integer; cdecl; varargs;
+{$ENDIF DELPHI6_UP}
 
 {$EXTERNALSYM IsLFNDriveA}
 function IsLFNDriveA(pszPath: PAnsiChar): BOOL; stdcall;
@@ -1102,11 +1142,12 @@ begin
   Result := -x;
 end;
 
+{$IFDEF DELPHI6_UP}
 //cannot be dynamical because of varargs
 function ShellMessageBoxA; external Shell32 name 'ShellMessageBoxA';
 function ShellMessageBoxW; external Shell32 name 'ShellMessageBoxW';
 function ShellMessageBox; external Shell32 name 'ShellMessageBox'+ AWSuffix;
-
+{$ENDIF}
 
 {$IFNDEF DYNAMIC_LINK}
 
@@ -2036,15 +2077,16 @@ begin
 end;
 
 var
-  _SHLoadNonloadedIconOverlayIdentifiers: Pointer;
+  //_SHLoadNonloadedIconOverlayIdentifiers: Pointer; //too long name for d5
+  _SHLoadNonloadedIOI: Pointer;
 
 function  SHLoadNonloadedIconOverlayIdentifiers;
 begin
-  GetProcedureAddress(_SHLoadNonloadedIconOverlayIdentifiers, Shell32, 'SHLoadNonloadedIconOverlayIdentifiers');
+  GetProcedureAddress(_SHLoadNonloadedIOI, Shell32, 'SHLoadNonloadedIconOverlayIdentifiers');
   asm
         MOV     ESP, EBP
         POP     EBP
-        JMP     [_SHLoadNonloadedIconOverlayIdentifiers]
+        JMP     [_SHLoadNonloadedIOI]
   end;
 end;
 

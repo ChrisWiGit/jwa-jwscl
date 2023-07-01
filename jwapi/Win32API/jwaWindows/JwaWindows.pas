@@ -132,10 +132,15 @@ the one of the project.
    See jediapilib.inc for more declarations}
   {$DEFINE WINVISTA}
 
+
   {.$DEFINE JWA_NEW_WINSTA}
 {$ENDIF PACKAGE_CONDITIONS}
 
+{Use one of the following defines to force or ignore unicode for all
+packages}
 {.$DEFINE UNICODE}
+{.$UNDEF UNICODE}
+
 
 {------ end of your business ------}
 
@@ -172,8 +177,8 @@ the one of the project.
 
 
 //extra compiler options
-{$I jedi.inc}
-{$I jediapilib.inc} //add "..\..\Common" to source path if not found
+{$I ..\Includes\jedi.inc}
+{$I ..\Includes\JediAPILib.inc} //add "..\..\includes" to source path if not found
 
 
 
@@ -210,7 +215,9 @@ uses
 {$ENDIF}
 
 {$IFDEF JWA_INCLUDE_SHELLAPI}
+{$IFDEF DELPHI6_UP}
   ,msxml
+{$ENDIF DELPHI6_UP}
 {$ENDIF JWA_INCLUDE_SHELLAPI}
 
   ;
@@ -587,13 +594,10 @@ The list has no order!}
 
 {$DEFINE JWA_INCLUDEMODE}
 
-//these files needs a newer version due to missing units
 {$IFDEF JWA_NEW_WINSTA}
   {$I JwaRpcWinsta.pas}
 {$ELSE}
-  {$IFDEF COMPILER6_UP}
    {$I JwaWinSta.pas}
-  {$ENDIF}
   {$IFDEF FPC}
    {$I JwaWinSta.pas}
   {$ENDIF}
@@ -603,7 +607,7 @@ The list has no order!}
 
 
 {$IFDEF JWA_INCLUDE_SHELLAPI}
-{$I JwaUrlHist.pas}         
+{$I JwaUrlHist.pas}
 {$I JwaUrlMon.pas}
 {$I JwaSHFolder.pas}
 {$I JwaSHAppMgr.pas}
@@ -631,10 +635,7 @@ The list has no order!}
 {$I JwaWabUtil.pas}
 {$I JwaWabTags.pas}
 {$I JwaWabNot.pas}
-
-
-
-
+{$I JwaWdm.pas}
 
 {.$I JwaWinternl.pas}  //not used anymore!
 
@@ -652,6 +653,12 @@ The list has no order!}
   {$I ..\SaCMAPI\Cfg.pas}
   {$I ..\SaCMAPI\CfgMgr32.pas}
 {$ENDIF JWA_INCLUDE_SETUP_API}
+
+{$I JwaWintrust.pas} //Allignment 8
+{$I JwaSoftpub.pas}  //Allignment 8
+
+{******* Add here new units *******}
+
 
 {$UNDEF JWA_INTERFACESECTION}
 
@@ -966,13 +973,12 @@ The list has no order!}
 
 {.$I JwaWinternl.pas} //not used anymore!
 
-//these files needs a newer version due to missing units
 {$IFDEF JWA_NEW_WINSTA}
   {$I JwaRpcWinsta.pas}
 {$ELSE}
-  {$IFDEF COMPILER6_UP}
-   {$I JwaWinSta.pas}
-  {$ENDIF}
+  {.$IFDEF COMPILER6_UP}
+   {$I JwaWinSta.pas} //has some unsolved probs with DateUtils
+  {.$ENDIF}
   {$IFDEF FPC}
    {$I JwaWinSta.pas}
   {$ENDIF}
@@ -1027,6 +1033,11 @@ If you get this error you should do the things described or upgrade.
 {$I ..\SaCMAPI\Cfg.pas}
 {$I ..\SaCMAPI\CfgMgr32.pas}
 {$ENDIF JWA_INCLUDE_SETUP_API}
+
+{$I JwaWintrust.pas} //Allignment 8
+{$I JwaSoftpub.pas}  //Allignment 8
+
+{******* Add here new units *******}
 
 {$UNDEF JWA_IMPLEMENTATIONSECTION}
 

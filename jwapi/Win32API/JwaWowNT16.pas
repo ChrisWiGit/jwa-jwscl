@@ -52,10 +52,12 @@ unit JwaWowNT16;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I jediapilib.inc}
+{$I ..\Includes\JediAPILib.inc}
 
 // (rom) get rid of warnings about "index" directive
+{$IFDEF DELPHI7_UP}
 {$WARN SYMBOL_PLATFORM OFF}
+{$ENDIF}
 
 interface
 

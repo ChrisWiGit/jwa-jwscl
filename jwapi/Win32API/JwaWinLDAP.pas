@@ -35,12 +35,16 @@ unit JwaWinLDAP;
 
 {$WEAKPACKAGEUNIT}
 
-{$I jediapilib.inc}
+{$I ..\Includes\JediAPILib.inc}
 
 interface
 
 uses
-  Windows;
+  Windows
+{$IFDEF DELPHI5}
+  , JwaWinType
+{$ENDIF}
+  ;
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}

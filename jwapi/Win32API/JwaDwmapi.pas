@@ -49,7 +49,7 @@ unit JwaDwmapi;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I jediapilib.inc}
+{$I ..\Includes\JediAPILib.inc}
 
 interface
 
@@ -83,7 +83,8 @@ type
   {$EXTERNALSYM PDWM_BLURBEHIND}
 
   // Window attributes
-  DWMWINDOWATTRIBUTE = (DWMWA_NCRENDERING_ENABLED = 1,      // [get] Is non-client rendering enabled/disabled
+  DWMWINDOWATTRIBUTE = ({$IFDEF DELPHI5}DWMWA_PAD,{$ENDIF}
+                        DWMWA_NCRENDERING_ENABLED{$IFDEF DELPHI6_UP} = 1{$ENDIF},      // [get] Is non-client rendering enabled/disabled
                         DWMWA_NCRENDERING_POLICY,           // [set] Non-client rendering policy
                         DWMWA_TRANSITIONS_FORCEDISABLED,    // [set] Potentially enable/forcibly disable transitions
                         DWMWA_ALLOW_NCPAINT,                // [set] Allow contents rendered in the non-client area to be visible on the DWM-drawn frame.
@@ -575,15 +576,15 @@ begin
 end;
 
 var
-  _DwmModifyPreviousDxFrameDuration: Pointer;
+  _DwmModifyPreviousDxFrameD: Pointer;
 
 function DwmModifyPreviousDxFrameDuration;
 begin
-  GetProcedureAddress(_DwmModifyPreviousDxFrameDuration, dwmlib, 'DwmModifyPreviousDxFrameDuration');
+  GetProcedureAddress(_DwmModifyPreviousDxFrameD, dwmlib, 'DwmModifyPreviousDxFrameDuration');
   asm
         MOV     ESP, EBP
         POP     EBP
-        JMP     [_DwmModifyPreviousDxFrameDuration]
+        JMP     [_DwmModifyPreviousDxFrameD]
   end;
 end;
 
@@ -718,15 +719,27 @@ begin
 end;
 
 var
+{$IFDEF SUPPORT_LONG_VARNAMES}
   _DwmGetGraphicsStreamTransformHint: Pointer;
+{$ELSE}
+  _DwmGetGraphicsStreamTH: Pointer;
+{$ENDIF}
 
 function DwmGetGraphicsStreamTransformHint;
 begin
+{$IFDEF SUPPORT_LONG_VARNAMES}
   GetProcedureAddress(_DwmGetGraphicsStreamTransformHint, dwmlib, 'DwmGetGraphicsStreamTransformHint');
+{$ELSE}
+  GetProcedureAddress(_DwmGetGraphicsStreamTH, dwmlib, 'DwmGetGraphicsStreamTransformHint');
+{$ENDIF}
   asm
         MOV     ESP, EBP
         POP     EBP
+{$IFDEF SUPPORT_LONG_VARNAMES}
         JMP     [_DwmGetGraphicsStreamTransformHint]
+{$ELSE}
+        JMP     [_DwmGetGraphicsStreamTH]
+{$ENDIF}
   end;
 end;
 

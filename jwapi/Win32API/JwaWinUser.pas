@@ -54,7 +54,7 @@ unit JwaWinUser;
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 
-{$I jediapilib.inc}
+{$I ..\Includes\JediAPILib.inc}
 
 interface
 
@@ -3856,23 +3856,27 @@ const
   ENDSESSION_LOGOFF = DWORD($80000000);
   {$EXTERNALSYM ENDSESSION_LOGOFF}
 
-  EWX_LOGOFF      = 0;
+  EWX_LOGOFF       = 0;
   {$EXTERNALSYM EWX_LOGOFF}
-  EWX_SHUTDOWN    = $00000001;
+  EWX_SHUTDOWN     = $00000001;
   {$EXTERNALSYM EWX_SHUTDOWN}
-  EWX_REBOOT      = $00000002;
+  EWX_REBOOT       = $00000002;
   {$EXTERNALSYM EWX_REBOOT}
-  EWX_FORCE       = $00000004;
+  EWX_FORCE        = $00000004;
   {$EXTERNALSYM EWX_FORCE}
-  EWX_POWEROFF    = $00000008;
+  EWX_POWEROFF     = $00000008;
   {$EXTERNALSYM EWX_POWEROFF}
-  EWX_FORCEIFHUNG = $00000010;
+  EWX_FORCEIFHUNG  = $00000010;
   {$EXTERNALSYM EWX_FORCEIFHUNG}
+  EWX_QUICKRESOLVE = $00000020;
+  {$EXTERNALSYM EWX_QUICKRESOLVE}
+  EWX_RESTARTAPPS  = $00000040;
+  {$EXTERNALSYM EWX_RESTARTAPPS}
 
 function ExitWindows(dwReserved: DWORD; uREserved: UINT): BOOL;
 {$EXTERNALSYM ExitWindows}
 
-function ExitWindowsEx(uFlags: UINT; dwReserved: DWORD): BOOL; stdcall;
+function ExitWindowsEx(uFlags: UINT; dwReason: DWORD): BOOL; stdcall;
 {$EXTERNALSYM ExitWindowsEx}
 
 function SwapMouseButton(fSwap: BOOL): BOOL; stdcall;
@@ -11935,7 +11939,8 @@ end;
 
 function RAWINPUT_ALIGN(x: Pointer): Pointer;
 begin
-  Result := Pointer((Integer(x) + SizeOf(DWORD) - 1) and not (SizeOf(DWORD) - 1));
+//Warning: Converting a pointer to Integer may conflict with 3GB adress space (and later 64bit)
+  Result := Pointer((DWORD_PTR(x) + SizeOf(DWORD) - 1) and not (SizeOf(DWORD) - 1));
 end;
 
 function NEXTRAWINPUTBLOCK(ptr: PRawInput): PRawInput;

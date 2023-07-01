@@ -45,7 +45,7 @@
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinType;
-{$I jediapilib.inc}
+{$I ..\Includes\JediAPILib.inc}
 
 {$WEAKPACKAGEUNIT}
 
@@ -90,9 +90,20 @@ WARNING: Do not load a function defined by its index like PAnsiChar(123) in Proc
 procedure GetProcedureAddress(var P: Pointer; const ModuleName, ProcName: AnsiString); overload;
 
 {GetProcedureAddress loads a function using a module name and an function index.}
-procedure GetProcedureAddress(var P: Pointer; const ModuleName : AnsiString; ProcNumber : DWORD); overload;
+procedure GetProcedureAddress(var P: Pointer; const ModuleName : AnsiString; ProcNumber : Cardinal); overload;
 
 type
+{$IFDEF DELPHI5}
+  PShortInt = ^ShortInt;
+  PSingle = ^Single;
+  PDouble = ^Double;
+  PPAnsiChar = ^PAnsiChar;
+{$IFNDEF JWA_OMIT_SECTIONS}
+  PLongint = ^Longint;
+  PCardinal = ^Cardinal;
+{$ENDIF JWA_OMIT_SECTIONS}
+{$ENDIF}
+
   // (rom) moved from JwaRpc.pas
   RPC_STATUS = Longint;
   {$EXTERNALSYM RPC_STATUS}
@@ -145,6 +156,24 @@ type
   PULONGLONG = ^ULONGLONG;
   {$EXTERNALSYM PULONGLONG}
 
+  {
+  WARNING!!!
+  Originally WinDef.h defines BOOL as an int type with 4 bytes.
+  However Delphi treats BOOL, boolean and Integer differently.
+  Here is ASM code how Delphi (7) sets a value to true:
+
+  fDelayedAutostart := true;
+  BOOL/LongBool
+    mov [d],$ffffffff   (infact it is -1)
+  Boolean
+    mov byte ptr [d],$01
+  Integer
+    fDelayedAutostart := Integer(True);
+    mov [d],$00000001
+
+  Some WinAPI functions like ChangeServiceConfig2 refuses -1 as a true value
+   (error 87- invalid parameter).
+  }
   BOOL = {$IFDEF USE_DELPHI_TYPES} Windows.BOOL {$ELSE} LongBool {$ENDIF};
   {$EXTERNALSYM BOOL}
 
@@ -1848,13 +1877,13 @@ begin
   if not Assigned(P) then
   begin
     ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_GetModuleHandle
-                    {$ELSE}GetModuleHandleA
+                    {$ELSE}GetModuleHandle
                     {$ENDIF JWA_INCLUDEMODE}
                     (PAnsiChar(AnsiString(ModuleName)));
     if ModuleHandle = 0 then
     begin
       ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_LoadLibrary
-                    {$ELSE}LoadLibraryA
+                    {$ELSE}LoadLibrary
                     {$ENDIF JWA_INCLUDEMODE}(PAnsiChar(ModuleName));
       if ModuleHandle = 0 then
         raise EJwaLoadLibraryError.CreateFmt(RsELibraryNotFound, [ModuleName]);
@@ -1867,20 +1896,20 @@ begin
   end;
 end;
 
-procedure GetProcedureAddress(var P: Pointer; const ModuleName : AnsiString; ProcNumber : DWORD);
+procedure GetProcedureAddress(var P: Pointer; const ModuleName : AnsiString; ProcNumber : Cardinal);
 var
   ModuleHandle: HMODULE;
 begin
   if not Assigned(P) then
   begin
     ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_GetModuleHandle
-                    {$ELSE}GetModuleHandleA
+                    {$ELSE}GetModuleHandle
                     {$ENDIF JWA_INCLUDEMODE}
                     (PAnsiChar(AnsiString(ModuleName)));
     if ModuleHandle = 0 then
     begin
       ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_LoadLibrary
-                    {$ELSE}LoadLibraryA
+                    {$ELSE}LoadLibrary
                     {$ENDIF JWA_INCLUDEMODE}(PAnsiChar(ModuleName));
       if ModuleHandle = 0 then
         raise EJwaLoadLibraryError.CreateFmt(RsELibraryNotFound, [ModuleName]);

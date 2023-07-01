@@ -59,7 +59,7 @@
 			<Compiler Name="HResultCompat">True</Compiler>
 			<Compiler Name="HidingMember">True</Compiler>
 			<Compiler Name="HiddenVirtual">True</Compiler>
-			<Compiler Name="Garbage">True</Compiler>
+			<Compiler Name="Garbage">False</Compiler>
 			<Compiler Name="BoundsError">True</Compiler>
 			<Compiler Name="ZeroNilCompat">True</Compiler>
 			<Compiler Name="StringConstTruncated">True</Compiler>
@@ -122,11 +122,11 @@
 			<Directories Name="OutputDir"></Directories>
 			<Directories Name="UnitOutputDir">bin\single</Directories>
 			<Directories Name="PackageDLLOutputDir">bin\single</Directories>
-			<Directories Name="PackageDCPOutputDir"></Directories>
-			<Directories Name="SearchPath">.;..\;..\..\common;..\..\Win32Api</Directories>
+			<Directories Name="PackageDCPOutputDir">bin\single</Directories>
+			<Directories Name="SearchPath">..\..\common;..\..\includes;..\..\win32api</Directories>
 			<Directories Name="Packages"></Directories>
 			<Directories Name="Conditionals">USE_DELPHI_TYPES</Directories>
-			<Directories Name="DebugSourceDirs"></Directories>
+			<Directories Name="DebugSourceDirs">..\..\common;..\..\includes;..\..\win32api</Directories>
 			<Directories Name="UsePackages">False</Directories>
 		</Directories>
 		<Parameters>

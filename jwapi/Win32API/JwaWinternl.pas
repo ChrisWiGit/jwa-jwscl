@@ -86,7 +86,7 @@ unit JwaWinternl;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I jediapilib.inc}
+{$I ..\Includes\JediAPILib.inc}
 
 {$STACKFRAMES ON}
 
@@ -173,7 +173,7 @@ type
 
 {$IFNDEF JWA_INCLUDEMODE}
 type
-  NTSTATUS = Longword;
+  NTSTATUS = LONG;
 
   PCSZ = PAnsiChar;
 

@@ -38,7 +38,7 @@ unit JwaWinDLLNames;
 
 {$WEAKPACKAGEUNIT}
 
-{$I jediapilib.inc}
+{$I ..\Includes\JediAPILib.inc}
 
 interface
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -51,6 +51,7 @@ const
   AWSuffix = 'A';
   {$ENDIF UNICODE}
 
+  {The list is sorted alphabetically!}
   aclapilib = 'advapi32.dll';
   acluilib = 'aclui.dll';
   advapi32 = 'advapi32.dll';
@@ -82,6 +83,7 @@ const
   iphlpapilib = 'iphlpapi.dll';
   kernel32 = 'kernel32.dll';
   kernel32dll = kernel32;
+  ktmw32 = 'ktmw32.dll';
   ldaplib = 'wldap32.dll';
   loadperflib = 'loadperf.dll';
   lpmlib = 'msidlpm.dll';
@@ -131,6 +133,7 @@ const
   versionlib = 'version.dll';
   winberapi = 'wldap32.dll';
   winfax = 'winfax.dll';
+  wimgapi = 'wimgapi.dll';
   winetdll = 'wininet.dll';
   winspool32 = 'winspool32.drv';
   winstadll = 'winsta.dll';
@@ -141,7 +144,8 @@ const
   ws2_32 = 'ws2_32.dll';
   wsock32 = 'wsock32.dll';
   wtsapi = 'wtsapi32.dll';
-
+  {The list is sorted alphabetically!}
+  
 
 
   
@@ -167,3 +171,7 @@ implementation
 {$IFNDEF JWA_OMIT_SECTIONS}
 end.
 {$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+

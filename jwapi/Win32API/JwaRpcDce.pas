@@ -65,7 +65,7 @@ unit JwaRpcDce;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I jediapilib.inc}
+{$I ..\Includes\JediAPILib.inc}
 
 interface
 
@@ -1339,6 +1339,7 @@ const
 {$ENDIF JWA_INCLUDEMODE}
 
 {$IFDEF DYNAMIC_LINK}
+
 var
   _I_RpcBindingIsClientLocal: Pointer;
 

@@ -47,7 +47,7 @@
 {******************************************************************************}
 {$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaShAppMgr;
-{$I jediapilib.inc}
+{$I ..\Includes\JediAPILib.inc}
 
 
 interface
@@ -55,7 +55,12 @@ interface
 uses 
  JwaWinBase, JwaWinType;
 
+{$IFDEF DELPHI6_UP}
 {$ALIGN 8}
+{$ELSE}
+{$A+}
+//Warning: Record alignment 4
+{$ENDIF DELPHI6_UP}
 
 {$HPPEMIT '#include "shappmgr.h"'}
 

@@ -78,7 +78,7 @@ SuspiciousTypecast=1
 PrivatePropAccessor=1
 UnsafeType=0
 UnsafeCode=0
-UnsafeCast=0
+UnsafeCast=1
 [Linker]
 MapFile=0
 OutputObjs=0
@@ -94,7 +94,7 @@ OutputDir=..\bin
 UnitOutputDir=bin
 PackageDLLOutputDir=bin
 PackageDCPOutputDir=
-SearchPath=..\..\common;..\..
+SearchPath=..\..\common;..\..;..\..\includes;..\..\win32api
 Packages=
 Conditionals=WINVISTA;DYNAMIC_LINK
 DebugSourceDirs=
