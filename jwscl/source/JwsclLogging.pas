@@ -1,10 +1,13 @@
-{<B>Abstract</B>This unit contains a log mechanisms 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>09/10/2007 
-
+{
+Description
 Project JEDI Windows Security Code Library (JWSCL)
 
+This unit contains a log mechanisms
+
+Author
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -13,24 +16,24 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the  
-GNU Lesser General Public License (the  "LGPL License"), in which case the   
-provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
+Alternatively, the contents of this file may be used under the terms of the
+GNU Lesser General Public License (the  "LGPL License"), in which case the
+provisions of the LGPL License are applicable instead of those above.
+If you wish to allow use of your version of this file only under the terms
+of the LGPL License and not to allow others to use your version of this file
+under the MPL, indicate your decision by deleting  the provisions above and
+replace  them with the notice and other provisions required by the LGPL
+License.  If you do not delete the provisions above, a recipient may use
+your version of this file under either the MPL or the LGPL License.
 
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
+
+Note
 
 The Original Code is JwsclLogging.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
-
-Description:
 
 }
 unit JwsclLogging;
@@ -508,10 +511,10 @@ function CreateLogServer(Elements : TStringList;
 
 var //JwStrNewLine : AnsiString = #13#10;
     //identation string (default #9 = tabulator char)
-    JwStrIdent : AnsiString = #9;
+    JwStrIdent : TJwString = #9;
 
     //format of start attribute value for processlog tag
-    JwTimeOutputString : AnsiString = 'dd.mm.yyyy hh:nn:ss:zzz';
+    JwTimeOutputString : TJwString = 'dd.mm.yyyy hh:nn:ss:zzz';
 
     //strings for log tag value
     JwLogTypeStrings : array[TJwLogType] of TJwString = (
@@ -1026,6 +1029,7 @@ begin
     begin
 
     end;
+    OutputDebugStringW(PWideChar(WideString(E.Message)));
 
     AddToList(fWriter.WriteSingleTag(fInd,
         JwXMLTagsString[xtMessage], E.Message, Attributes));
@@ -1103,8 +1107,8 @@ end;
 procedure TJwLogServerImpl.Done;
 var
   Attributes : TJwXMLAttributes;
-  AnsiStr : AnsiString;
-  WideStr : WideString;
+  Str : String;
+  //WideStr : WideString;
   S : TJwString;
 
   Value : TJwString;
@@ -1114,11 +1118,12 @@ begin
   if not Assigned(fCritical) then
     exit;
 
-  DateTimeToString(AnsiStr, String(JwTimeOutputString), Now);
+  DateTimeToString(Str, String(JwTimeOutputString), Now);
 {$IFDEF UNICODE}
-  S := WideString(AnsiStr);
+  S := WideString(Str);
 {$ELSE}
-  S := AnsiStr;
+  {WARNING: may lose information in Unicode Delphi}
+  S := Str;
 {$ENDIF}
 
   //Send end process time 
@@ -1239,7 +1244,7 @@ end;
 
 
 function TJwLogServerImpl.GetID : Int64;
-var I : Integer;
+//var I : Integer;
 begin
 //  try
     //some OS does not support functions
@@ -1319,7 +1324,8 @@ end;
 class function TJwLogWriter.CheckLogEventType(const LogTag: TJwXMLLogTag;
   const LogTypeValue: Integer; const AllowedTypes: TJwEventTypes): Boolean;
 
-var i,i2 : Integer;
+//var i,i2 : Integer;
+var i : Integer;
 begin
   if Length(AllowedTypes) = 0 then
   begin

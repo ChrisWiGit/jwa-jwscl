@@ -1,10 +1,13 @@
-{<B>Abstract</B>Contains the Access Mask Mapping class 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>09/10/2007 
-
+{
+Description
 Project JEDI Windows Security Code Library (JWSCL)
 
+Contains the Access Mask Mapping class
+
+Author
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -18,19 +21,19 @@ GNU Lesser General Public License (the  "LGPL License"), in which case the
 provisions of the LGPL License are applicable instead of those above.        
 If you wish to allow use of your version of this file only under the terms   
 of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
-                                                                             
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+under the MPL, indicate your decision by deleting  the provisions above and
+replace  them with the notice and other provisions required by the LGPL
+License.  If you do not delete the provisions above, a recipient may use
+your version of this file under either the MPL or the LGPL License.
+
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
+
+Note
 
 The Original Code is JwsclMapping.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
-
-Description:
 
 }
 {$IFNDEF SL_OMIT_SECTIONS}
@@ -377,14 +380,7 @@ uses Math;
 
 {$IFNDEF SL_INTERFACE_SECTION}
 
-const
-  Powers2: array[0..35] of int64 =
-    (0, 1, 2, 4, 8, 16, 32, 64,
-    128, 256, 512, 1024, 2048, 4096, 8192, 16384,
-    32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304,
-    8388608, 16777216, 33554432, 67108864, 134217728,
-    268435456, 536870912, 1073741824,
-    2147483648, 4294967296, 8589934592, 17179869184);
+
 
 
 
@@ -448,8 +444,6 @@ begin
       FreeMem(siArr.pszName);
     Inc(siArr);
   end;
-
-  siArr := nil;
 
   FreeMem(pPSI_ACCESS);
   pPSI_ACCESS := nil;

@@ -1,10 +1,13 @@
-{<B>Abstract</B>Contains access control classes that are used by the units of JWSCL 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>09/10/2007 
-
+{
+Description
 Project JEDI Windows Security Code Library (JWSCL)
 
+Contains access control classes that are used by the units of JWSCL
+
+Author
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -25,20 +28,18 @@ your version of this file under either the MPL or the LGPL License.
 
 For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
 
+Note
+
 The Original Code is JwsclAcl.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-
-
-Description:
-
 Unsupported structures :
- SYSTEM_ALARM_ACE
- SYSTEM_ALARM_CALLBACK_ACE
- SYSTEM_ALARM_CALLBACK_OBJECT_ACE
- SYSTEM_ALARM_OBJECT_ACE
+* SYSTEM_ALARM_ACE
+* SYSTEM_ALARM_CALLBACK_ACE
+* SYSTEM_ALARM_CALLBACK_OBJECT_ACE
+* SYSTEM_ALARM_OBJECT_ACE
 
 
 
@@ -54,9 +55,6 @@ interface
 
 uses
   SysUtils, Contnrs, Classes,
-{DEBUG}
-  Dialogs,
-{DEBUG}
   jwaWindows, JwaVista,
   JwsclResource, JwsclUtils,
 
@@ -205,6 +203,7 @@ type
         ACLList.Add(TJwAuditAccessControlEntry.Create(nil,[afObjectInheritAce],GENERIC_READ,aSID,False));
       If the Add method raises an Exception, the TJwAuditAccessControlEntry instance is not freed.
       Instead use a pointer
+      <code lang="Delphi">
         try
           anACE := TJwAuditAccessControlEntry.Create(nil,[afObjectInheritAce],GENERIC_READ,aSID,False)
           try
@@ -215,18 +214,18 @@ type
         except
 
         end;
+     </code>
 
-    @return <B>Add</B> returns the index in the list where the ACE was added 
+    @return <B>Add</B> returns the index in the list where the ACE was added
     raises
- EJwsclNILParameterException:  will be raised if aObject is nil 
+     EJwsclNILParameterException:  will be raised if aObject is nil
      EJwsclInvalidACEException: will be raised if
-              
+
                #  TJwDiscretionaryAccessControlEntry was given but the list is not an instance of TJwDAccessControlList
                #  TJwAuditAccessControlEntry was given but the list is not an instance of TJwSAccessControlList
-               
-            
-     EJwsclDuplicateListEntryException: will be raised if the given ACE is already in list 
-     EJwsclInvalidSecurityListException: 
+
+     EJwsclDuplicateListEntryException: will be raised if the given ACE is already in list
+
     }
     function Add(AccessEntry: TJwSecurityAccessControlEntry): integer;
 
@@ -313,7 +312,8 @@ type
              If the value iPos is out of bounds, or the ACE could not be found the return value is -1
      }
     function FindEqualACE(const AccessEntry: TJwSecurityAccessControlEntry;
-      EqualAceTypeSet: TJwEqualAceTypeSet; const StartIndex: integer = -1): integer;
+      EqualAceTypeSet: TJwEqualAceTypeSet; const StartIndex: integer = -1;
+      const Exclusion : TJwExclusionFlags = []; const Reverse : Boolean = false): integer;
 
     {<B>ConvertInheritedToExplicit</B> removes the inheritance flag from all ACEs.
       This is useful if a DACL with inherited ACEs must be converted into a DACL with
@@ -341,8 +341,11 @@ type
     }
     function IsCanonical: boolean;
 
-
-
+    {<B>MergeElements</B> merges duplicate ACE elements.
+     The ACE must have same SID, same type and same flags to be merged.
+     The duplicates are removed from list.
+    }
+    procedure MergeElements;
     {<B>IsEqual</B> compares two ACL and returns true if they are equal.
      This method uses FindEqualACE to compare two access control entries.
 
@@ -362,17 +365,24 @@ type
      @param aObject contains the ACE to be removed 
      @return <B>Remove</B> returns the index of the ACE in the list before it was removed. If
                the ACE could not be found the return value is -1.  }
-    function Remove(AccessEntry: TJwSecurityAccessControlEntry): integer; overload;
+    function Remove(const AccessEntry: TJwSecurityAccessControlEntry): integer; overload;
 
     {<B>Remove</B> removes an object give by index from the list.
      The object will be freed automatically if OwnsObject is true.
 
     @return Index receives the zero based index of the object to be removed.
-             Valid values are 0 to Count -1 .   
+             Valid values are 0 to Count -1 .
     @return <B>Remove</B> returns the index of the ACE in the list before it was removed. If
-               the ACE could not be found the return value is -1. 
+               the ACE could not be found the return value is -1.
     }
-    function Remove(Index: integer): integer; overload;
+    function Remove(const Index: integer): integer; overload;
+
+    {<B>Delete</B> removes an object give by index from the list.
+     The object will be freed automatically if OwnsObject is true.
+     @return Index receives the zero based index of the object to be removed.
+             Valid values are 0 to Count -1 .
+     }
+    procedure Delete(const Index: integer); reintroduce; virtual; 
 
     property Items[Index: integer]: TJwSecurityAccessControlEntry Read GetItem;
       default;
@@ -1112,20 +1122,32 @@ type
   TJwDiscretionaryAccessControlEntryAllow =
     class(TJwDiscretionaryAccessControlEntry)
   public
-    {<B>Create</B> creates a new positive ACE.
-
-    @param aListOwner retrieves the list owner  (including nil). If it is set to a list (not nil) the ACE is added to the list automatically. 
-    @param aFlags retrieves the ACE flags as a set 
-    @param anAccessMask retrieves the access mask like GENERIC_ALL.
-           If you want to set file or folder security use FILE_ALL_ACCESS or similar instead of GENERIC_XXX.
-           Some flags are discarded when written to disk and would differ after read from disk.
-               
-    @param aSID retrieves the SID to be allowed or denied. It can be nil 
-    @param ownSID defines whether the SID given in parameter aSID should be freed automatically.
-            If this SID is a well known SID from unit JwsclKnownSid this parameter is ignored 
-
-
-    }
+    { <b>Create</b> creates a new positive ACE.
+      
+      
+      Parameters
+      aListOwner :    retrieves the list owner (including nil). If it is set to a list
+                      (not nil) the ACE is added to the list automatically. 
+      aFlags :        retrieves the ACE flags as a set 
+      anAccessMask :  retrieves the access mask like GENERIC_ALL. If you want to set
+                      \file or folder security use FILE_ALL_ACCESS or similar instead
+                      of GENERIC_XXX. Some flags are discarded when written to disk and
+                      would differ after read from disk.<p />
+      aSID :          retrieves the SID to be allowed or denied. It can be nil 
+      ownSID :        defines whether the SID given in parameter aSID should be freed
+                      automatically. If this SID is a well known SID from unit
+                      JwsclKnownSid this parameter is ignored
+      
+      Remarks
+      The given SID in parameter aSID<b> must not</b> be already assigned to another
+      access control instance if both - this and the other instance - have the boolean
+      parameter ownSID (or its property OwnSid) set to true. In this case the first
+      ACE instance may destroy the used SID instance and which has an effect on the
+      second ACE instance that runs with an invalid SID instance.
+      
+      If you want to copy (even with changed values) an instance, use the copy
+      constructor instead. If you also want to set the aListOwner parameter, simply
+      add the new instance to the target list.                                          }
 
     constructor Create(const aListOwner: TJwSecurityAccessControlList;
       const aFlags: TJwAceFlags;
@@ -1133,22 +1155,32 @@ type
       const aSID: TJwSecurityId;
       ownSID: boolean = True); overload;
 
-    {<B>Create</B> creates a new positive ACE and applies an ACE revision level.
-
-    @param aListOwner retrieves the list owner  (including nil). If it is set to a list (not nil) the ACE is added to the list automatically. 
-    @param aFlags retrieves the ACE flags as a set 
-    @param anAccessMask retrieves the access mask like GENERIC_ALL.
-           If you want to set file or folder security use FILE_ALL_ACCESS or similar instead of GENERIC_XXX.
-           Some flags are discarded when written to disk and would differ after read from disk.
-               
-    @param Revision Defines the revision level of the ACE. Can be one of the revision levels.
-          ACL_REVISION, ACL_REVISION1, ACL_REVISION2, ACL_REVISION3, ACL_REVISION4 or ACL_REVISION_DS 
-    @param aSID retrieves the SID to be allowed or denied. It can be nil 
-    @param ownSID defines whether the SID given in parameter aSID should be freed automatically.
-            If this SID is a well known SID from unit JwsclKnownSid this parameter is ignored 
-
-
-    }
+    { <b>Create</b> creates a new positive ACE and applies an ACE revision level.
+      Parameters
+      aListOwner :    retrieves the list owner (including nil). If it is set to a list
+                      (not nil) the ACE is added to the list automatically.
+      aFlags :        retrieves the ACE flags as a set
+      anAccessMask :  retrieves the access mask like GENERIC_ALL. If you want to set
+                      \file or folder security use FILE_ALL_ACCESS or similar instead
+                      of GENERIC_XXX. Some flags are discarded when written to disk and
+                      would differ after read from disk.<p />
+      Revision :      Defines the revision level of the ACE. Can be one of the revision
+                      levels. ACL_REVISION, ACL_REVISION1, ACL_REVISION2,
+                      ACL_REVISION3, ACL_REVISION4 or ACL_REVISION_DS
+      aSID :          retrieves the SID to be allowed or denied. It can be nil
+      ownSID :        defines whether the SID given in parameter aSID should be freed
+                      automatically. If this SID is a well known SID from unit
+                      JwsclKnownSid this parameter is ignored
+      Remarks
+      The given SID in parameter aSID<b> must not</b> be already assigned to another
+      access control instance if both - this and the other instance - have the boolean
+      parameter ownSID (or its property OwnSid) set to true. In this case the first
+      ACE instance may destroy the used SID instance and which has an effect on the
+      second ACE instance that runs with an invalid SID instance.
+      
+      If you want to copy (even with changed values) an instance, use the copy
+      constructor instead. If you also want to set the aListOwner parameter, simply
+      add the new instance to the target list.                                          }
     constructor Create(
       const ListOwner: TJwSecurityAccessControlList;
       const Flags: TJwAceFlags;
@@ -1207,14 +1239,45 @@ type
     procedure Free_PACE(var AccessEntryPointer: PAccessAllowedAce); overload;
   end;
 
+  {<B>TJwDiscretionaryAccessControlEntryCallbackAllow</B> defines a callback allow access control element.
+   Every time a function that scans an ACL with a callback element generates
+   a callback event which decides whether this ACE can be used in the
+   process.
+   Callback elements are used in unit JwsclAuthCtx method TJwAuthContext.AccessCheck.
+  }
   TJwDiscretionaryAccessControlEntryCallbackAllow =
     class(TJwDiscretionaryAccessControlEntryAllow)
   end;
 
+  {<B>TJwDiscretionaryAccessControlEntryObjectAllow</B> defines a allow access control element with object properties.
+   Object ACEs uses the following properties
+
+    * ObjectFlags
+    * ObjectType
+    * InheritedObjectType
+
+  }
   TJwDiscretionaryAccessControlEntryObjectAllow =
     class(TJwDiscretionaryAccessControlEntryAllow)
   end;
 
+  { <b>TJwDiscretionaryAccessControlEntryCallbackObjectAllow</b> defines a callback
+    allow access control element with object properties. Every time a function that
+    scans an ACL with a callback element generates a callback event which decides
+    whether this ACE can be used in the process. Callback elements are used in unit JwsclAuthCtx.pas
+    method TJwAuthContext.AccessCheck.
+    
+    Object ACEs uses the following properties
+    
+      * ObjectFlags
+      * ObjectType
+      * InheritedObjectType
+    
+    For some Windows internal reasons this type of ACE is ignored in
+    TJwAuthContext.AccessCheck .
+    
+    
+                                                                                                     }
   TJwDiscretionaryAccessControlEntryCallbackObjectAllow =
     class(TJwDiscretionaryAccessControlEntryAllow)
   end;
@@ -1233,7 +1296,16 @@ type
     @param ownSID defines whether the SID given in parameter aSID should be freed automatically.
             If this SID is a well known SID from unit JwsclKnownSid this parameter is ignored 
 
-
+    Remarks
+      The given SID in parameter aSID<b> must not</b> be already assigned to another
+      access control instance if both - this and the other instance - have the boolean
+      parameter ownSID (or its property OwnSid) set to true. In this case the first
+      ACE instance may destroy the used SID instance and which has an effect on the
+      second ACE instance that runs with an invalid SID instance.
+      
+      If you want to copy (even with changed values) an instance, use the copy
+      constructor instead. If you also want to set the aListOwner parameter, simply
+      add the new instance to the target list.                                    
     }
 
     constructor Create(const aListOwner: TJwSecurityAccessControlList;
@@ -1256,6 +1328,16 @@ type
     @param ownSID defines whether the SID given in parameter aSID should be freed automatically.
             If this SID is a well known SID from unit JwsclKnownSid this parameter is ignored 
 
+    Remarks
+      The given SID in parameter aSID<b> must not</b> be already assigned to another
+      access control instance if both - this and the other instance - have the boolean
+      parameter ownSID (or its property OwnSid) set to true. In this case the first
+      ACE instance may destroy the used SID instance and which has an effect on the
+      second ACE instance that runs with an invalid SID instance.
+      
+      If you want to copy (even with changed values) an instance, use the copy
+      constructor instead. If you also want to set the aListOwner parameter, simply
+      add the new instance to the target list.                                    
 
     }
     constructor Create(
@@ -1274,7 +1356,7 @@ type
 
     @param aACE retrieves an existing positive ACE. It cannot be nil 
     raises
- EJwsclNILParameterException:  if aACE is nil 
+     EJwsclNILParameterException:  if aACE is nil
     }
     constructor Create(AccessEntry: TJwDiscretionaryAccessControlEntryDeny); overload;
 
@@ -1301,15 +1383,45 @@ type
   end;
 
 
+  {<B>TJwDiscretionaryAccessControlEntryCallbackDeny</B> defines a callback deny access control element.
+   Every time a function that scans an ACL with a callback element generates
+   a callback event which decides whether this ACE can be used in the
+   process.
+   Callback elements are used in unit JwsclAuthCtx method TJwAuthContext.AccessCheck.
+  }
   TJwDiscretionaryAccessControlEntryCallbackDeny =
     class(TJwDiscretionaryAccessControlEntryDeny)
   end;
 
+  {<B>TJwDiscretionaryAccessControlEntryObjectDeny</B> defines a deny access control element with object properties.
+   Object ACEs uses the following properties
+
+    * ObjectFlags
+    * ObjectType
+    * InheritedObjectType
+   )
+  }
   TJwDiscretionaryAccessControlEntryObjectDeny =
     class(TJwDiscretionaryAccessControlEntryDeny)
   end;
 
 
+  {<B>TJwDiscretionaryAccessControlEntryCallbackObjectDeny</B> defines a callback deny access control element with object properties.
+   Every time a function that scans an ACL with a callback element generates
+   a callback event which decides whether this ACE can be used in the
+   process.
+   Callback elements are used in unit JwsclAuthCtx method TJwAuthContext.AccessCheck.
+
+   Object ACEs uses the following properties
+
+    * ObjectFlags
+    * ObjectType
+    * InheritedObjectType
+   )
+
+   For some Windows internal reasons this type of ACE is ignored in
+   TJwAuthContext.AccessCheck .
+  }
   TJwDiscretionaryAccessControlEntryCallbackObjectDeny =
     class(TJwDiscretionaryAccessControlEntryDeny)
   end;
@@ -1426,15 +1538,44 @@ type
     //  property Flags: TJwAceFlags read fFlagsIgnored;
   end;
 
+  {<B>TJwAuditAccessControlEntryCallback</B> defines a callback audit access control element.
+   Every time a function that scans an ACL with a callback element generates
+   a callback event which decides whether this ACE can be used in the
+   process.
+   Callback elements are used in unit JwsclAuthCtx method TJwAuthContext.AccessCheck.
+  }
   TJwAuditAccessControlEntryCallback =
     class(TJwAuditAccessControlEntry)
   end;
 
 
+
+  {<B>TJwAuditAccessControlEntryObject</B> defines a audit access control element with object properties.
+   Object ACEs uses the following properties
+
+    * ObjectFlags
+    * ObjectType
+    * InheritedObjectType
+   )
+  }
   TJwAuditAccessControlEntryObject =
     class(TJwAuditAccessControlEntry)
   end;
 
+  {<B>TJwAuditAccessControlEntryCallbackObject</B> defines a callback audit access control element with object properties.
+   Every time a function that scans an ACL with a callback element generates
+   a callback event which decides whether this ACE can be used in the
+   process.
+   Callback elements are used in unit JwsclAuthCtx method TJwAuthContext.AccessCheck.
+
+   Object ACEs uses the following properties
+    * ObjectFlags
+    * ObjectType
+    * InheritedObjectType
+
+   For some Windows internal reasons this type of ACE is ignored in
+   TJwAuthContext.AccessCheck .
+  }
   TJwAuditAccessControlEntryCallbackObject =
     class(TJwAuditAccessControlEntry)
   end;
@@ -1481,7 +1622,7 @@ type
     {<B>Compare</B> compare the mandatory ACE with another one.
 
      @param MandatoryLabel defines a label to be compared 
-     @return The return value is smaller than zero if the actual label is less
+     @return The return value is smaller than zero if the current label is less
       privileged than the given label. If the return value is greater than zero
       the given label has a higher level than the given one.
       The returned value is the difference of
@@ -1500,58 +1641,71 @@ type
       write SetMandatoryPolicy;
   end;
 
-  {<B>JwFormatAccessRights</B> creates a formatted string that splits up an access mask
-  into its rights constants. The constants can be named if parameter
-  RightsMapping is used.
-
-  Each line contains a checkbox that defines whether the access mask
-   contains this specifc right or not. Furthermore it contains the name of the
-   right.
-  A line may look like this:
-    [X] <right> [<right type>]
-
-  @param GrantedAccess defines an array of access masks. Each
-    array element will get its own column (zero based). 
-  @param RightsMapping defines a map structure that maps between constants
-   and strings (e.g. JwsclConstants.FileMapping )
-  @return Returns the access mask with its rights states. Each line is
-   separated by a line break (#13#10) 
-
-  }
+  { <b>JwFormatAccessRights</b> creates a formatted string that
+    splits up an access mask into its rights constants. The
+    constants can be named if parameter RightsMapping is used.
+    
+    Each line contains a checkbox that defines whether the access
+    mask contains this specifc right or not. Furthermore it
+    contains the name of the right. Lines may look like this:
+    <code>
+    '[X] <Name of access rights>'#13#10  for a access right that is set
+    '[ ] <Name of access rights>'#13#10  for a access right that is not set
+    </code>
+    
+    Parameters
+    GrantedAccess :  defines an array of access masks. Each array
+                     element will get its own column (zero based).
+    RightsMapping :  defines a map structure that maps between
+                     constants and strings (e.g.
+                     JwsclConstants.FileMapping ) 
+    Returns
+    \Returns the access mask with its rights states. Each line is
+    separated by a line break (#13#10)                             }
   function JwFormatAccessRights(const Access : Cardinal;
      RightsMapping : Array of TJwRightsMapping) : TJwString; overload;
 
-  {<B>JwFormatAccessRights</B> creates a formatted string that splits up several access massk
-  into its rights constants. The constants can be named if parameter
-  RightsMapping is used.
 
-  Each line contains one or more checkboxes that define whether the access masks
-   contain a specifc right or not. Furthermore it contains the name of the
-   right.
-  A line may look like this:
-    [X] [ ] [X] <right> [<right type>]
-    [X] [ ] [2] <right> [<right type>]
+  { <b>JwFormatAccessRights</b> creates a formatted string that
+    splits up several access massk into its rights constants. The
+    constants can be named if parameter RightsMapping is used.
+    
+    Each line contains one or more checkboxes that define whether
+    the access masks contain a specifc right or not. Furthermore
+    it contains the name of the right. A line may look like this:
+    <code>
+     [X] .. [ ] <Name of access rights>  for a access right that is set
+     [ ] .. [ ] <Name of access rights>  for a access right that is not set
+    </code>
+    
+    Parameters
+    GrantedAccess :  defines an array of access masks. Each array
+                     element will get its own column (zero based).
+    AccessStatus :   defines an array of the error status of the
+                     right. If status is neither zero nor 5
+                     (access denied) instead of an emtyp or
+                     checked checkbox ([ ] or [X]), the status
+                     will be shown in the checkbox (e.g. [2]). The
+                     array index of GrantedAccess will be used to
+                     get the error status index from AccessStatus.
+                     Thus the length of array AccessStatus and
+                     GrantedStatus must be the same. 
+    RightsMapping :  defines a map structure that maps between
+                     constants and strings (e.g.
+                     JwsclConstants.FileMapping ) 
+    Returns
+    \Returns the access mask with its rights states. Each line is
+    separated by a line break (#13#10)                             }
 
-  @param GrantedAccess defines an array of access masks. Each
-    array element will get its own column (zero based). 
-  @param AccessStatus defines an array of the error status of the
-    right. If status is neither zero nor 5 (access denied) instead of
-    an emtyp or checked checkbox ([ ] or [X]),
-    the status will be shown in the checkbox (e.g. [2]).
-    The array index of GrantedAccess will be used to get the error status
-    index from AccessStatus. Thus the length of array AccessStatus and
-    GrantedStatus must be the same. 
-  @param RightsMapping defines a map structure that maps between constants
-   and strings (e.g. JwsclConstants.FileMapping ) 
-  @return Returns the access mask with its rights states. Each line is
-   separated by a line break (#13#10) 
-
-  }
   function JwFormatAccessRights(
     const GrantedAccess : TJwAccessMaskArray;
     const AccessStatus : TJwCardinalArray;
     RightsMapping : Array of TJwRightsMapping) : TJwString; overload;
 
+  {<b>JwFormatAccessRightsSimple</b> does the same as JwFormatAccessRights
+   but returns just a comma separated list of specific  access rights names.}
+  function JwFormatAccessRightsSimple(const Access : Cardinal;
+     RightsMapping : Array of TJwRightsMapping) : TJwString;
 
 
   {<B>IsStandardRight</B> returns true if the given right has a standard (16-23) bit set;
@@ -1602,7 +1756,7 @@ uses Math, JwsclEnumerations;
 
 {$IFNDEF SL_INTERFACE_SECTION}
 
-procedure RaiseOnInvalidRevision(const Revision: Cardinal; const MethodName, ClassName : AnsiString);
+procedure RaiseOnInvalidRevision(const Revision: Cardinal; const MethodName, ClassName : TJwString);
 begin
  if (Revision < MIN_ACL_REVISION) or (Revision > MAX_ACL_REVISION) then
    raise EJwsclInvalidRevision.CreateFmtEx(RsInvalidRevision,
@@ -1636,6 +1790,22 @@ begin
 
     result := result + #13#10;
   end;
+end;
+
+function JwFormatAccessRightsSimple(const Access : Cardinal;
+     RightsMapping : Array of TJwRightsMapping) : TJwString;
+var i : Integer;
+begin
+  for i := low(RightsMapping) to high(RightsMapping) do
+  begin
+    if Access and RightsMapping[i].Right =
+      RightsMapping[i].Right then
+    begin
+      //names may vary depeding on resource string contents
+      Result := Result + RightsMapping[i].Name+', ';
+    end;
+  end;
+  System.Delete(Result, Length(Result)-1, 2);
 end;
 
 function IsStandardRight(const Right : Cardinal) : Boolean;
@@ -1702,7 +1872,12 @@ function JwFormatAccessRights(
     RightsMapping : Array of TJwRightsMapping) : TJwString;
 var i,i2 : Integer;
 begin
-  result := '- generic'#13#10;
+  //still undefined
+  //JwRaiseOnInvalidParameter(Length(GrantedAccess) <> Length(AccessStatus),
+  //   'GrantedAccess or AccessStatus', 'JwFormatAccessRights', '', RsUNAcl);
+
+  //result := '- generic'#13#10;
+  result := '';
   for i := low(RightsMapping) to high(RightsMapping) do
   begin
     for i2 := 0 to High(GrantedAccess) do
@@ -1775,14 +1950,12 @@ end;
 
 constructor TJwSecurityAccessControlList.Create(OwnAceEntries: boolean);
 begin
-  //  raise EJwsclInvalidSecurityListException.CreateFmtEx('Do not call TJwSecurityAccessControlList.Create .', 'Create()',ClassName,'JwsclAcl.pas', 0,False,[]);
   inherited Create(OwnAceEntries);
   fRevision := ACL_REVISION;
 end;
 
 constructor TJwSecurityAccessControlList.Create;
 begin
-  //  raise EJwsclInvalidSecurityListException.CreateFmtEx('Do not call TJwSecurityAccessControlList.Create .', 'Create()',ClassName,'JwsclAcl.pas', 0,False,[]);
   inherited;
   fRevision := ACL_REVISION;
 end;
@@ -1851,14 +2024,12 @@ end;
 procedure TJwSAccessControlList.SetMandatoryLabelEx(
   const NewLabel : TJwSystemMandatoryAccessControlEntry);
 var i : Integer;
-    p : TJwSystemMandatoryAccessControlEntry;
 begin
   for i := 0 to Count-1 do
   begin
     if (Items[i].AceType = actMandatory) and
        (TJwSecurityAccessControlEntry(Items[i]) is TJwSystemMandatoryAccessControlEntry) then
     begin
-      //p := Items[i];
       Remove(Items[i]);
       break;
     end;
@@ -2083,13 +2254,7 @@ function TJwSecurityAccessControlList.Create_PACL: PACL;
 
 var
   i: integer;
-
-  s : AnsiString;
-
-  aAudit:  TJwAuditAccessControlEntry;
-  Mandatory : TJwSystemMandatoryAccessControlEntry;
   bResult: boolean;
-
   iSize: Cardinal;
 begin
   RaiseOnInvalidRevision(fRevision, 'Create_PACL', ClassName);
@@ -2107,6 +2272,10 @@ begin
 
   for i := 0 to Count - 1 do
   begin
+    //update ACL revision to highest ACE revision 
+    if Items[i].Revision > Self.Revision then
+      Self.Revision := Items[i].Revision;
+
     Inc(iSize, Items[i].GetDynamicTypeSize); //get size of ACE structure
 
     if Assigned(Items[i].SID) and (Items[i].SID.SID <> nil) then
@@ -2122,8 +2291,6 @@ begin
         end;
       end;
   end;
-
-  //iSize := 1000;
   Result := PACL(GlobalAlloc(GMEM_FIXED or GMEM_ZEROINIT, iSize));
 
   if Result = nil then
@@ -2183,7 +2350,6 @@ end;
 function TJwSecurityAccessControlList.GetEffectiveRights(const User :
        {$IFDEF UNICODE}TTrusteeW{$ELSE}TTrusteeA{$ENDIF}) : TJwAccessMask;
 var ACL : PACL;
-    i : Integer;
 begin
   result := 0;
 
@@ -2208,7 +2374,6 @@ end;
 function TJwSecurityAccessControlList.GetEffectiveRights
   (const User : TJwSecurityId) : TJwAccessMask;
 var Trust : {$IFDEF UNICODE}TTrusteeW{$ELSE}TTrusteeA{$ENDIF};
-    Sid : PSID;
 begin
   ZeroMemory(@Trust, sizeof(Trust));
 
@@ -2237,13 +2402,9 @@ end;
 var
   i:  integer;
   bInserted: boolean;
-  s, s2: AnsiString;
   b1,
-  //[Hint] b2,
   b3: boolean;
 begin
-  s := ClassName;
-
   if not Assigned(AccessEntry) then
     raise EJwsclNILParameterException.CreateFmtEx(RsACLClassNilParameter,
       'Add', ClassName, RsUNAcl, 0, False, ['AObject']);
@@ -2261,7 +2422,7 @@ begin
       RsACLClassInvalidAceInDacl,
       'Add', ClassName, RsUNAcl, 0, False, [AccessEntry.ClassName]);
 
-  s2 := AccessEntry.ClassName;
+
   b1 := (Self is TJwSAccessControlList);
 
 
@@ -2453,7 +2614,7 @@ begin
   begin
     anACE := Items[i];
 
-    Result := Result + '#' + IntToStr(i) + #13#10 +
+    Result := Result + #13#10 + '#' + IntToStr(i) +
       anACE.GetTextMap(Mapping) + #13#10;
   end;
 end;
@@ -2556,15 +2717,26 @@ end;
 
 
 function TJwSecurityAccessControlList.FindEqualACE(
-  const AccessEntry: TJwSecurityAccessControlEntry; EqualAceTypeSet: TJwEqualAceTypeSet;
-  const StartIndex: integer = -1): integer;
+  const AccessEntry: TJwSecurityAccessControlEntry;
+  EqualAceTypeSet: TJwEqualAceTypeSet;
+  const StartIndex: integer = -1;
+  //new
+  const Exclusion : TJwExclusionFlags = [];
+  const Reverse : Boolean = false): integer;
 var
   i: integer;
   ACEi: TJwSecurityAccessControlEntry;
   B: boolean;
 begin
   Result := -1;
-  for i := StartIndex + 1 to Count - 1 do
+
+  if Reverse then
+    i := Count -1
+  else
+    i := StartIndex + 1;
+
+  while (Reverse and (i > StartIndex) or
+        (not Reverse and (i < Count))) do
   begin
     try
       ACEi := GetItem(i);
@@ -2578,10 +2750,45 @@ begin
       B := B and ACEi.SID.EqualSid(AccessEntry.SID);
 
     if (eactSameFlags in EqualAceTypeSet) then
-      B := B and (ACEi.Flags = AccessEntry.Flags);
+    begin
+      if (eactGEFlags in EqualAceTypeSet) then
+        B := B and (ACEi.Flags >= AccessEntry.Flags)
+      else if (eactSEFlags in EqualAceTypeSet) then
+        B := B and (ACEi.Flags <= AccessEntry.Flags)
+      else
+        B := B and (ACEi.Flags = AccessEntry.Flags);
+    end;
 
     if (eactSameAccessMask in EqualAceTypeSet) then
-      B := B and (ACEi.AccessMask = AccessEntry.AccessMask);
+    begin
+      {Instead of 100% equality we just check whether
+       AccessEntry.AccessMask is part of ACEi.AccessMask.
+
+       SE:                        TRUE   FALSE
+       ACEi.AccessMask        = 100101   010101
+       AccessEntry.AccessMask = 000101   110111
+                                ---------------
+                                000101   010101
+       So if the and operation returns the same flags as AccessEntry.AccessMask contains,
+       we have a true result.
+
+      }
+
+      //and the other way around
+      if (eactSEAccessMask in EqualAceTypeSet) then
+      begin
+        //B := B and (ACEi.AccessMask and AccessEntry.AccessMask = AccessEntry.AccessMask) // Untermenge Element Obermenge
+        //           Obermenge           Untermenge
+        B := B and ((ACEi.AccessMask and AccessEntry.AccessMask) = ACEi.AccessMask); // Obermenge Element Untermenge
+(*
+{$IFDEF JWSCL_DEBUG_INFO}
+        OutputDebugStringA(PAnsiChar(AnsiString(Format('Compating: Acei:AE: %s:%s = %s',
+          [#13#10+JwAccesMaskToBits(ACEi.AccessMask),#13#10+JwAccesMaskToBits(AccessEntry.AccessMask), BoolToStr(B,true)]))));
+{$ENDIF JWSCL_DEBUG_INFO}*)
+      end
+      else
+        B := B and (ACEi.AccessMask = AccessEntry.AccessMask);
+    end;
 
     if (eactSameType in EqualAceTypeSet) then
       B := B and (ACEi.AceType = AccessEntry.AceType);
@@ -2592,6 +2799,11 @@ begin
       Result := i;
       Exit;
     end;
+
+    if Reverse then
+      Dec(i)
+    else
+      Inc(i);
   end;
 end;
 
@@ -2627,7 +2839,12 @@ begin
     Result := TJwSecurityAccessControlEntry(inherited Last);
 end;
 
-function TJwSecurityAccessControlList.Remove(Index: integer): integer;
+procedure TJwSecurityAccessControlList.Delete(const Index: integer);
+begin
+  Remove(Index);
+end;
+
+function TJwSecurityAccessControlList.Remove(const Index: integer): integer;
 var
   P: TJwSecurityAccessControlEntry;
 begin
@@ -2636,7 +2853,7 @@ begin
   Result := Remove(P);
 end;
 
-function TJwSecurityAccessControlList.Remove(AccessEntry:
+function TJwSecurityAccessControlList.Remove(const AccessEntry:
   TJwSecurityAccessControlEntry): integer;
 var
   idx: integer;
@@ -2872,7 +3089,7 @@ end;
 class function TJwSecurityAccessControlEntry.CreateACE(anAceType: TJwAceType):
 TJwSecurityAccessControlEntry;
 begin
-  Result := nil;
+  //Result := nil;
   case anACEType of
     actAllow         : Result := TJwDiscretionaryAccessControlEntryAllow.Create;
     actAllowCallback :
@@ -3003,8 +3220,6 @@ end;
 class function TJwSecurityAccessControlEntry.CreateACE(
 const  AccessEntryPointer: PAccessAllowedAce): TJwSecurityAccessControlEntry;
 begin
-  Result := nil;
-
   if not Assigned(AccessEntryPointer) then
     raise EJwsclNILParameterException.CreateFmtEx(
       RsACLClassNilParameter, 'CreateACE', ClassName, RsUNAcl,
@@ -3050,7 +3265,6 @@ end;
 
 function TJwSecurityAccessControlEntry.GetDynamicTypeSize : Cardinal;
 begin
-  result := 0;
   case GetAceType of
     actAudit         : result := sizeof(SYSTEM_AUDIT_ACE);
     actAuditCallback : result := sizeof(SYSTEM_AUDIT_CALLBACK_ACE);
@@ -3073,6 +3287,12 @@ begin
       RsInvalidAceType,
       'GetDynamicTypeSize', ClassName, RsUNAcl, 0, False, []);
   end;
+
+  {The correct size of a ACE header does not include the
+   SidStart (DWORD) member of the ACE type. The SidStart member is only a placeholder
+   for a sid structure that is placed behind the ACE header. 
+  }
+  Dec(Result, sizeof(DWORD));
 end;                                
 
 function TJwSecurityAccessControlEntry.CreateDynamicACE(out Size : Cardinal) : Pointer;
@@ -3098,16 +3318,18 @@ function TJwSecurityAccessControlEntry.CreateDynamicACE(out Size : Cardinal) : P
 
 
 var p1 : PACCESS_ALLOWED_CALLBACK_ACE;
-    p2 : PSYSTEM_MANDATORY_LABEL_ACE;
+    //p2 : PSYSTEM_MANDATORY_LABEL_ACE;
     p3 : PACCESS_DENIED_OBJECT_ACE;
-    p4 : PACCESS_ALLOWED_CALLBACK_OBJECT_ACE;
+    //p4 : PACCESS_ALLOWED_CALLBACK_OBJECT_ACE;
 
     AceType : TJwAceType;
-{$IFDEF DEBUG}
+{$IFDEF JWSCL_DEBUG_INFO}
+{
 type TB = array[0..27] of byte;
 var
     Data : ^TB;
-{$ENDIF DEBUG}
+}
+{$ENDIF JWSCL_DEBUG_INFO}
 
 begin
   Size := GetDynamicTypeSize;
@@ -3115,14 +3337,12 @@ begin
   if Assigned(SID) and (SID.SID <> nil) then
     Inc(Size, SID.SIDLength);
 
-  //GetMem(result, Size);
-  //ZeroMemory(result,Size);
   Result := Pointer(GlobalAlloc(GMEM_FIXED or GMEM_ZEROINIT, Size));
 
 
-{$IFDEF DEBUG}
-  Data := result;
-{$ENDIF DEBUG}
+{$IFDEF JWSCL_DEBUG_INFO}
+//  Data := result;  //get the contents in this way
+{$ENDIF JWSCL_DEBUG_INFO}
 
   PACCESS_ALLOWED_ACE(result).Header.AceType
     := TJwEnumMap.ConvertAceType(Self.AceType);
@@ -3178,16 +3398,9 @@ end;
 
 function TJwSecurityAccessControlEntry.Create_AllowACE: PAccessAllowedAce;
 var
-  aPSID: PSID;
+  //aPSID: PSID;
   Size : Cardinal;
 begin
-  if not Assigned(SID) then
-    Result := PAccessAllowedAce(GlobalAlloc(GMEM_FIXED or
-      GMEM_ZEROINIT, sizeof(TAccessAllowedAce)))
-  else
-    Result := PAccessAllowedAce(GlobalAlloc(GMEM_FIXED or
-      GMEM_ZEROINIT, sizeof(TAccessAllowedAce) + SID.SIDLength));
-
   //only allow return structures that are compatible to result type
   if
   not
@@ -3205,33 +3418,6 @@ begin
       0, False, []);
 
   result := CreateDynamicACE(Size);
-
-  (*
-  Result.Header.AceFlags := TJwEnumMap.ConvertAceFlags(Flags);
-
-
-  Result.Mask := AccessMask;
-  Result.Header.AceSize := GlobalSize(Cardinal(Result));
-  Result.SidStart := 0;
-
-
-  if Assigned(SID) then
-  begin
-    aPSID := SID.CreateCopyOfSID;
-
-    if aPSID <> nil then
-    begin
-      //mem := @Result.SidStart;
-      //FillChar(mem^, SID.SIDLength, 8);
-      CopyMemory(@Result.SidStart, aPSID, SID.SIDLength);
-      //mem := @Result.SidStart;
-
-      //if mem = nil then;
-
-      SID.FreeSID(aPSID);
-    end;
-  end;    *)
-
 end;
 
 
@@ -3547,8 +3733,6 @@ end;
 
 function TJwSecurityAccessControlEntry.GetAceType: TJwAceType;
 begin
-  Result := actUnknown;
-
   {Order must be correct
     CallbackX
     CallbackObjectX
@@ -3669,8 +3853,10 @@ function TJwSecurityAccessControlEntry.GetTextMap(
 var
   i: TJwAceFlag;
   SidText,
-  FlagString : TJwString;
+  FlagString,
+  sBits,
   sMap : TJwString;
+
 begin
   FlagString := '';
   for i := low(TJwAceFlag) to high(TJwAceFlag) do
@@ -3691,7 +3877,7 @@ begin
   else
     sMap := RsMapNoMapGiven + ' ' + IntToStr(Accessmask) +', 0x' + IntToHex(AccessMask,4);
 
-
+  sBits := '['+JwAccesMaskToBits(Accessmask) + '] (' + IntToStr(Accessmask) +', 0x' + IntToHex(AccessMask,4)+')';
 
   if not Assigned(SID) then
     SidText := RsBracketNil
@@ -3704,8 +3890,45 @@ begin
      TAceTypeString[AceType],
      FlagString,
      sMap,
-     SidText
+     SidText,
+     sBits
      ]);
+end;
+
+procedure TJwSecurityAccessControlList.MergeElements;
+
+var //ACE, ACE2 : TJwSecurityAccessControlEntry;
+    ACE : TJwSecurityAccessControlEntry;
+    i, i2 : Integer;
+    EqualAceTypeSet: TJwEqualAceTypeSet;
+begin
+  {if Self is TJwDAccessControlList then
+    EqualAceTypeSet := [eactSameSid, eactSameType,eactSameFlags]
+  else
+  if Self is TJwSAccessControlList then
+    EqualAceTypeSet := [eactSameSid, eactSameType, eactSameFlags]
+  else }
+    EqualAceTypeSet := [eactSameSid, eactSameType, eactSameFlags];
+
+
+  i := 0;
+  while i < Count do
+  begin
+    ACE := GetItem(i);
+
+    repeat
+      i2 := FindEqualACE(ACE, EqualAceTypeSet, i);
+
+      if (i2 >= 0) then
+      begin
+        ACE.AccessMask := ACE.AccessMask or GetItem(i2).AccessMask;
+
+        Remove(i2);
+        i := 0;
+      end;
+    until i2 = -1;
+    Inc(i);
+  end;
 end;
 
 function TJwSecurityAccessControlList.IsEqual(
@@ -3720,29 +3943,45 @@ begin
   if not Assigned(AccessControlListInstance) then
     Exit;
 
-  if Count <> AccessControlListInstance.Count then
-    Exit;
+  if Self.ClassType <> AccessControlListInstance.ClassType then
+    exit;
 
-  tempACL1 := TJwSecurityAccessControlList.Create;
+  tempACL1 := TJwSecurityAccessControlList(Self.ClassType.Create);
   tempACL1.Assign(Self);
+  tempACL1.MergeElements;
 
   if tempACL1 is TJwDAccessControlList then
    (tempACL1 as TJwDAccessControlList).MakeCanonical;
 
-  tempACL2 := TJwSecurityAccessControlList.Create;
+  tempACL2 :=  TJwSecurityAccessControlList(Self.ClassType.Create);
   tempACL2.Assign(AccessControlListInstance);
+  tempACL2.MergeElements;
 
   if tempACL1 is TJwDAccessControlList then
     (tempACL2 as TJwDAccessControlList).MakeCanonical;
+
+  if tempACL1.Count <> tempACL2.Count then
+  begin
+    tempACL1.Free;
+    tempACL2.Free;
+    Exit;
+  end;
 
   for i := 0 to tempACL1.Count - 1 do
   begin
     iPos := tempACL1.FindEqualACE(tempACL2.Items[i], EqualAceTypeSet, i - 1);
     if iPos <> i then
+    begin
+      tempACL1.Free;
+      tempACL2.Free;
       Exit;
+    end;
   end;
 
   Result := True;
+
+  tempACL1.Free;
+  tempACL2.Free;
 end;
 
 function TJwSecurityAccessControlList.IsCanonical: boolean;
@@ -3820,7 +4059,7 @@ var
   i: integer;
 
   ACE : TJwSecurityAccessControlEntry;
-  OldList : TJwSecurityAccessControlList;
+  //OldList : TJwSecurityAccessControlList;
   OldOwns : Boolean;
 begin
   ACL := TJwDAccessControlList.Create;

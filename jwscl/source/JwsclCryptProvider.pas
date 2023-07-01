@@ -1,12 +1,15 @@
-{<B>Abstract</B>Provides access to the parts of the Microsoft
-           Cryptographic API (CAPI) which depend on cryptographic service
-           providers (CSPs). 
-@author(Philip Dittmann)
-<B>Created:</B>11/18/2007 
-<B>Last modification:</B>11/27/2007 
-
+{
+Description
 Project JEDI Windows Security Code Library (JWSCL)
 
+Provides access to the parts of the Microsoft Cryptographic API (CAPI)
+which depend on cryptographic service providers (CSPs).
+
+Author
+Philip Dittmann
+
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -17,16 +20,17 @@ and limitations under the License.
 
 Alternatively, the contents of this file may be used under the terms of the  
 GNU Lesser General Public License (the  "LGPL License"), in which case the   
-provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
-                                                                             
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+provisions of the LGPL License are applicable instead of those above.
+If you wish to allow use of your version of this file only under the terms
+of the LGPL License and not to allow others to use your version of this file
+under the MPL, indicate your decision by deleting  the provisions above and
+replace  them with the notice and other provisions required by the LGPL
+License.  If you do not delete the provisions above, a recipient may use
+your version of this file under either the MPL or the LGPL License.
 
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
+
+Note
 The Initial Developer of the Original Code is Philip Dittmann.
 Portions created by Philip Dittmann are Copyright (C) Philip Dittmann. All rights reserved.
 
@@ -41,7 +45,7 @@ interface
 
 
 uses
-  SysUtils, Contnrs, Classes,
+  SysUtils, Classes,
   jwaWindows,
   JwsclTypes, JwsclExceptions, JwsclResource,
   JwsclStrings; //JwsclStrings, must be at the end of uses list!!!
@@ -51,7 +55,7 @@ uses
 {$IFNDEF SL_IMPLEMENTATION_SECTION}
 
 type
-  {<B>Abstract</B>Provides access to cryptographic service providers }
+  {Provides access to cryptographic service providers }
   TJwCryptProvider = class
   protected
     //@exclude
@@ -119,7 +123,7 @@ type
      @param ProviderType The type of CSP for which the specified provider
             should be the default 
      @param MachineDefault If true, the machine default provider is set.
-            Otherwise, the user default is set. 
+            Otherwise, the user default is set.
      raises
  EJwsclCSPApiException:  will be raised if the underlying Windows call fails. }
     class procedure SetDefaultProvider(ProviderType: TJwCSPType;
@@ -193,7 +197,7 @@ type
 
   TJwCryptKey = class;
 
-  {<B>Abstract</B><B>TJwHash</B> is a class to compute hashes. 
+  {<B>TJwHash</B> is a class to compute hashes. 
    Both keyless and keyed algorithms are supported.
    Hashes can also be used to sign data.
    }
@@ -237,14 +241,25 @@ type
     destructor Destroy; override;
 
     {Adds data to the hash object
-     @param Data Pointer to the data to be added 
-     @param Size Specifies the size of the data 
+     @param Data Pointer to the data to be added
+     @param Size Specifies the size of the data
      raises
  EJwsclHashApiException:  will be raised if the
              underlying Windows call fails due to a
-             previous call to RetrieveHash  or
-             Sign  or for other reasons.}
+             previous call to RetrieveHash or
+             Sign or for other reasons.}
     procedure HashData(Data: Pointer; Size: Cardinal);
+
+    {Adds data to the hash object
+     @param Stream Stream containing the data to be hashed
+     @param Size defines how much data is hashed from the current stream position.
+       If set to zero (0) the method sets the stream position to beginning
+       and hashes the whole stream.
+ EJwsclHashApiException:  will be raised if the
+             underlying Windows call fails due to a
+             previous call to RetrieveHash or
+             Sign or for other reasons.}
+    procedure HashStream(Stream: TStream; const Size : Int64 = 0);
 
     {<B>GetHashLength</B> returns the size of the hash value in bytes.
      This value is constant for each algorithm.
@@ -267,6 +282,8 @@ type
              underlying Windows call fails because the specified
              buffer is to small or for other reasons.}
     procedure RetrieveHash(Hash: Pointer; var Len: Cardinal); overload;
+
+//    procedure RetrieveHashArray(out Hash); overload;
 
     {<B>RetrieveHash</B> computes the hash of the data previously added to
      the hash using HashData . After a successful call
@@ -345,7 +362,7 @@ type
     property HashHandle: TJwHashHandle read fHashHandle;
   end;
 
-  {<B>Abstract</B><B>TJwCryptKey</B> encapsulates CAPI keys. 
+  {<B>TJwCryptKey</B> encapsulates CAPI keys. 
    Keys for symmetric and asymmetric algorithms are supported.
    They can be used for hash computing. Keys can be created
    by retrieving the user keys of a CSP, randomly generating
@@ -390,15 +407,45 @@ type
       PubKey: TJwCryptKey; Flags: TJwKeyFlagSet);
 
     {Randomly generates a key
-    @param CSP The cryptographic service provider 
-    @param Alg The algorithm for which the key is to be used 
-    @param Flags Flags to use with the WinAPI call 
-    @param Length The length of the key 
+    @param CSP The cryptographic service provider
+    @param Alg The algorithm for which the key is to be used
+    @param Flags Flags to use with the WinAPI call
+    @param Length The length of the key
     raises
  EJwsclKeyApiException:  will be raised if the
              underlying Windows call fails.}
     constructor Generate(CSP: TJwCryptProvider; Alg: TJwEncryptionAlgorithm;
       Flags: TJwKeyFlagSet; Length: Word);
+
+    {Randomly generates a public/private key pair and stores
+    it in the key container of the specified CSP. The new key
+    replaces the old key (if existing) in the container. Thus,
+    this constructor is generally used in the following way:
+    <code lang="Delphi">
+    try
+      //try to get the key pair
+      Key := TJwCryptKey.GetUserKey(CSP, KeyType)
+    except
+      on E: EJwsclKeyApiException do
+        if E.LastError = NTE_NO_KEY then
+          //No key pair existed: We create one and put in the
+          //container.
+          Key := TJwCryptKey.GenerateContainerKey(CSP, KeyType, [], 0)
+        else
+          raise;
+    end;
+    </code>
+    @param CSP The cryptographic service provider
+    @param KeyPair They key pair to replace in the key container
+                   of the CSP.
+    @param Flags Flags to use with the WinAPI call
+    @param Length The length of the key
+    raises
+ EJwsclKeyApiException:  will be raised if the
+             underlying Windows call fails.}
+
+    constructor GenerateContainerKey(CSP: TJwCryptProvider;
+      KeyPair: TJwKeyPairType; Flags: TJwKeyFlagSet; Length: Word);
 
     {Derives a key from a specified seed
     @param CSP The cryptographic service provider 
@@ -558,8 +605,9 @@ end;
 
 destructor TJwCryptProvider.Destroy;
 begin
-  if not CryptReleaseContext(fCSPHandle, 0) then
-    RaiseApiError('Destroy', 'CryptReleaseContext');
+  if fCSPHandle <> 0 then
+    if not CryptReleaseContext(fCSPHandle, 0) then
+      RaiseApiError('Destroy', 'CryptReleaseContext');
   inherited;
 end;
 
@@ -793,14 +841,19 @@ end;
 
 destructor TJwHash.Destroy;
 begin
-  if not CryptDestroyHash(fHashHandle) then
-    RaiseApiError('Destroy', 'CryptDestroyHash');
+  if fHashHandle <> 0 then
+    if not CryptDestroyHash(fHashHandle) then
+      RaiseApiError('Destroy', 'CryptDestroyHash');
   fProvider.Free;
   inherited;
 end;
 
 class procedure TJwHash.FreeBuffer(Buffer: Pointer);
 begin
+  {Type of memory manager.
+  Be aware that we use GetMem in JwLoadHashFromRegistry to create
+  a TJwFileHashData record. So change it also there if memory manager is changed.
+  }
   FreeMem(Buffer);
 end;
 
@@ -836,6 +889,18 @@ procedure TJwHash.HashData(Data: Pointer; Size: Cardinal);
 begin
   if not CryptHashData(fHashHandle, Data, Size, 0) then
     RaiseApiError('HashData', 'CryptHashData');
+end;
+
+procedure TJwHash.HashStream(Stream: TStream; const Size : Int64 = 0);
+var MemStream: TMemoryStream;
+begin
+  MemStream := TMemoryStream.Create;
+  try
+    MemStream.CopyFrom(Stream, Size);
+    HashData(MemStream.Memory, MemStream.Size);
+  finally
+    MemStream.Free;
+  end;
 end;
 
 function TJwHash.GetHashLength: Cardinal;
@@ -956,6 +1021,22 @@ begin
     RaiseApiError('Generate', 'CryptGenKey');
 end;
 
+constructor TJwCryptKey.GenerateContainerKey(CSP: TJwCryptProvider; KeyPair: TJwKeyPairType; Flags: TJwKeyFlagSet; Length: Word);
+begin
+  if not (Flags<=GenerateKeyFlags) then
+    raise EJwsclInvalidFlagsException.CreateFmtEx(
+      RsInvalidFlags,
+      'Generate',
+      ClassName,
+      RsUNCryptProvider,
+      0,
+      false,
+      []);
+  inherited Create;
+  if not CryptGenKey(CSP.CSPHandle, TJwEnumMap.ConvertKeyPairType(KeyPair), TJwEnumMap.ConvertKeyFlagSet(Flags) or (Length shl 16), fHandle) then
+    RaiseApiError('Generate', 'CryptGenKey');
+end;
+
 constructor TJwCryptKey.Derive(CSP: TJwCryptProvider; Alg: TJwEncryptionAlgorithm;
   Flags: TJwKeyFlagSet; Length: Word; BaseData: TJwHash);
 begin
@@ -975,14 +1056,15 @@ end;
 
 destructor TJwCryptKey.Destroy;
 begin
-  if not CryptDestroyKey(fHandle) then
-    RaiseApiError('Destroy', 'CryptDestroyKey');
+  if fHandle <> 0 then
+    if not CryptDestroyKey(fHandle) then
+      RaiseApiError('Destroy', 'CryptDestroyKey');
   inherited Destroy;
 end;
 
 function TJwCryptKey.GetExportKeyLength(ExpKey: TJwCryptKey;
   BlobType: TJwKeyExportKind; Flags: TJwKeyFlagSet): Cardinal;
-var Key: Cardinal;
+//var Key: Cardinal;
 begin
   Result := 0;
   ExportKey(ExpKey, BlobType, Flags, nil, Result);

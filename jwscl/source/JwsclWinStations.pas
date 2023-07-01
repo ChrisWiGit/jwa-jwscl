@@ -1,12 +1,13 @@
-{<B>Abstract</B>This unit provides access to winstation api functions 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>09/10/2007 
-
-
-
+{
+Description
 Project JEDI Windows Security Code Library (JWSCL)
 
+This unit provides access to winstation api functions
+
+Author
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -24,8 +25,10 @@ under the MPL, indicate your decision by deleting  the provisions above and
 replace  them with the notice and other provisions required by the LGPL      
 License.  If you do not delete the provisions above, a recipient may use     
 your version of this file under either the MPL or the LGPL License.          
-                                                                             
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
+
+Note
 
 The Original Code is JwsclWinStations.pas.
 
@@ -40,10 +43,11 @@ unit JwsclWinStations;
 
 interface
 
-uses SysUtils, Classes, Registry, Contnrs,
-
+uses
+  SysUtils,
+  Contnrs {for TStack},
   JwsclUtils, JwsclResource,
-  jwaWindows, StdCtrls, ComCtrls, ActiveX,
+  jwaWindows,
   JwsclTypes, JwsclExceptions, JwsclSid, JwsclAcl, JwsclToken,
   JwsclMapping, JwsclKnownSid, JwsclSecureObjects,
   JwsclVersion, JwsclConstants, JwsclDescriptor,
@@ -60,7 +64,7 @@ type
   TJwSecurityWindowStationArray = array of TJwSecurityWindowStation;
 
   {<B>TJwSecurityWindowStation</B> provides access to window station api.}
-  TJwSecurityWindowStation = class(TPersistent)
+  TJwSecurityWindowStation = class
   private
   protected
     fOldWinStations: TStack;
@@ -111,6 +115,11 @@ type
     constructor Create(const sName: TJwString; bInherit: boolean;
       cDesiredAccess: TJwAccessMask; bCreateOnly: boolean;
       SecurityDescriptor: TJwSecurityDescriptor); overload;
+
+    {<B>CreateByHandle</B> creates a new instance and assigns an existing handle to it.
+     By default the handle is destroyed on freeing.
+     Set property DestroyWinSta manually to false.}
+    constructor CreateByHandle(const Handle  :THandle);
 
     destructor Destroy; override;
 
@@ -175,7 +184,7 @@ type
 
 
   {<B>TJwSecurityWindowStations</B> provides access to window stations}
-  TJwSecurityWindowStations = class(TPersistent)
+  TJwSecurityWindowStations = class
   private
   protected
     fWinstationList: TJwSecurityWindowStationArray;
@@ -215,9 +224,6 @@ type
 
 {$IFNDEF SL_OMIT_SECTIONS}
 implementation
-uses Dialogs;
-
-
 
 {$ENDIF SL_OMIT_SECTIONS}
 
@@ -448,6 +454,12 @@ begin
 end;
 
 
+constructor TJwSecurityWindowStation.CreateByHandle(const Handle: THandle);
+begin
+  Self.Create;
+  fHandle := HAndle;
+end;
+
 destructor TJwSecurityWindowStation.Destroy;
 begin
   if fDestroyWinSta then
@@ -632,7 +644,6 @@ var
 begin
   Result := nil;
   len := 0;
-  apSID := nil;
   GetUserObjectInformation(fHandle,//HANDLE hObj,
     UOI_USER_SID,//int nIndex,
     nil,//PVOID pvInfo,

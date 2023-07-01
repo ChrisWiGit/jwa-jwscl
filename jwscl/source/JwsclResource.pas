@@ -1,10 +1,13 @@
-{<B>Abstract</B>Contains resource strings used by JSWCL 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>11/19/2007 
-
+{
+Description
 Project JEDI Windows Security Code Library (JWSCL)
 
+Contains resource strings used by JSWCL
+
+Author
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -24,13 +27,12 @@ License.  If you do not delete the provisions above, a recipient may use
 your version of this file under either the MPL or the LGPL License.          
                                                                              
 For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+Note
 
 The Original Code is JwsclResource.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
-
-Description:
 
 }
 unit JwsclResource;
@@ -43,10 +45,17 @@ interface
 All Jwscl-exceptions use GetLastError to obtain the winapi error code.
 They also use these text messages to show information.
 However if resourcestring is used - implicitly LoadString is called
-which does use SetLastError(0); which results in last error code 0.
+which does use SetLastError(0); which always results in last error code 0.
 }
+{
+Use always an index based format string. That means that every placeholder
+(starts with percent character) must use a zero based index that defines
+where it is located in the value array of function Format. In this way
+a location can mix up the order of the used placeholders.
+}
+
+
 const
-// USM_Exception.pas
   RsExceptionMessage = 'Message : %0:s\r\n';
 
   RsExceptionNoProc  = '(no proc)';
@@ -72,6 +81,9 @@ const
   RsUnknownGetLastError = 'unknown GetLastError';
 
 // Unit Acl.pas  RsACLClass
+
+
+//
   RsACLClassNilACLPointer = 'ACL must not be nil. To create a deny only ACL use simply Create without an ACL.';
   RsACLClassInvalidACL    = 'Invalid ACL.';
   RsACLClassGetAceFailed  = 'Call to GetAce #%0:d failed.';
@@ -81,9 +93,9 @@ const
   RsACLClassNewAclNotEnoughMemory = 'Not enough memory to allocate memory for a new acl.';
   RsACLClassAddXAccessAceFailed = 'Call to AddXXXXXAccessAce failed in Item Index: %0:d';
   RsACLClassUnknownAccessAce = 'An unknown and unsupported item class %0:s was found for item index: %0:d';
-  RsACLClassAceAlreadyInList = 'AccessControlEntry already in a list';
-  RsACLClassInvalidAceInDacl = 'An discretionary access control list can onl' +
-    'y list discretionary access control entries. (found %s)';
+  RsACLClassAceAlreadyInList = 'AccessControlEntry is already in the list. You cannot add the same instance twice to the list. Make a copy first using copy constructor.';
+  RsACLClassInvalidAceInDacl = 'A discretionary access control list can onl' +
+    'y list discretionary access control entries. (but found %0:s)';
   RsACLRevisionMisMatch = 'An ACE with an higher revision number (%0:d) was tried to add to an ACL with a lower version (%0:d).';
   RsACLClassInvaldAceInSacl = 'An system access control list can only list a' +
     'uditing access control entries.';
@@ -99,7 +111,7 @@ const
   RsACLClassPropertyReadOnly = 'Property is readonly.';
   RsACLClassInvalidAceSid = 'The ACE must define a SID to use this method.';
   RsACLClassGetTextMap = '\r\nClassName: %0:s\r\nAceType: %1:s\r\nFlags: %2:' +
-    's\r\nAccessmask: %3:s\r\nSID: %4:s';
+    's\r\nAccessmask: %3:s\r\nAccessMaskBits: %5:s \r\nSID: %4:s';
   RsMapNoMapGiven = 'No map class given.';
   RsUnsupportedACE = 'The given ACE type is not supported by this library.';
   RsInvalidMandatoryLevelType = 'The given SID has so sub authority or the sub authority is invalid or unknown. The RID must be a number of SECURITY_MANDATORY_XXXXX constants.';
@@ -115,6 +127,8 @@ const
   RsRightSpecific = '[Specific]';
 
 //Unit  JwsclCredentials.pas
+
+//
   RsCredentialsLocalName = 'local';
   RsUNCredentialsInvalidParameters = 'One or more parameters of CredUIParseU' +
   'serName are invalid!';
@@ -141,7 +155,8 @@ const
 
 
 //Unit JwsclTypes.pas
-// (rom) does not work as resourcestring for Delphi 6
+
+//
    RsAttributeHumanString0  = 'unknown';
    RsAttributeHumanString1  = 'mandatory';
    RsAttributeHumanString2  = 'default';
@@ -175,6 +190,8 @@ const
    RsAceUnknown = 'Unknown ace';
 
 //Unit Jwscl_Descriptor.pas
+
+//
   RsSecurityDescriptorInvalidAttributesSize = 'Securityattributes has invali' +
     'd size';
   RsSecurityDescriptorInvalid = 'The security descriptor is invalid. ';
@@ -188,6 +205,8 @@ const
     'tream is invalid';
 
 //Unit Jwscl_SecurityDialogs.pas
+
+//
   RsSecurityDialogsInheritanceThisDefault = 'This object';
   RsSecurityDialogsInheritanceObjectContainerDefault = 'This object, inherited obj' +
     'ects and containers';
@@ -200,10 +219,14 @@ const
   RsSecurityDialogsInheritanceOnlyObjectDefault = 'Inherited objects';
 
 //Unit JwsclLSA.pas
+
+//
   RsLSALogonUserFailedSubStatus = 'Call to LsaLogonUser failed. SubStatus: %' +
     '0:d ';
 
 //Unit JwsclMapping.pas
+
+//
   RsStringOr = 'or';
   RsMappingNotAGenericMask = 'The specified AccessMask is not one of the gen' +
     'eric constants (GENERIC_READ, GENERIC_WRITE, GENERIC_EXECUTE, GENERIC_ALL' +
@@ -222,6 +245,8 @@ const
   RsMappingInvalid = 'The given generic map class is invalid.';
 
 //Unit JwsclSecureObjects.pas
+
+//
   RsSecureObjectsInvalidGroup = 'The group of the SecurityDescriptor must no' +
     't be nil. Use JwNullSID to remove influence of group to AccessCheck call.';
   RsSecureObjectsInvalidOwner = 'The owner of the SecurityDescriptor must no' +
@@ -235,7 +260,7 @@ const
   RsSecureObjectsNoCopyOfObjectHandle = 'Object handle could not be copied.';
   RsSecureObjectsFileFolderNotFound = 'File or directory not found: %s';
   RsSecureObjectsInvalidFileNameHandle = 'Filename and handle is invalid';
-  RsSecureObjectsDaclAdaptionFailed = 'The function failed to adapt the DACL of the file/folder handle. You must have either WRITE_DAC access rights or be the owner. Process SID: %s';
+  RsSecureObjectsDaclAdaptionFailed = 'The function failed to adapt the DACL of the secured object. You must have either WRITE_DAC access rights or be the owner.';
   RsSecureObjectsInvalidFileOrFolder = 'The instance must be created with a file or folder name. GetFileInheritanceSource cannot be used with a handle! ';
     RsSecureObjectsNilSdParameter = 'The security descriptor must not be nil. ' +
     '(path: %s)';
@@ -276,7 +301,12 @@ const
     'if_DACL_SECURITY_INFORMATION] or [siSaclSecurityInformation]. ';
   RsSecureObjectsNotEnoughMemoryForThreadData = 'Not enough memory to alloca' +
     'te thread data.';
+
+  RsUnimplementedSACLInheritance = 'Inheritance of SACL.';
+
 //unit JwsclSid.pas
+
+//
   RsSidNotEnoughMemoryPSid = 'Not enough memory to allocate memory for a new' +
     ' sid.';
   RsSidInvalidAuthoritiesLength = 'Parameter Authorities must have length of' +
@@ -308,6 +338,8 @@ const
 
 
 //Unit JwsclToken.pas
+
+//
   RsPrivilegeEnabledByDefault = 'enabled by default';
   RsPrivilegeEnabled          = 'enabled';
   RsPrivilegeRemoved          = 'removed';
@@ -325,7 +357,7 @@ const
   RsTokenRemovePrivilegeDenied = 'A set of privilege without an assigned tok' +
     'en cannot be removed. Use instead the user functions.';
   RsTokenRemovePrivilegeDeniedByPrivilege = 'To remove a privilege the token' +
-    ' must held the privilege SeTcbPrivilege.';
+    ' must hold the privilege SeTcbPrivilege.';
   RsTokenInvalidPrivilegePointer = 'Given Privilege set was not created by C' +
     'reate_PLUID_AND_ATTRIBUTES.';
   RsTokenPrivlegeNotInList = 'Could not remove privilege because it is not i' +
@@ -388,7 +420,8 @@ const
   RsTokenCheckAccessTypeText = 'The desired access mask is not included in t' +
     'he token access mask!\r\nyour  mask: \r\ntoken mask: \r\n%0:s (%1:s)\r\%2' +
     ':s\r\nCheckTokenAccessType called by %3:s'+#13#10+
-    'Token access rights:\r%s\rYour requested rights:\r%s';
+    'Token access rights:\r%4:s\rYour requested rights:\r%5:s';
+	
   RsTokenStatisticsText = 'TokenID: %0:s\r\AuthenticationId: %1:s\r\nExpirat' +
     'ionTime: %2:s\r\nToken type: %3:d\r\nImpersonation level: 0x%4:x\r\nDynam' +
     'ic charged: 0x%5:x\r\nDynamic available: 0x%6:x\r\nGroup count: %7:d\r\nP' +
@@ -400,11 +433,16 @@ const
   RsProcessNotFound = 'The process "%0:s" could not be found.';  
 
 //Unit JwsclVersion.pas
+
+//
   RsVersionOrHigher = 'or higher';
   RsVersionUnsupportedVersion = 'Unsupported version "%0:s". Need "%1:s" %2:' +
     's';
+  RsUnknownSuppliedOS = '(The supplied WindowsVersion to CheckWindowsVersion is unknown. Add it to JwsclResource.pas::sOSVerString)';
 
 //Unit JwsclDesktop.pas
+
+//
   RsDesktopFailedGetHeapSize = 'GetSecurityDesktopHeapSize : Could not get d' +
     'esktops heap size from registry';
   RsDesktopFailedEnumDesktops = 'GetSecurityDesktops : Could not get desktop' +
@@ -424,42 +462,76 @@ const
   RsDesktopFailedOpenDesktop = 'Could not open to desktop "%0:s"';
 
 //Unit JwsclWinStation.pas
+
+//
   RsWinStationCreateFailed = 'Call to CreateWindowStation failed. Tried to c' +
     'reate "%s"';
   RsWinStationOpenFailed = 'Call to OpenWindowStation failed. Tried to open ' +
     '"%s"';
 
 //Unit JwsclUtils.pas
+
+//
   RsInvalidLocalPointer  = 'Given pointer was not created by JwLocalAllocMem.'; 
   RsInvalidGlobalPointer = 'Given pointer was not created by JwGlobalAllocMem.';
+  RsInvalidClassType = 'The given class type %0:s is invalid. Should be %1:s or derivates.';
 
 //Unit JwsclEncryption.pas
+
+//
   RsCryptUnsupportedMemManager = 'The memorymanager Local or Global is not supported by this method.';
   RsCryptNotImplemented = 'This methd %0:s is not implemented yet.';
 
 //Unit JwsclSecurePrivateObjects.pas
+
+//
   RsPrivateSaclAccessDenied = 'The audit acl could not be retrieved because the access was denied. Privilege SE_SECURITY_NAME could not be activated.';
   RsPrivateInvalidOwnerOrGroup = 'The security descriptor of a private object cannot be changed because the owner or group of the private object and also its parents is nil. Every object must have its own owner and group.';
   RsPrivateInvalidParentDescriptor = 'The method cannot be used for objects that do not have a parent of do not support inheritance.';
 
 //Unit JwsclElevation.pas
+
+//
   RsElevationRegDeleteError = 'The key %0:s could not be deleted.';
   RsElevationRegCreateError = 'The key %0:s could not be created.';
 
 //Unit JwsclCryptProvider.pas
+
+//
   RsKeyedHashNeedsKey     = 'A valid key is needed to create a hash object with a keyed algorithm.';
   RsNonKeyedHash          = 'A non-keyed hash cannot be created with a key.';
 
 //Unit JwsclAuthCtx.pas
+
+//
   RsInvalidObjectTypeList = 'The given array of ObjectType is invalid around index %0:d. ';
 
 //Unit JwsclComUtils.pas
+
+//
   RsInvalidPointerType = 'The given pointer type is not applicable.';
   RsInvalidWrapHandle = 'The given handle cannot be auto with TJwAutoPointer. Handles must not be zero (0) or INVALID_HANDLE_VALE.';
 
+// Unit JwsclStreams.pas
+
+//
+  RsStreamsDataOutOfBounds = 'Stream data out of bounds.';
+
+
+// Unit JwsclFirewall.pas
+
+//
+  RsFWInactive = 'Windows Firewall is inactive';
+  RsFWNoExceptionsAllowed = 'Windows Firewall does not allow exceptions';
+
+
+
 //General strings
+
+//
   RsBracketNil = '(nil)';
   RsWinCallFailedWithNTStatus = 'Call to %0:s failed. NTError: %1:d';
+  RsWinCallFailedWithSecurityStatus = 'Call to %0:s failed. SecurityStatus: %1:d';
   RsWinCallFailed = 'Call to %0:s failed.';
   RsNilParameter  = 'Parameter %0:s must not be nil';
   RsInfinite      = '(infinite)';
@@ -470,38 +542,54 @@ const
     'given mapping array size %2:d.\r\nThe high index %0:d was read from '+
     'the string resource at string index given by parameter StartStringID %1:d.';
   RsProcessIdNotFound = 'The process "%0:s" (Id: 0x%1:x) could not be found.';
-  RsOpenProcessFailed = 'The process "%0:s" (Id: 0x%1:x) could not opened.';
+  RsOpenProcessFailed = 'The process "%0:s" (Id: 0x%1:x) could not be opened.';
 
-  RsInvalidResultValue = 'The value result of a method is invalid: %d ';
+  RsInvalidResultValue = 'The value result of a method is invalid: %0:d ';
 
   RsAccessDenied = 'Access denied!';
 
   RsInvalidFlags = 'Invalid flags!';
 
   RsInitWellKnownNotCalled = 'This method needs JwInitWellKnownSIDs from unit JwsclKnownSid to be called.';
+  RsInitWellKnownNotCalled2 = 'One or more SIDs from unit JwsclKnownSid are not initialized. '+
+    'The method called needs them. Following variables are needed: %0:s\r\n'+RsInitWellKnownNotCalled;
 
   RsNilPointer = 'A given pointer was unexpectedly NIL.';
 
   RsInvalidComputer = 'The given computer name is invalid.';
 
+  RsInvalidIndex = 'The given index %0:d is invalid for this call.';
+
+  RsUnimplementedFeature = 'The feature "%s" is not yet implemented.';
+
 // jwsclProcess.pas
+
+//
   RsInvalidParameterIndex = 'The given index "%0:d" in parameter "%1:s" is out of range.';
   RsMissingEvent = 'The event "%0:s" needs to be assigned. It must not be nil.';
   RsInvalidJobObject = 'The returned job object is invalid and cannot be used to assign a job to.';
+  RsEnumerateProcessesFailed = 'The enumeration of processes failed. ';
+  RsInvalidStartupInfo = 'The given Startupinfo must be initialized!';
 
-const
 // Unit names - do not localize
+// use these constants in the source parameter of any JWSCL Exception.
+
+//
+const
   RsUNAccountControl     = 'JwsclAccountControl.pas';
   RsUNAcl                = 'JwsclAcl.pas.pas';
   RsUNAnsi_UniCode       = 'JwsclAnsi_Unicode.pas';
   RsUNAuthZCtx           = 'JwsclAuthCtx.pas';
+  RsUNCertificates       = 'JwsclCertificates.pas';
   RsUNComUtils           = 'JwsclComUtils.pas';
   RsUNConstants          = 'JwsclConstants.pas';
   RsUNCredentials        = 'JwsclCredentials.pas';
+  RsUNCryptProvider      = 'JwsclCryptProvider.pas';
   RsUNDescriptor         = 'JwsclDescriptor.pas';
   RsUNDesktops           = 'JwsclDesktops.pas';
   RsUNElevation          = 'JwsclElevation.pas'; 
   RsUNExceptions         = 'JwsclExceptions.pas';
+  RsUNFirewall           = 'JwsclFirewall.pas';
   RsUNImpersonation      = 'JwsclImpersonation.pas';
   RsUNKnownSid           = 'JwsclKnownSid.pas';
   RsUNLSA                = 'JwsclLSA.pas';
@@ -519,15 +607,17 @@ const
   RsUNWinStation         = 'JwsclWinStation.pas';
   RsUNEncryption         = 'JwsclEncryption.pas';
   RsUNSecurePrivateObjects = 'JwsclSecurePrivateObjects.pas';
+  RsUNStreams            = 'JwsclStreams.pas';
 
   RsUnLibrary = 'JwscLibrary.pas';
 
-  RsUNCryptProvider = 'JwsclCryptProvider.pas';
 
-{<B>GetResourceStringIdentifier</B> converts a delphi resourcestring into a resource identifier.
-Use @<ResourcestringName> as parameter rs.
 
-The function cannot fail for correct delphi resourcestring identifiers.
+{<B>GetResourceStringIdentifier</B> converts a Delphi resourcestring into a resource identifier.
+Use ResourcestringName as parameter rs (e.g. RsInvalidIndex).
+
+The function cannot fail for correct delphi resourcestring identifiers otherwise
+the return value is undefined.
 }
 function GetResourceStringIdentifier(rs: PResStringRec) : Integer;
 

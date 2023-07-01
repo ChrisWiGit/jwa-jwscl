@@ -1,43 +1,37 @@
-{<B>Abstract</B>This unit provides access to MS Crypt API.
-Actually the Windows Vista Crypt API is not supported by this unit. The direct memory encryption is simulated. 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>11/18/2007 
-
-Project JEDI Windows Security Code Library (JWSCL)
-
-The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
-you may not use this file except in compliance with the License. You may obtain a copy of the
-License at http://www.mozilla.org/MPL/
-
-Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
-ANY KIND, either express or implied. See the License for the specific language governing rights
-and limitations under the License.
-
-Alternatively, the contents of this file may be used under the terms of the  
-GNU Lesser General Public License (the  "LGPL License"), in which case the   
-provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
-                                                                             
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
-
-The Original Code is JwsclEncryption.pas.
-
-The Initial Developer of the Original Code is Christian Wimmer.
-Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
-Portions created by Philip Dittmann are Copyright (C) Philip Dittmann. All rights reserved.
-
-
-Description:
-This unit provides access to MS Crypt API
-
-
-}
+{ Project JEDI Windows Security Code Library (JWSCL)
+  
+  Actually the Windows Vista Crypt API is not supported by this unit. The direct
+  memory encryption is simulated.
+  Author
+    * Christian Wimmer
+    * Philip Dittmann
+  License
+  The contents of this file are subject to the Mozilla Public License Version 1.1
+  (the "License"); you may not use this file except in compliance with the
+  \License. You may obtain a copy of the License at http://www.mozilla.org/MPL/
+  
+  Software distributed under the License is distributed on an "AS IS" basis,
+  WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the
+  specific language governing rights and limitations under the License.
+  
+  Alternatively, the contents of this file may be used under the terms of the GNU
+  Lesser General Public License (the "LGPL License"), in which case the provisions
+  of the LGPL License are applicable instead of those above. If you wish to allow
+  use of your version of this file only under the terms of the LGPL License and
+  not to allow others to use your version of this file under the MPL, indicate
+  your decision by deleting the provisions above and replace them with the notice
+  and other provisions required by the LGPL License. If you do not delete the
+  provisions above, a recipient may use your version of this file under either the
+  MPL or the LGPL License.
+  
+  For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
+  Note
+  The Original Code is JwsclEncryption.pas.
+  
+  The Initial Developer of the Original Code is Christian Wimmer. Portions created
+  by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
+  Portions created by Philip Dittmann are Copyright (C) Philip Dittmann. All
+  rights reserved.                                                                 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclEncryption;
 
@@ -48,7 +42,7 @@ unit JwsclEncryption;
 interface
 
 uses
-  SysUtils, Contnrs, Classes,
+  SysUtils, Classes,
   jwaWindows, JwsclResource,
   JwsclTypes, JwsclExceptions, JwsclAcl,
   JwsclVersion, JwsclConstants,
@@ -679,7 +673,6 @@ begin
 
   GetMem(result.pbData, result.cbData);
   p := PByte(result.pbData);
-  i := 0;
 
   for i := 0 to result.cbData-1 do
   begin
@@ -699,7 +692,6 @@ var Data: TJwGetMemBlob;
     EntropyPtr: PDataBlob;
     Entropy: TDataBlob;
     Id : Cardinal;
-    P2 : Pointer;
 begin
   if (MemoryType = mtLocal) or
      (MemoryType = mtGlobal) then
@@ -781,7 +773,6 @@ var Data: TJwGetMemBlob;
     EntropyPtr: PDataBlob;
     Entropy: TDataBlob;
     Id : Cardinal;
-    P2 : Pointer;
 begin
   if (MemoryType = mtLocal) or
      (MemoryType = mtGlobal) then
@@ -857,20 +848,11 @@ begin
 end;
 
 procedure Test2;
-var Data, D : PAnsiChar;
-    S1,
+var Data : PAnsiChar;
     Size : Cardinal;
 begin
   Size := 7;
-  //GetMem(Data, Size);
   Data := PAnsiChar(LocalAlloc(LPTR,Size));
-
-//  StrCopy(Data,'12345'#0#0);
-
-
-  D := Pointer(LocalReAlloc(Cardinal(Data), Size+2, LMEM_MODIFY or LMEM_MOVEABLE or LMEM_ZEROINIT));//LocalFlags(Cardinal(P))));
-  S1 := GetLastError;
-
 
   TJwEncryptMemory.EncryptMemory(Pointer(Data),
     Size, [], mtLocal);

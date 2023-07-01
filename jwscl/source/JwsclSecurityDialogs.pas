@@ -1,10 +1,13 @@
-{<B>Abstract</B>This unit provides access to the Windows 2000 (and above) security ACL dialog also used by Windows Explorer. 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>09/10/2007 
-
+{
+Description
 Project JEDI Windows Security Code Library (JWSCL)
 
+This unit provides access to the Windows 2000 (and above) security ACL dialog also used by Windows Explorer.
+
+Author
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -19,20 +22,20 @@ provisions of the LGPL License are applicable instead of those above.
 If you wish to allow use of your version of this file only under the terms   
 of the LGPL License and not to allow others to use your version of this file 
 under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
-                                                                             
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+replace  them with the notice and other provisions required by the LGPL
+License.  If you do not delete the provisions above, a recipient may use
+your version of this file under either the MPL or the LGPL License.
+
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
+
+Note
 
 The Original Code is JwsclSecurityDialogs.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-Description:
-
-Links:
+Link List
 Secure object types:
   http://msdn2.microsoft.com/en-us/library/aa379593.aspx
 }
@@ -43,14 +46,12 @@ unit JwsclSecurityDialogs;
 
 interface
 
-uses SysUtils, Classes, Registry, Contnrs,
-{$IFDEF FPC}
-  Buttons,
-{$ENDIF FPC}
-  jwaWindows, Dialogs, StdCtrls, ComCtrls,ActiveX,
+uses
+  SysUtils, Classes, 
+  JwaWindows, ActiveX,
   JwsclResource,
   JwsclTypes, JwsclExceptions, JwsclSid, JwsclAcl, JwsclToken,
-  JwsclMapping, JwsclKnownSid, JwsclSecureObjects,
+  JwsclMapping, JwsclKnownSid, JwsclSecureObjects, JwsclComUtils,
   JwsclVersion, JwsclConstants, JwsclDescriptor,
   JwsclStrings; //JwsclStrings, must be at the end of uses list!!!
 {$ENDIF SL_OMIT_SECTIONS}
@@ -132,8 +133,7 @@ type
     const GuidObjectType: TGUID;
     const sServerName: WideString;
     const SD: TJwSecurityDescriptor;
-    var ObjectTypeList:
-    TJwObjectTypeListArray;
+    var ObjectTypeList: TJwObjectTypeArray;
     var GrantedAccessList: TJwAccessMaskArray): Cardinal of object;
 
   {Not supported}
@@ -414,7 +414,8 @@ type
     fObjectType: TGUID;
 
     //StringPool for ISecurityInformation.GetObjectInformation
-    sPageTitle, sObjectName, sServerName: PWideChar;
+    sPageTitle, sServerName: PWideChar;
+    sObjectName : TList;
 
     fAdvWindowHandle, fWindowHandle: HWND;
     fOnInitSecurityDialog: TJwOnInitSecurityDialog;
@@ -429,12 +430,11 @@ type
     fOnSetSecurity:   TJwOnSetSecurity;
     fInheritTypeList: TJwInheritTypeList;
 
-    fSetOwnerButton: TButton;
 
     fOnGetEffectivePermissions: TJwOnGetEffectivePermissions;
 
 
-    fObjectTypeList: TJwObjectTypeListArray;
+    fObjectTypeList: TJwObjectTypeArray;
 
 
 
@@ -522,7 +522,7 @@ type
     {see TJwOnGetEffectivePermissions }
     property OnGetEffectivePermissions: TJwOnGetEffectivePermissions
       Read fOnGetEffectivePermissions Write fOnGetEffectivePermissions;
-    {<B>OnLookupSIDs</B> is not supported actually and must not be used!}
+    {<B>OnLookupSIDs</B> is not supported currently and must not be used!}
     property OnLookupSIDs: TJwOnLookupSIDs
       Read fOnLookupSIDs Write fOnLookupSIDs;
     {see TOnJwIsDaclCanonical }
@@ -616,8 +616,8 @@ function TJwSecurityDescriptorDialog.GetObjectInformation(
   begin
     if sPageTitle <> nil then
       FreeMem(sPageTitle);
-    if sObjectName <> nil then
-      FreeMem(sObjectName);
+     {if sObjectName <> nil then
+      FreeMem(sObjectName);}
     if sServerName <> nil then
       FreeMem(sServerName);
   end;
@@ -668,8 +668,19 @@ begin
     fObjectName := fObjectName + ' ';
 
   InitString(pObjectInfo.pszObjectName, fObjectName);
-  sObjectName := pObjectInfo.pszObjectName;
-
+  // due to a problem that prevents the title to be displayed incorrectly
+  // I decided to save the pointer to the string into a list
+  // If we would delete the last created pointer, this pointer could
+  // used by the ACL window though.
+  // So we just save all pointers and destroy them in the end.
+  //
+  // It is strange that this does not happen for ObjectName and PageTitle
+  //
+  // If you find strange chars there too, this must be changed too.
+  //
+  // Of course we could also just recylcle the last pointer
+  // but this cannot be used with GetMem imho.
+  sObjectName.Add(pObjectInfo.pszObjectName);
 
   if Length(PageTitle) <> 0 then
     pObjectInfo.dwFlags := pObjectInfo.dwFlags or SI_PAGE_TITLE;
@@ -1334,8 +1345,10 @@ begin
   fObjectTypeList := nil;
 
   sPageTitle  := nil;
-  sObjectName := nil;
+
   sServerName := nil;
+
+  sObjectName := TList.Create;
 
 
   fInheritTypeList := TJwInheritTypeList.Create;
@@ -1345,13 +1358,19 @@ end;
 destructor TJwSecurityDescriptorDialog.Destroy;
 
   procedure DoneStringPool;
+  var i : Integer;
   begin
     if sPageTitle <> nil then
       FreeMem(sPageTitle);
-    if sObjectName <> nil then
-      FreeMem(sObjectName);
     if sServerName <> nil then
       FreeMem(sServerName);
+
+    for i := 0 to sObjectName.Count -1 do
+    begin
+      if sObjectName[i] <> nil then
+        FreeMem(sObjectName[i]);
+    end;
+    FreeAndNil(sObjectName);
   end;
 
 begin
@@ -1484,6 +1503,7 @@ function TJwSecurityDescriptorDialog.GetEffectivePermission(
   var pcGrantedAccessListLength: ULONG): HRESULT;
 var
   SD: TJwSecurityDescriptor;
+  tempDACL : TJwDAccessControlList;
   pDACL: PACL;
   UserSID: TJwSecurityId;
   AccessRights: ACCESS_MASK;
@@ -1500,20 +1520,54 @@ begin
     if (Assigned(SD.DACL)) then
     begin
       UserSID := TJwSecurityId.Create(pUserSid);
+       
       pDACL := SD.DACL.Create_PACL;
-
       aTrustee := UserSID.Trustee;
 
-
-      //FreeAndNil(SD);
-   {$IFDEF UNICODE}
+{$IFDEF UNICODE}
       err := GetEffectiveRightsFromAclW
-   {$ELSE}
+{$ELSE}
       err := GetEffectiveRightsFromAclA
-   {$ENDIF}
-        (pDACL, @aTrustee, AccessRights);
+{$ENDIF}
+               (pDACL, @aTrustee, AccessRights);
 
-      SD.DACL.Free_PACL(pDACL);
+      // GetEffectiveRightsFromAcl may fail with 1332 if
+      // it encounters sids that cannot be translated to names
+      if (err = ERROR_NONE_MAPPED) then
+      begin
+        SD.DACL.Free_PACL(pDACL);
+        // we create a copy of the DACL and
+        // remove all ACEs which names cannot be resolved
+        // since this error makes GetEffectiveRightsFromAcl fail
+        // This function calls LookupAccountSid which fails with
+        // lasterror 1332 (sid name cannot be resolved)
+    
+        tempDACL := TJwDAccessControlList.Create;
+          TJwAutoPointer.Wrap(tempDACL); //auto destroy
+        tempDACL.Assign(SD.DACL);
+
+        for i := tempDACL.Count -1 downto 0 do
+        begin
+          try
+            //we check only
+            tempDACL.Items[i].SID.AccountName[''];
+          except
+            tempDACL.Remove(i);
+          end;
+        end;
+
+        pDACL := tempDACL.Create_PACL;
+
+
+     {$IFDEF UNICODE}
+        err := GetEffectiveRightsFromAclW
+     {$ELSE}
+        err := GetEffectiveRightsFromAclA
+     {$ENDIF}
+          (pDACL, @aTrustee, AccessRights);
+
+        SD.DACL.Free_PACL(pDACL);
+      end;
 
       if (err = 0) then
       begin
@@ -1536,7 +1590,7 @@ begin
             //const sServerName : WideString;
             SD,//const SD : TJwSecurityDescriptor
             fObjectTypeList,
-            //var ObjectTypeList : TJwObjectTypeListArray;
+            //var ObjectTypeList : TJwObjectTypeArray;
             GrantedAccessList
             //var GrantedAccessList : TJwAccessMaskArray) : Cardinal;
             );
@@ -1567,10 +1621,10 @@ begin
       pcGrantedAccessListLength := Length(GrantedAccessList);
 
       pcObjectTypeListLength := Length(fObjectTypeList);
-     { SetLength(TJwObjectTypeListArray(ppObjectTypeList), pcObjectTypeListLength);
+     { SetLength(TJwObjectTypeArray(ppObjectTypeList), pcObjectTypeListLength);
       for i := 0 to Length(ObjectTypeList)-1 do
       begin
-        TJwObjectTypeListArray(ppObjectTypeList)[i] := ObjectTypeList[i];
+        TJwObjectTypeArray(ppObjectTypeList)[i] := ObjectTypeList[i];
       end;    }
       ppObjectTypeList := @fObjectTypeList;
 
@@ -1656,13 +1710,13 @@ begin
        +1 adds zero space
       }
       ppInheritArray := PInheritedFromW(LocalAlloc(LPTR,
-        (ACL.Count + 1) * sizeof(TInheritedFromW) + iSize *
-        sizeof(widechar)));
+        (Cardinal(ACL.Count) + 1) * sizeof(TInheritedFromW) +
+        iSize * SizeOf(WideChar)));
 
       //lots of pointer hacking frome here on!   
       //string block    
-      DataPtr := Pointer(Cardinal(ppInheritArray) + ACL.Count *
-        sizeof(TInheritedFromW));
+      DataPtr := Pointer(Cardinal(ppInheritArray) +
+        Cardinal(ACL.Count) * sizeof(TInheritedFromW));
 
       i2 := Length(InheritanceArray);
       for i := 0 to i2 - 1 do
@@ -1841,40 +1895,31 @@ end;
 
 
 { TJwSidInfoDataObject }
-//function TJwSidInfoDataObject.GetData(formatetcIn: PFormatEtc; medium: PStgMedium):  HRESULT; stdcall;
 function TJwSidInfoDataObject.GetData(const formatetcIn: TFormatEtc;
   out medium: TStgMedium): HRESULT; stdcall;
 
-var
-  aPSidList: PSID_INFO_LIST;
-  i, cnt: integer;
-  p1, p2, p3: PWideChar;
-  //function TJwSidInfoDataObject.GetData(const formatetcIn: jwaWindows.TFormatEtc; out medium: jwaWindows.TStgMedium): HRESULT; stdcall;
+//var
+//  aPSidList: PSID_INFO_LIST;
+//  i, cnt: integer;
+//  p1, p2, p3: PWideChar;
+
 begin
   FillChar(medium, sizeof(TStgMedium), 0);
   medium.hGlobal := Cardinal(fInfoList);
-//  medium.unkForRelease := nil;
   medium.tymed := TYMED_HGLOBAL;
 
+// Read the content of fInfoList here if you want:
 
-  aPSidList := PSID_INFO_LIST(GlobalLock(medium.hGlobal));
-  cnt := aPSidList.cItems;
+//  aPSidList := PSID_INFO_LIST(GlobalLock(medium.hGlobal));
+//  cnt := aPSidList.cItems;
 
-  for i := 0 to cnt - 1 do
+{  for i := 0 to cnt - 1 do
   begin
     p1 := aPSidList.aSidInfo[i].pwzCommonName;
     p2 := aPSidList.aSidInfo[i].pwzClass;
-    p3 := aPSidList.aSidInfo[i].pwzUPN;
-  end;
+  end;}
 
-  GlobalUnLock(medium.hGlobal);
- {
-  FillChar(medium, sizeof(TStgMedium), 0);
-  medium.hGlobal := GlobalAlloc(GHND,123);
-  medium.unkForRelease := nil;
-  medium.tymed := TYMED_HGLOBAL;
-                                  }
-  //  ReleaseStgMedium(medium);
+  GlobalUnLock(medium.hGlobal); //TODO: 1st Sept 2008@CW : is this necessary?
 
   Result := S_OK;
 end;

@@ -1,11 +1,13 @@
 {
-<B>Abstract</B>This unit hosts utilty functions. 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>09/10/2007 
-
+Description
 Project JEDI Windows Security Code Library (JWSCL)
 
+This unit hosts utilty functions.
+
+Author
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -22,17 +24,17 @@ of the LGPL License and not to allow others to use your version of this file
 under the MPL, indicate your decision by deleting  the provisions above and  
 replace  them with the notice and other provisions required by the LGPL      
 License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
-                                                                             
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+your version of this file under either the MPL or the LGPL License.
+
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
+
+Note
 
 The Original Code is JwsclUtils.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-Description:
-This unit hosts utility functions.
 }
 unit JwsclUtils;
 {$I Jwscl.inc}
@@ -59,7 +61,7 @@ interface
 
 uses
   Classes,
-  jwaWindows,
+  JwaWindows,
 {$IFDEF JCL}
   JclWideFormat,
   JclWideStrings,
@@ -81,9 +83,9 @@ type
   TJwThread = class(TThread)
   private
     { Private declarations }
-    FName: AnsiString;
+    FName: TJwString;
 
-    procedure SetName(const Name: AnsiString);
+    procedure SetName(const Name: TJwString);
   protected
     FTerminatedEvent: THandle;
   public
@@ -97,19 +99,44 @@ type
       and commenced immediately (false) or suspended (true). 
      @param Name defines the thread's name 
      }
-    constructor Create(const CreateSuspended: Boolean; const Name: AnsiString);
+    constructor Create(const CreateSuspended: Boolean; const Name: TJwString);
     destructor Destroy; override;
+
+    function GetReturnValue : Integer;
+
+    {<B>WaitWithTimeOut</B> waits for the thread to finish or
+     until a timeout occurs.
+    @param TimeOut Define a timeout. If the value is 0 or INFINITE
+      the function behaves like WaitFor.
+    @param MsgLoop Defines whether the method supports window messages
+      to avoid a GUI dead lock.
+    @return Returns WAIT_TIMEOUT if a timeout occured or zero (0) if the thread finished.
+
+    Remarks
+      The method does not support waiting with message loop support in the case
+       when parameter MsgLoop is true and the current thread is not the main thread.
+     }
+    function WaitWithTimeOut(const TimeOut: DWORD;
+      const MsgLoop : Boolean = true) : LongWord;
+
 
     {<B>Name</B> sets or gets the threads name.
      The name is retrieved from internal variable. Changing the thread's name
      using foreign code does not affect this property.
     }
-    property Name: AnsiString read FName write SetName;
+    property Name: TJwString read FName write SetName;
+
   end;
 
+  {<B>TJwIntTupleList</B> defines an integer tuple list.
+  Despite its name the list manages index with pointers (integer,pointer).
+
+  todo
+    make this bijective
+      index <-> pointer
+
+  }
   TJwIntTupleList = class
-  private
-    procedure Delete(Index: DWORD);
   protected
     fList : TList;
     function GetItem(Index : DWORD) : Pointer;
@@ -121,6 +148,8 @@ type
 
     procedure Add(Index : DWORD; Value : Pointer);
     procedure DeleteIndex(Index : DWORD);
+
+    procedure Clear;
 
     property Items[Index : DWORD] : Pointer read GetItem write SetItem; default;
     property Count : Cardinal read GetCount;
@@ -209,8 +238,8 @@ There is the possibility to use exceptional indexes. To do so set StringId
 member of the TJwRightsMapping to an index which starts at "StartStringId".
 The positive number will be increased by the parameter StartStringId to
 get the resource string index.
-E.g. set StringId to 20 to load the resource string from index [4020] (=
-<StartStringId> + 20)
+E.g. set StringId to 20 to load the resource string from <pre>index [4020] (=
+<StartStringId> + 20)</pre>
 It is also possible to use absolute values - like 4020. To use them
 simply negate the StringId. e.g. StringID: "-4020" will load index [4020].
 It is discouraged to use absolute values because they do not depend on the
@@ -316,16 +345,35 @@ This function is like Assert but it will not be removed in a release build.
 @param P defines a pointer to be validated 
 @param ParameterName defines the name of the parameter which is validated and
  belongs to this pointer 
-@param MethodName defines the name of the method this parameter belongs to 
+@param MethodName defines the name of the method this parameter belongs to
 @param ClassName defines the name of the class the method belongs to. Can be
-  empty if the method does not belong to a class 
-@param FileName defines the source file of the call to this procedure. 
+  empty if the method does not belong to a class
+@param FileName defines the source file of the call to this procedure.
 
 raises
- EJwsclNilPointer:  will be raised if P is nil 
+ EJwsclNilPointer:  will be raised if P is nil
 }
 procedure JwRaiseOnNilMemoryBlock(const P : Pointer;
   const MethodName, ClassName, FileName : TJwString);
+
+{<B>JwCheckInitKnownSid</B> checks for the call of JwInitWellKnownSIDs
+and raises EJwsclInitWellKnownException if it was not called.
+
+There is a more detailed procedure JwsclKnownSid.JwCheckInitKnownSid
+which can be used to check for special well known SID variables from
+unit JwsclKnownSid.
+
+@param MethodName defines the name of the method this parameter belongs to
+@param ClassName defines the name of the class the method belongs to. Can be
+  empty if the method does not belong to a class
+@param FileName defines the source file of the call to this procedure.
+raises
+ EJwsclInitWellKnownException This exception will be raised if JwInitWellKnownSIDs
+  was not called.
+}
+
+procedure JwCheckInitKnownSid(const MethodName, ClassName, FileName : TJwString);
+
 
 {<B>JwRaiseOnNilParameter</B> raises an exception EJwsclNILParameterException if parameter P
  is nil; otherwise nothing happens.
@@ -345,7 +393,27 @@ raises
 procedure JwRaiseOnNilParameter(const P : Pointer;
   const ParameterName, MethodName, ClassName, FileName : TJwString);
 
+{<B>JwRaiseOnClassTypeMisMatch</B> raises an exception EJwsclClassTypeMismatch if parameter Instance
+ is not of type ExpectedClass.
+This function is like Assert but it will not be removed in a release build.
+
+@param Instance defines the class to be tested. If this parameter is nil, the procedure exists without harm.
+@param ExpectedClass defines the class type to be checked for.
+@param MethodName defines the name of the method this parameter belongs to
+@param ClassName defines the name of the class the method belongs to. Can be
+  empty if the method does not belong to a class
+@param FileName defines the source file of the call to this procedure.
+
+raises
+ EJwsclNILParameterException:  will be raised if P is nil
+}
+procedure JwRaiseOnClassTypeMisMatch(const Instance : TObject;
+  const ExpectedClass : TClass;
+  const MethodName, ClassName, FileName : TJwString);
+
 {$IFDEF JW_TYPEINFO}
+{<B>GetUnitName</B> returns the name of unit where the given objects was defined in source code.
+}
 function GetUnitName(argObject: TObject): AnsiString;
 {$ENDIF JW_TYPEINFO}
 
@@ -354,11 +422,11 @@ identifier for a thread.
 <B>JwSetThreadName</B> must be called without using parameter ThreadID
  as a precondition to use JwGetThreadName .
 
-@param Name defines an ansi name for the thread 
+@param Name defines an name for the thread. This Name is converted to ansicode internally.
 @param ThreadID defines which thread is named. A value of Cardinal(-1)  uses
   the current thread 
 }
-procedure JwSetThreadName(const Name: AnsiString; const ThreadID : Cardinal = Cardinal(-1));
+procedure JwSetThreadName(const Name: TJwString; const ThreadID : Cardinal = Cardinal(-1));
 
 {<B>JwGetThreadName</B> returns the name of a thread set by JwSetThreadName.
  This function only returns the name of the current thread. It cannot be used
@@ -372,24 +440,345 @@ function JwGetThreadName : WideString;
 {<B>IsHandleValid</B> returns true if Handle is neither zero (0) nor INVALID_HANDLE_VALUE; otherwise false.}
 function JwIsHandleValid(const Handle : THandle) : Boolean;
 
-{<B>JwCheckBitMask</B> Checks if Bitmask and Check = Check}
+{<B>JwCheckBitMask</B> Checks if (Bitmask and Check) = Check}
 function JwCheckBitMask(const Bitmask: Integer; const Check: Integer): Boolean; 
 
 {<B>JwMsgWaitForMultipleObjects</B> encapsulates MsgWaitForMultipleObjects using an open array
-parameter.}
+parameter. The function should be used to make sure that window messages are processed. In this way
+windows are responsible. This function returns if such a message is received.
+
+@param Handles This parameter receives an array of Handles. You can be either create an array type of THandle
+  or use set operators "[" and "]" containing a comma separated list of handle variables.
+@param bWaitAll Set to true to let the function wait for all given handles until it returns; otherwise it returns
+  as soon as at least one handle state is signaled.
+@param dwMilliseconds Defines a timeout interval that exits the function when elapsed. Set to constant INFINITE (-1) 
+  to ignore timeouts.
+@param dwWakeMask See MsgWaitForMultipleObjects (http://msdn.microsoft.com/en-us/library/ms684242.aspx) in MSDN for more information.
+
+@return Returns a status code. See MsgWaitForMultipleObjects (http://msdn.microsoft.com/en-us/library/ms684242.aspx) in MSDN for more information.
+}
 function JwMsgWaitForMultipleObjects(const Handles: array of THandle; bWaitAll: LongBool;
            dwMilliseconds: DWord; dwWakeMask: DWord): DWord;
 
+{<B>JwWaitForMultipleObjects</B> encapsulates WaitForMultipleObjects using an open array
+parameter.
+
+@param Handles This parameter receives an array of Handles. You can be either create an array type of THandle
+  or use set operators "[" and "]" containing a comma separated list of handle variables.
+@param bWaitAll Set to true to let the function wait for all given handles until it returns; otherwise it returns
+  as soon as at least one handle state is signaled.
+@param dwMilliseconds Defines a timeout interval that exits the function when elapsed. Set to constant INFINITE (-1) 
+  to ignore timeouts.
+
+@return Returns a status code. See WaitForMultipleObjects (http://msdn.microsoft.com/en-us/library/aa931008.aspx) in MSDN for more information.
+}
 function JwWaitForMultipleObjects(const Handles: array of THandle; bWaitAll: LongBool;
            dwMilliseconds: DWord): DWord;
 
+
+{<B>JwCreateWaitableTimer</B> creates a waitable timer handle.
+
+@param TimeOut defines a signal interval in miliseconds (1sec = 1000msec)
+@param SecurityAttributes defines security attributes for the timer. The class type
+  must be TJwSecurityDescriptor or a derivation.
+@return Returns a handle to the new timer object. Must be closed by CloseHandle.
+
+raise
+  EJwsclClassTypeMismatch: If parameter SecurityAttributes is not nil and also
+    not of the type TJwSecurityDescriptor, an exception EJwsclClassTypeMismatch is raised.
+  EOSError: If any winapi calls fail, an exception EJwsclWinCallFailedException is raised.
+}
+function JwCreateWaitableTimer(
+      const TimeOut: DWORD;
+      const SecurityAttributes : TObject = nil) : THandle; overload;
+
+{<B>JwCreateWaitableTimerAbs</B> is not implemented yet.}
+function JwCreateWaitableTimerAbs(
+      const DateTime : TDateTime;
+      const SecurityAttributes : TObject = nil) : THandle; overload;
+
+
+{<B>JwCreateWaitableTimer</B> creates a waitable timer handle.
+
+For more information about the undocumented parameters, see MSDN
+  http://msdn.microsoft.com/en-us/library/ms686289(VS.85).aspx
+
+This function does not support absolute time like the original winapi function.
+It means that you cannot specify a point in time.
+
+@param TimeOut defines a signal interval in miliseconds (1sec = 1000msec)
+@param Name defines a name for the timer. If Name is empty, the timer will be unnamed.
+@param SecurityAttributes defines security attributes for the timer. The class type
+  must be TJwSecurityDescriptor or a derivation.
+
+@return Returns a handle to the new timer object. Must be closed by CloseHandle.
+
+raise
+  EJwsclClassTypeMismatch: If parameter SecurityAttributes is not nil and also
+    not of the type TJwSecurityDescriptor, an exception EJwsclClassTypeMismatch is raised.
+  EOSError: If any winapi calls fail, an exception EJwsclWinCallFailedException is raised.
+}
+function JwCreateWaitableTimer(
+      const TimeOut: DWORD;
+      const ManualReset : Boolean;
+      const Name : TJwString;
+      const Period : Integer = 0;
+      const CompletitionRoutine : PTIMERAPCROUTINE = nil;
+      const CompletitionRoutineArgs : Pointer = nil;
+      const SuspendResume : Boolean = false;
+      const SecurityAttributes : TObject = nil) : THandle; overload;
+
+{<B>JwCreateWaitableTimerAbs</B> is not implemented yet.
+It is intended to support absolute time.
+}
+function JwCreateWaitableTimerAbs(
+      const DateTime : TDateTime;
+      const ManualReset : Boolean;
+      const Name : TJwString;
+      const Period : Integer = 0;
+      const CompletitionRoutine : PTIMERAPCROUTINE = nil;
+      const CompletitionRoutineArgs : Pointer = nil;
+      const SuspendResume : Boolean = false;
+      const SecurityAttributes : TObject = nil) : THandle; overload;
+
+
+{<B>JwCompareFileHash</B> creates a hash from a given file and compares it to
+an already calculated hash.
+
+@param FilePath Defines a path to a file that is used to calculate a hash.
+@param OriginalHash Defines a hash that is compared to the hash of the file.
+@return Returns true if the hash of file and the given one is identical; otherwise false. If
+  the parameter OriginalHash has a nil pointer the return value is also false.
+
+raise
+  EJwsclFileMappingException see TJwFileStreamEx.Create for more information.
+  EJwsclSecurityException There can be other exceptions raised by TJwHash.Create, TJwHash.HashData
+    and TJwHash.RetrieveHash.
+  
+remarks
+  * This function uses TJwFileStreamEx for getting hash in the fastest way possible.
+  * This function uses SHA hashing.
+  
+}
+function JwCompareFileHash(const FilePath : WideString;
+  const OriginalHash : TJwFileHashData) : Boolean;
+  
+{<B>JwCreateFileHash</B> creates a hash from a given file and returns 
+the hash. 
+
+@param FilePath Defines a path to a file that is used to calculate a hash.
+@return The return value is a record that holds the hash data. The returned pointer member "hash" in
+TJwFileHashData must be freed by TJwHash.FreeBuffer (unit JwsclCryptProvider.pas).
+
+raise
+  EJwsclFileMappingException see TJwFileStreamEx.Create for more information.
+  EJwsclSecurityException There can be other exceptions raised by TJwHash.Create, TJwHash.HashData
+    and TJwHash.RetrieveHash.
+	
+remarks
+  * This function uses TJwFileStreamEx for getting hash in the fastest way possible.
+  * This function uses SHA hashing.
+
+}
+function JwCreateFileHash(const FilePath : WideString) : TJwFileHashData;
+
+{<B>JwSaveHashToRegistry</B> saves a hash record (TJwFileHashData) to registry.
+
+@param Hive Defines a registry hive like HKEY_LOCAL_MACHINE.
+@param Key Defines a registry path to a key like "Software\JEDI".
+@param HashName Defines the registry value name that receives the hash data.
+@param SizeName Defines the registry value name that receives the size of hash data.
+@param FileHashData receives the hashdata.
+
+raise
+  Exception This procedure may raise exception coming from TRegistry methods.
+
+}
+procedure JwSaveHashToRegistry(const Hive: Cardinal;
+   const Key, HashName, SizeName : String;
+   const FileHashData : TJwFileHashData);
+
+{<B>JwLoadHashFromRegistry</B> loads a hash record (TJwFileHashData) to registry
+previously saved by JwSaveHashToRegistry.
+
+@param Hive Defines a registry hive like HKEY_LOCAL_MACHINE.
+@param Key Defines a registry path to a key like "Software\JEDI".
+@param HashName Defines the registry value name that receives the hash data.
+@param SizeName Defines the registry value name that receives the size of hash data.
+@return The return value is a record that holds the hash data. The returned pointer member "hash" in
+TJwFileHashData must be freed by TJwHash.FreeBuffer (unit JwsclCryptProvider.pas).
+
+raise
+  Exception This procedure may raise exception coming from TRegistry methods.
+  
+remarks
+  The procedure has some characteristics :
+  * It does not check for a correct hash value. However the key type of "HashName" must be binary though.
+  * It only returns a valid structure if the value from key "SizeName" is between 1 than 1023 bytes (1 <= SizeName <= 1023)
+
+}
+function JwLoadHashFromRegistry(const Hive: Cardinal;
+   const Key, HashName, SizeName : String) : TJwFileHashData;
+
+function JwAccesMaskToBits(const Access : DWORD) : TJwString;
+
 implementation
-uses SysUtils, JwsclToken, JwsclKnownSid, JwsclDescriptor, JwsclAcl,
-     JwsclSecureObjects, JwsclMapping
+uses SysUtils, Registry, JwsclToken, JwsclKnownSid, JwsclDescriptor, JwsclAcl,
+     JwsclSecureObjects, JwsclMapping, JwsclStreams, JwsclCryptProvider,
+     JwsclConstants
 {$IFDEF JW_TYPEINFO}
      ,TypInfo
 {$ENDIF JW_TYPEINFO}
-     ;
+      ;
+
+
+
+function JwAccesMaskToBits(const Access : DWORD) : TJwString;
+var i : byte;
+begin
+  result := '';
+  for I := 1 to (sizeof(Access)*8) do
+  begin
+    if (i in  [17, 25,26,29]) then
+      result := ' ' + result;
+
+
+    if Access and Powers2[I] = Powers2[I] then
+      result := '1' + result
+    else
+      result := '0' + result;
+  end;
+end;
+
+
+function JwCompareFileHash(
+  const FilePath : WideString;
+  const OriginalHash : TJwFileHashData) : Boolean;
+var
+  Stream : TJwFileStreamEx;
+  //M : TMemoryStream;
+  Size : Cardinal;
+  fAppHash : TJwHash;
+  NewHash : TJwFileHashData;
+begin
+  Stream := TJwFileStreamEx.Create(FilePath, fmOpenRead);
+  try
+    if Stream.Size > high(Size) then
+      Size := high(Size)-1  //big file huh?
+    else
+      Size := Stream.Size;
+
+    fAppHash := TJwHash.Create(haSHA);
+    try
+      fAppHash.HashData(Stream.Memory,Size);
+
+      NewHash.Hash := fAppHash.RetrieveHash(NewHash.Size);
+
+      try
+        result := (OriginalHash.Size = NewHash.Size) and
+           (NewHash.Hash <> nil) and (OriginalHash.Hash <> nil) and
+           (CompareMem(OriginalHash.Hash,NewHash.Hash, OriginalHash.Size));
+      finally
+        TJwHash.FreeBuffer(NewHash.Hash);
+      end;
+    finally
+      fAppHash.Free;
+    end;
+  finally
+    Stream.Free;
+  end;
+end;
+
+function JwCreateFileHash(const FilePath : WideString) : TJwFileHashData;
+var
+  Stream : TJwFileStreamEx;
+  Hash : TJwHash;
+  Size : Cardinal;
+begin
+  Stream := TJwFileStreamEx.Create(FilePath, fmOpenRead);
+  try
+    if Stream.Size > high(Size) then
+      Size := high(Size)-1  //big file huh?
+    else
+      Size := Stream.Size;
+
+    Hash := TJwHash.Create(haSHA);
+    try
+      Hash.HashData(Stream.Memory,Size);
+
+      result.Hash := Hash.RetrieveHash(result.Size);
+    finally
+      Hash.Free;
+    end;
+  finally
+    Stream.Free;
+  end;
+end;
+
+
+function JwLoadHashFromRegistry(const Hive: Cardinal;
+   const Key, HashName, SizeName : String) : TJwFileHashData;
+var
+  Reg: TRegistry;
+begin
+  result.Size := 0;
+  result.Hash := nil;
+  
+  try
+    Reg := TRegistry.Create(KEY_QUERY_VALUE or KEY_READ);
+    try
+      Reg.RootKey := Hive;
+      if Reg.OpenKey(Key, false)
+	   //don't check for these value since we need an exception to notify the caller 
+       { and Reg.ValueExists(SizeName)
+        and Reg.ValueExists(HashName)}
+        then
+      try
+        result.Size := Reg.ReadInteger(SizeName);
+        if (result.Size > 0) and (result.Size < 1024) then
+        begin
+		  // TJwHash uses GetMem; the returned record 
+		  // TJwFileHashData is freed by TJwHash.FreeBuffer
+		  // Change this memory manager when TJwHash is changed.
+          GetMem(result.Hash, result.Size);
+		  
+          ZeroMemory(result.Hash, result.Size);
+          try
+            result.Size := Reg.ReadBinaryData(HashName,result.Hash^,result.Size);
+          except
+            FreeMem(Result.Hash);
+          end;
+        end;
+      finally
+        Reg.CloseKey;
+      end;
+    finally
+      Reg.Free;
+    end;
+  except
+  end;
+end;
+
+procedure JwSaveHashToRegistry(const Hive: Cardinal;
+   const Key, HashName, SizeName : String;
+   const FileHashData : TJwFileHashData);
+var
+  Reg: TRegistry;
+begin
+  Reg:=TRegistry.Create(KEY_SET_VALUE or KEY_CREATE_SUB_KEY);
+  try
+    Reg.RootKey := Hive;
+    if Reg.OpenKey(Key, true) then
+    try
+      Reg.WriteInteger(SizeName, FileHashData.Size);
+      Reg.WriteBinaryData(HashName,FileHashData.Hash^,FileHashData.Size);
+    finally
+      Reg.CloseKey;
+    end;
+  finally
+    Reg.Free;
+  end;
+end;
 
 {$IFDEF JW_TYPEINFO}
 function GetUnitName(argObject: TObject): AnsiString;
@@ -424,13 +813,13 @@ type
   end;
 
 
-procedure TJwThread.SetName(const Name: AnsiString);
+procedure TJwThread.SetName(const Name: TJwString);
 begin
   FName := Name;
   JwSetThreadName(Name, ThreadID);
 end;
 
-constructor TJwThread.Create(const CreateSuspended: Boolean; const Name: AnsiString);
+constructor TJwThread.Create(const CreateSuspended: Boolean; const Name: TJwString);
 begin
   inherited Create(CreateSuspended);
 
@@ -451,6 +840,11 @@ begin
   SetName(Name);
 end;
 
+function TJwThread.GetReturnValue: Integer;
+begin
+  result := ReturnValue;
+end;
+
 threadvar InternalThreadName : WideString;
 
 function JwGetThreadName : WideString;
@@ -459,7 +853,7 @@ begin
 end;
 
 //source http://msdn2.microsoft.com/en-us/library/xcb2z8hs(vs.71).aspx
-procedure JwSetThreadName(const Name: AnsiString; const ThreadID : Cardinal = Cardinal(-1));
+procedure JwSetThreadName(const Name: TJwString; const ThreadID : Cardinal = Cardinal(-1));
 {$IFDEF MSWINDOWS}
 var
   ThreadNameInfo: TThreadNameInfo;
@@ -467,6 +861,7 @@ var
 begin
 {$IFDEF MSWINDOWS}
   ThreadNameInfo.FType := $1000;
+  //CW : imho, only ansicode is supported. So we cast it here.
   ThreadNameInfo.FName := PAnsiChar(AnsiString(Name));
   if (ThreadID = Cardinal(-1)) or (ThreadID = GetCurrentThreadID) then
     InternalThreadName := WideString(Name);
@@ -491,12 +886,32 @@ begin
       ClassName, FileName, 0, False, [ParameterName]);
 end;
 
+procedure JwCheckInitKnownSid(const MethodName, ClassName, FileName : TJwString);
+begin
+  if not JwInitWellKnownSidStatus then
+    raise EJwsclInitWellKnownException.CreateFmtEx(
+      RsInitWellKnownNotCalled,
+      MethodName, ClassName, FileName, 0, false, []);
+end;
+
 procedure JwRaiseOnNilMemoryBlock(const P : Pointer; const MethodName, ClassName, FileName : TJwString);
 begin
   if P = nil then
     raise EJwsclNilPointer.CreateFmtEx(
      RsNilPointer,
       MethodName, ClassName, FileName, 0, false, []);
+end;
+
+procedure JwRaiseOnClassTypeMisMatch(const Instance : TObject;
+  const ExpectedClass : TClass;
+  const MethodName, ClassName, FileName : TJwString);
+begin
+  if Assigned(Instance) and
+    not (Instance is TJwSecurityDescriptor) then
+      raise EJwsclClassTypeMismatch.CreateFmtEx(
+               RsInvalidClassType,
+               MethodName, ClassName, FileName, 0, false,
+                [Instance.ClassName, ExpectedClass.ClassName]);
 end;
 
 function JwCheckArray(const Objs : TJwObjectTypeArray; out Index : Integer) : Boolean;
@@ -578,8 +993,12 @@ var ArrayHi,ArrayLo : Cardinal;
   begin
     for i := 1 to Length(S) do
     begin
-      //if not ((S[i] >= '0') and (S[i] <= '9')) then
+{$IFDEF UNICODE}
+//in this way Delphi 2009 does not generate a warning
+      if not ((S[i] >= '0') and (S[i] <= '9')) then
+{$ELSE}
       if not (S[i] in [TJwChar('0')..TJwChar('9')]) then
+{$ENDIF UNICODE}
       begin
         SetLength(S, i-1);
         break;
@@ -670,7 +1089,7 @@ end;
 function JwMsgWaitForMultipleObjects(const Handles: array of THandle; bWaitAll: LongBool;
            dwMilliseconds: DWord; dwWakeMask: DWord): DWord;
 begin
-  Result := MsgWaitForMultipleObjects(Length(Handles), @Handles[0], bWaitAll, dwMilliseconds, dwWakeMask);
+  Result := JwaWindows.MsgWaitForMultipleObjects(Length(Handles), @Handles[0], bWaitAll, dwMilliseconds, dwWakeMask);
 end;
 
 function JwWaitForMultipleObjects(const Handles: array of THandle; bWaitAll: LongBool;
@@ -784,7 +1203,6 @@ function JwGlobalFreeMem(var hMem: HGLOBAL): HGLOBAL;
   var i : Integer;
   begin
     result := -1;
-    i := -1;
     for I := 0 to InternalMemArray.Count - 1 do
     begin
       if not PMemTuple(InternalMemArray[i]).MemType and
@@ -801,7 +1219,6 @@ function JwGlobalFreeMem(var hMem: HGLOBAL): HGLOBAL;
 var Index : Integer;
 {$ENDIF FullDebugMode}
 begin
-  result := 0;
 {$IFDEF FullDebugMode}
   if GlobalLock(hMem) <> nil then
   begin
@@ -881,23 +1298,16 @@ begin
   fList := TList.Create;
 end;
 
-procedure TJwIntTupleList.Delete(Index: DWORD);
+
+procedure TJwIntTupleList.Clear;
 var i : Integer;
 begin
-  for i := 0 to fList.Count - 1 do
+  for I := Count - 1 downto 0 do
   begin
-    if PIntTuple(fList[i])^.Index = Index then
-    begin
-      Dispose(PIntTuple(fList[i]));
-
-      fList.Delete(i);
-      exit;
-    end;
+    Dispose(PIntTuple(fList[i]));
   end;
-
-  raise ERangeError.CreateFmt('Index value %d not found',[Index]);
+  fList.Clear;
 end;
-
 
 procedure TJwIntTupleList.DeleteIndex(Index: DWORD);
 var i : Integer;
@@ -907,6 +1317,7 @@ begin
     if PIntTuple(fList[i])^.Index = Index then
     begin
       dispose(PIntTuple(fList[i]));
+      fList.Delete(i);
       exit;
     end;
   end;
@@ -917,6 +1328,7 @@ end;
 
 destructor TJwIntTupleList.Destroy;
 begin
+  Clear;
   FreeAndNil(fList);
   inherited;
 end;
@@ -955,6 +1367,177 @@ begin
 
   raise ERangeError.CreateFmt('Value %d not found',[Index]);
 end;
+
+function JwCreateWaitableTimer(
+      const TimeOut: DWORD;
+      const SecurityAttributes : TObject = nil) : THandle;
+begin
+  result := JwCreateWaitableTimer(TimeOut, false, '',0,nil,nil,false,SecurityAttributes);
+end;
+
+function JwCreateWaitableTimerAbs(
+      const DateTime : TDateTime;
+      const SecurityAttributes : TObject = nil) : THandle; overload;
+begin
+  result := JwCreateWaitableTimerAbs(DateTime, false, '',0,nil,nil,false,SecurityAttributes);
+end;
+
+
+
+
+
+function JwCreateWaitableTimer(
+      const TimeOut: DWORD;
+      const ManualReset : Boolean;
+      const Name : TJwString;
+      const Period : Integer = 0;
+      const CompletitionRoutine : PTIMERAPCROUTINE = nil;
+      const CompletitionRoutineArgs : Pointer = nil;
+      const SuspendResume : Boolean = false;
+      const SecurityAttributes : TObject = nil) : THandle;
+var
+  TimeOutInt64 : LARGE_INTEGER;
+  SA : PSecurityAttributes;
+  pName : TJwPChar;
+begin
+  JwRaiseOnClassTypeMisMatch(SecurityAttributes, TJwSecurityDescriptor,
+    'JwCreateWaitableTimer','',RsUNUtils);
+  try
+    SA := nil;
+    if Assigned(SecurityAttributes) then
+      SA := TJwSecurityDescriptor(SecurityAttributes).Create_SA();
+
+    if Length(Name) > 0 then
+      pName := TJwPchar(Name)
+    else
+      pName := nil;
+
+    Result := {$IFDEF UNICODE}CreateWaitableTimerW{$ELSE}CreateWaitableTimerA{$ENDIF}
+      (LPSECURITY_ATTRIBUTES(SA), ManualReset, pName);
+    if (Result = 0) or (Result = INVALID_HANDLE_VALUE) then
+      raise EJwsclWinCallFailedException.CreateFmtEx(
+        RsWinCallFailed,
+         'JwCreateWaitableTimer', '', RsUNUtils, 0, True, ['CreateWaitableTimer']);
+  finally
+    if SA <> nil then
+      TJwSecurityDescriptor.Free_SA(SA);
+  end;
+
+  ZeroMemory(@TimeOutInt64,sizeof(TimeOutInt64));
+  TimeOutInt64.HighPart := -1;
+  TimeOutInt64.LowPart := - TimeOut * 10000;
+
+
+  if not SetWaitableTimer(Result, TimeOutInt64, Period, CompletitionRoutine, CompletitionRoutineArgs, SuspendResume) then
+  begin
+    CloseHandle(Result);
+    raise EJwsclWinCallFailedException.CreateFmtEx(
+        RsWinCallFailed,
+         'JwCreateWaitableTimer', '', RsUNUtils, 0, True, ['SetWaitableTimer']);
+  end;
+end;
+
+function JwCreateWaitableTimerAbs(
+      const DateTime : TDateTime;
+      const ManualReset : Boolean;
+      const Name : TJwString;
+      const Period : Integer = 0;
+      const CompletitionRoutine : PTIMERAPCROUTINE = nil;
+      const CompletitionRoutineArgs : Pointer = nil;
+      const SuspendResume : Boolean = false;
+      const SecurityAttributes : TObject = nil) : THandle; overload;
+begin
+  raise EJwsclUnimplemented.Create('JwCreateWaitableTimer is not implemented.');
+  (*
+  // Declare our local variables.
+HANDLE hTimer;
+SYSTEMTIME st;
+FILETIME ftLocal, ftUTC;
+LARGE_INTEGER liUTC;
+
+// Create an auto-reset timer.
+hTimer = CreateWaitableTimer(NULL, FALSE, NULL);
+
+// First signaling is at January 1, 2002, at 1:00 P.M. (local time).
+st.wYear         = 2002; // Year
+st.wMonth        = 1;    // January
+st.wDayOfWeek    = 0;    // Ignored
+st.wDay          = 1;    // The first of the month
+st.wHour         = 13;   // 1PM
+st.wMinute       = 0;    // 0 minutes into the hour
+st.wSecond       = 0;    // 0 seconds into the minute
+st.wMilliseconds = 0;    // 0 milliseconds into the second
+
+SystemTimeToFileTime(&st, &ftLocal);
+
+// Convert local time to UTC time.
+LocalFileTimeToFileTime(&ftLocal, &ftUTC);
+// Convert FILETIME to LARGE_INTEGER because of different alignment.
+liUTC.LowPart  = ftUTC.dwLowDateTime;
+liUTC.HighPart = ftUTC.dwHighDateTime;
+
+// Set the timer.
+SetWaitableTimer(hTimer, &liUTC, 6 * 60 * 60 * 1000,
+   NULL, NULL, FALSE);
+
+  *)
+end;
+
+
+
+function TJwThread.WaitWithTimeOut(const TimeOut: DWORD;
+  const MsgLoop : Boolean = true) : LongWord;
+var
+  WaitResult: Cardinal;
+  Msg: TMsg;
+  hTimer : THandle;
+begin
+  if (TimeOut = 0) or (TimeOut = INFINITE) then
+    result := WaitFor
+  else
+  if GetCurrentThreadID = MainThreadID then
+  begin
+    WaitResult := 0;
+
+    hTimer := JwCreateWaitableTimer(TimeOut, true, '');
+    try
+      repeat
+        { This prevents a potential deadlock if the background thread
+          does a SendMessage to the foreground thread }
+        if (MsgLoop) and (WaitResult = WAIT_OBJECT_0 + 2) then
+          PeekMessage(Msg, 0, 0, 0, PM_NOREMOVE);
+
+        ResetEvent(hTimer);
+
+        {Okay, we could just have used the builtin timeout support.
+        But that's too easy
+        }
+        if MsgLoop then
+          WaitResult := JwMsgWaitForMultipleObjects([Handle, SyncEvent, hTimer], False, INFINITE, QS_SENDMESSAGE)
+        else
+          WaitResult := JwWaitForMultipleObjects([Handle, SyncEvent, hTimer], False, INFINITE);
+          
+        CheckThreadError(WaitResult <> WAIT_FAILED);
+
+        if WaitResult = WAIT_OBJECT_0 + 1 then
+          CheckSynchronize;
+        if WaitResult = WAIT_OBJECT_0 + 2 then
+        begin
+          result := WAIT_TIMEOUT;
+          exit;
+        end;         
+      until WaitResult = WAIT_OBJECT_0;
+    finally
+      if hTimer <> INVALID_HANDLE_VALUE then
+        CloseHandle(hTimer);
+    end;
+  end
+  else
+    WaitForSingleObject(Handle, TimeOut);
+
+  CheckThreadError(GetExitCodeThread(Handle, Result));
+end;
+
 
 initialization
 

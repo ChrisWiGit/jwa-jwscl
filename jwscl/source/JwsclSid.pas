@@ -1,10 +1,16 @@
-{<B>Abstract</B>Contains Security Descriptor classes that are used by the units of JWSCL 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>09/10/2007 
-
+{
+Description
 Project JEDI Windows Security Code Library (JWSCL)
 
+Contains Security Descriptor classes that are used by the units of JWSCL
+This unit contains ansi- and unicode string types that are used by the units of JWSCL.
+You can define UNICODE to use unicode strings. Otherwise ansicode will be used.
+
+
+Author
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -13,26 +19,25 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the  
-GNU Lesser General Public License (the  "LGPL License"), in which case the   
-provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
-                                                                             
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+Alternatively, the contents of this file may be used under the terms of the
+GNU Lesser General Public License (the  "LGPL License"), in which case the
+provisions of the LGPL License are applicable instead of those above.
+If you wish to allow use of your version of this file only under the terms
+of the LGPL License and not to allow others to use your version of this file
+under the MPL, indicate your decision by deleting  the provisions above and
+replace  them with the notice and other provisions required by the LGPL
+License.  If you do not delete the provisions above, a recipient may use
+your version of this file under either the MPL or the LGPL License.
+
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
+
+Note
 
 The Original Code is JwsclSid.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-Description:
-This unit contains ansi- and unicode string types that are used by the units of JWSCL.
-You can define UNICODE to use unicode strings. Otherwise ansicode will be used.
 
 }
 {$IFNDEF SL_OMIT_SECTIONS}
@@ -189,7 +194,7 @@ type
     {
     The security identifier (SID) structure is a variable-length structure used to uniquely identify users or groups.
 
-    @ClassName encapsulates a SID structures and provides functions to create, read and convert SID data.
+    TJwSecurityId encapsulates a SID structures and provides functions to create, read and convert SID data.
     Once an instance is created the SID data cannot be changed. Therefore there is no Assign function to copy data.
 
     MSDN on http://msdn2.microsoft.com/en-us/library/aa379594.aspx
@@ -203,12 +208,16 @@ type
 
     fSID: PSID;
 
+    fCachedSidString : TJwString;
+
     fAttributes: Cardinal;
 
+{$IFDEF JWSCL_DEBUG_INFO}
     {<B>fDbgData</B> contains the values of the properties of the instance for debugging purposes.
      It is only used if DEBUG is defined.
      }
     fDbgData: AnsiString;
+{$ENDIF JWSCL_DEBUG_INFO}
 
       {<B>fDbgDisableException</B> disables the raising of exceptions in the following methods :
         +GetAccountSidString
@@ -407,7 +416,7 @@ type
             #  SidTypeUnknown        = 8;
             #  SidTypeComputer       = 9;
          
-       @return <B>GetAccountSidString</B> returns the account name associated by this SID. 
+       @return <B>GetAccountSidString</B> returns the account name associated by this SID.
        raises
  EJwsclWinCallFailedException:  if the call to a winapi function failed 
         EJwsclSecurityException: See CheckSID  for more exceptions 
@@ -478,7 +487,7 @@ type
                   The IsValidSid function validates a security identifier (SID) by verifying that the revision number is within a known range, and that the number of subauthorities is less than the maximum.
                   
       }
-    procedure CheckSID;
+    procedure CheckSID; {$IFDEF DELPHI2005_UP}inline;{$ENDIF}
 
       {<B>GetText</B> creates a text that contains domain, account name and humand readable SID structure.
        The form is "[domain@]name (S-1-XXXXXX)" where [] is optional.
@@ -497,7 +506,7 @@ type
         The given SID must be a correct SID.
         The resulted SID will be checked by CheckSID .
 
-        @param SecurityID receives a SID instance to be copied 
+        @param SecurityID receives a SID instance to be copied
         raises
  EJwsclSecurityException:  See CheckSID  for exceptions description 
 
@@ -784,8 +793,50 @@ type
     COM: Also available as com method.
    }
     property CachedSystemName : TJwString read fCachedSystemName write fCachedSystemName;
+
+    property CachedSidString : TJwString read fCachedSidString;
   end;
 
+
+{Threadvar}
+threadvar
+  {JwSidNameCache is only used if JWSCL_SIDCACHE (or JWSCL_USE_CACHES)
+   is defined; otherwise it is nil;
+   It is used to cache translation from Sid number to account name.
+
+   Before using call JwInitSidNameCache() in every thread separately.
+
+   You need to call JwInitSidNameCache() to make it work!
+   Also don't forget to call JwFreeSidNameCache().
+
+   From time to time you should clear the cache; otherwise it can
+   become too big; then use JwClearSidNameCache().
+
+   JwInitSidNameCache(), JwClearSidNameCache() and JwFreeSidNameCache()
+   must be called for every thread separately.
+  }
+  JwSidNameCache : TStringList;
+
+
+{<b>JwFreeSidNameCache</b> frees the variable JwSidNameCache
+and sets it to nil. This procedure must be called in the end
+of every thread separately; this includes the main thread.
+
+This call is automatically done for the first thread!
+}
+procedure JwFreeSidNameCache;
+
+{<b>JwClearSidNameCache</b> removes all list entries.
+JwInitSidNameCache() must be called before using this procedure.}
+procedure JwClearSidNameCache;
+
+{<b>JwClearSidNameCache</b> initializes the JwSidNameCache string list.
+It must be called only once for every thread. Multiple calls
+will create dangling pointers.
+
+This call is automatically done for the first thread!
+}
+procedure JwInitSidNameCache;
 
 {$ENDIF SL_IMPLEMENTATION_SECTION}
 
@@ -801,7 +852,8 @@ class function TJwSecurityId.NewSID: PSID;
 begin
   //Result := PSID(GlobalAlloc(GMEM_FIXED or GMEM_ZEROINIT,SECURITY_MAX_SID_SIZE));
   GetMem(Result, SECURITY_MAX_SID_SIZE); //GetMem is compatible to FastMM4
-  FillChar(Result^, SECURITY_MAX_SID_SIZE, 0);
+  //FillChar(Result^, SECURITY_MAX_SID_SIZE, 0);
+  ZeroMemory(Result, SECURITY_MAX_SID_SIZE);
 
   if Result = nil then
     raise EJwsclNotEnoughMemory.CreateFmtEx(
@@ -813,8 +865,9 @@ class procedure TJwSecurityId.FreeSID(var SID: PSID);
 begin
   if SID <> nil then
   begin
-    FillChar(SID^, sizeof(SID^), 0);
-    //GlobalFree(Cardinal(SID));
+    //FillChar(SID^, sizeof(SID^), 0);
+    ZeroMemory(SID, sizeof(SID^));
+    //GlobalFree(HGLOBAL(SID));
     FreeMem(SID);
   end;
 
@@ -828,6 +881,7 @@ begin
   fDbgDisableException := False;
   fWellKnownSidType := WinNullSid;
   fCachedSystemName := '';
+  fCachedSidString := '';
 end;
 
 constructor TJwSecurityId.Create(const SID: PSID);
@@ -856,7 +910,11 @@ begin
 
   CheckSID;
 
+  fCachedSidString := StringSID;
+
+{$IFDEF JWSCL_DEBUG_INFO}
   UpdateDbgData;
+{$ENDIF JWSCL_DEBUG_INFO}
 end;
 
 constructor TJwSecurityId.Create(const SecurityID: TJwSecurityId);
@@ -872,7 +930,9 @@ begin
 
   CheckSID;
 
+{$IFDEF JWSCL_DEBUG_INFO}
   UpdateDbgData;
+{$ENDIF JWSCL_DEBUG_INFO}
 end;
 
 constructor TJwSecurityId.CreateWellKnownSid(WellKnownSidType:
@@ -897,6 +957,10 @@ begin
   if not JwaWindows.CreateWellKnownSid(JwaWindows.WELL_KNOWN_SID_TYPE(WellKnownSidType),
     pDomainSid, tempSID, dwSize) then
   begin
+    {
+    If this exception is raised in a call of JwInitWellKnownSID...
+    you can ignore it!
+    }
     Excp := EJwsclInvalidKnownSIDException.CreateFmtEx(
       RsWinCallFailed, 'CreateWellKnownSid',
       ClassName, RsUNSid, 0, True, ['CreateWellKnownSid']);
@@ -928,7 +992,11 @@ begin
 
   CheckSID;
 
+  fCachedSidString := StringSID;
+
+{$IFDEF JWSCL_DEBUG_INFO}
   UpdateDbgData;
+{$ENDIF JWSCL_DEBUG_INFO}
 end;
 
 constructor TJwSecurityId.Create(const SID: PSidAndAttributes);
@@ -969,7 +1037,9 @@ begin
 
   FreeMem(aIdentifier);
 
+{$IFDEF JWSCL_DEBUG_INFO}
   UpdateDbgData;
+{$ENDIF JWSCL_DEBUG_INFO}
 end;   *)
 
 var
@@ -1000,14 +1070,16 @@ begin
 
   CheckSID;
 
+  fCachedSidString := StringSID;
+
+{$IFDEF JWSCL_DEBUG_INFO}
   UpdateDbgData;
+{$ENDIF JWSCL_DEBUG_INFO}
 end;
 
 constructor TJwSecurityId.Create(const Authorities: TJwSubAuthorityArray;
   Identifier: TSidIdentifierAuthority);
-var
-  i: integer;
-
+var i : Integer;
 begin
   Create;
 
@@ -1039,7 +1111,11 @@ begin
 
   CheckSID;
 
+  fCachedSidString := StringSID;
+
+{$IFDEF JWSCL_DEBUG_INFO}
   UpdateDbgData;
+{$ENDIF JWSCL_DEBUG_INFO}
 end;
 
 constructor TJwSecurityId.Create(const SIDString: TJwString);
@@ -1074,7 +1150,10 @@ begin
   //free the SID
   LocalFree(HLOCAL(tempSID));
 
+
+{$IFDEF JWSCL_DEBUG_INFO}
   UpdateDbgData;
+{$ENDIF JWSCL_DEBUG_INFO}
 end;
 
 constructor TJwSecurityId.Create(const SystemName, AccountName: TJwString);
@@ -1135,7 +1214,9 @@ begin
     //Copy the SID
     Create(tempSID);
 
-    fCachedSystemName := pDomainName;
+    //not necessary here since the user supplied the name -
+    //we ignore pDomainName since it may be a pseudo domain like "NT SERVICE"
+    //fCachedSystemName := pDomainName;
 
     //free the SID
     LocalFree(HLOCAL(tempSID));
@@ -1251,6 +1332,12 @@ begin
 
   pSid1.CheckSID;
 
+
+{
+  if Self.SubAuthorityCount = pSid1.SubAuthorityCount then
+    Result := CompareMem(Self.SID, pSid1.SID, SIDLength)
+  else
+    result := false;}
   Result := JwaWindows.EqualSid(Self.SID, pSid1.SID);
   if GetLastError() <> 0 then
   begin
@@ -1279,19 +1366,50 @@ begin
   end;
 end;
 
+type
+  PStringRec = ^TStringRec;
+  TStringRec = record
+    Domain : TJwString;
+    SidNameUse : TSidNameUse;
+    UserName : TJwString;
+  end;
+
 function TJwSecurityId.GetAccountSidString(const SystemName: TJwString;
   out DomainName: TJwString; out SidNameUse: TSidNameUse): TJwString;
 var
   pSIDName, pDomainName: TJwPChar;
   iSIDName, iDomainName: Cardinal;
+{$IFDEF JWSCL_SIDCACHE}
+  i : Integer;
+  P : PStringRec;
+{$ENDIF JWSCL_SIDCACHE}
 begin
   CheckSID;
+
+  
+
+{$IFDEF JWSCL_SIDCACHE}
+  ASSERT(JwSidNameCache <> nil, 'Sid Cache was enabled but JwInitSidNameCache was not called before.');
+
+  if (JwSidNameCache.Find(SystemName+fCachedSidString, i)) then
+  begin
+    if PStringRec(JwSidNameCache.Objects[i])^.UserName = '' then
+      result := JwSidNameCache[i]
+    else
+      result := PStringRec(JwSidNameCache.Objects[i])^.UserName;
+
+    DomainName := PStringRec(JwSidNameCache.Objects[i])^.Domain;
+    SidNameUse := PStringRec(JwSidNameCache.Objects[i])^.SidNameUse;
+    exit;
+  end;
+{$ENDIF JWSCL_SIDCACHE}
 
   DomainName := '';
   SidNameUse := SidTypeInvalid;
 
   iDomainName := 0;
   iSIDName := 0;
+
 
   if not JwaWindows.
     {$IFDEF UNICODE}LookupAccountSidW{$ELSE}
@@ -1325,6 +1443,26 @@ begin
 
     DomainName := TJwString(pDomainName);
     Result := TJwString(pSIDName);
+
+{$IFDEF JWSCL_SIDCACHE}
+    if (JwSidNameCache.Find(Result, i)) then
+    begin
+      PStringRec(JwSidNameCache.Objects[i])^.Domain := DomainName;
+      PStringRec(JwSidNameCache.Objects[i])^.SidNameUse := SidNameUse;
+      PStringRec(JwSidNameCache.Objects[i])^.UserName := Result;
+    end
+    else
+    begin
+      New(P);
+      Initialize(P^);
+      P^.Domain := DomainName;
+      P^.SidNameUse := SidNameUse;
+      P^.UserName := Result;
+      JwSidNameCache.AddObject(SystemName+fCachedSidString, TObject(P));
+    end;
+{$ENDIF JWSCL_SIDCACHE}
+
+
 
     LocalFree(Cardinal(pSIDName));
     LocalFree(Cardinal(pDomainName));
@@ -1515,6 +1653,7 @@ end;
 
 procedure TJwSecurityId.CheckSID;
 begin
+{$IFOPT C+} //ASSERTIONS
   if fSID = nil then
     raise EJwsclInvalidSIDException.CreateFmtEx('Invalid SID.',
       'GetSidSubAuthority', ClassName, RsUNSid, 0, False, []);
@@ -1522,6 +1661,7 @@ begin
   if not IsValidSid(PSID(fSID)) then
     raise EJwsclInvalidSIDException.CreateFmtEx('Invalid SID.',
       'GetSidSubAuthority', ClassName, RsUNSid, 0, False, []);
+{$ENDIF}
 end;
 
 function TJwSecurityId.GetSidSubAuthorityArray: TJwSubAuthorityArray;
@@ -1600,7 +1740,7 @@ begin
   Result.SubAuthorityCount := c;
   Result.IdentifierAuthority := IdentifierAuthority;
 
-  for i := 0 to SubAuthorityCount - 1 do
+  for i := 0 to c - 1 do
     Result.SubAuthority[i] := SubAuthorityArray[i];
 end;
 
@@ -1683,14 +1823,14 @@ begin
 end;
 
 procedure TJwSecurityId.UpdateDbgData;
-{$IFDEF DEBUG}
+{$IFDEF JWSCL_DEBUG_INFO}
 var
   Data: array[1..10] of AnsiString;
   i: integer;
   ident: TSidIdentifierAuthority;
-{$ENDIF DEBUG}
+{$ENDIF JWSCL_DEBUG_INFO}
 begin
-{$IFDEF DEBUG}
+{$IFDEF JWSCL_DEBUG_INFO}
   fDbgDisableException := True;
 
 
@@ -1753,7 +1893,7 @@ begin
   begin
     fDbgData := fDbgData + Data[i] + #13#10;
   end;
-{$ENDIF DEBUG}
+{$ENDIF JWSCL_DEBUG_INFO}
 end;
 
 {*********** TJwSecurityIdList *************}
@@ -1970,6 +2110,47 @@ end;
 
 {$IFNDEF SL_OMIT_SECTIONS}
 
+
+procedure JwClearSidNameCache;
+var i : integer;
+begin
+  JwSidNameCache.BeginUpdate;
+  for I := 0 to JwSidNameCache.Count - 1 do
+  begin
+    Finalize(PStringRec(JwSidNameCache.Objects[i])^);
+    Dispose(PStringRec(JwSidNameCache.Objects[i]));
+  end;
+  JwSidNameCache.Clear;
+  JwSidNameCache.EndUpdate;
+end;
+
+procedure JwInitSidNameCache;
+begin
+  JwSidNameCache := TStringList.Create;
+  JwSidNameCache.Sorted := true;
+  JwSidNameCache.Duplicates := dupAccept;
+  JwSidNameCache.CaseSensitive := false;
+end;
+
+procedure JwFreeSidNameCache;
+begin
+  JwClearSidNameCache;
+  FreeAndNil(JwSidNameCache);
+end;
+
+initialization
+{$IFDEF JWSCL_SIDCACHE}
+  JwInitSidNameCache;
+{$ENDIF JWSCL_SIDCACHE}
+
+finalization
+{$IFDEF JWSCL_SIDCACHE}
+  JwFreeSidNameCache;
+{$ENDIF JWSCL_SIDCACHE}
+
+{$ENDIF SL_INTERFACE_SECTION}
+
+{$IFNDEF SL_OMIT_SECTIONS}
 
 end.
 {$ENDIF SL_OMIT_SECTIONS}(*

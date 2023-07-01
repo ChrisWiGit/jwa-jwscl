@@ -1,10 +1,14 @@
-{<B>Abstract</B>This unit provides access to the Local Security Authority Subsystem that provides function like LSALogonUser to create a logon session. 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>09/10/2007 
+{
+Description
 
 Project JEDI Windows Security Code Library (JWSCL)
 
+This unit provides access to the Local Security Authority Subsystem that provides function like LSALogonUser to create a logon session.
+
+Author
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -13,24 +17,24 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the  
-GNU Lesser General Public License (the  "LGPL License"), in which case the   
-provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
-                                                                             
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+Alternatively, the contents of this file may be used under the terms of the
+GNU Lesser General Public License (the  "LGPL License"), in which case the
+provisions of the LGPL License are applicable instead of those above.
+If you wish to allow use of your version of this file only under the terms
+of the LGPL License and not to allow others to use your version of this file
+under the MPL, indicate your decision by deleting  the provisions above and
+replace  them with the notice and other provisions required by the LGPL
+License.  If you do not delete the provisions above, a recipient may use
+your version of this file under either the MPL or the LGPL License.
 
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
+
+Note
 The Original Code is JwsclLSA.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-Description:
 
 }
 {$IFNDEF SL_OMIT_SECTIONS}
@@ -58,10 +62,36 @@ type
   protected
     fLsaHandle: THandle;
   public
+    {<B>Create</B> creates a new instance of TJwSecurityLsa and
+	registers the current process as a logon process.
+	This call needs TCB privilege!
+   @param LogonProcessName This parameter receives a name in ansi format that
+     does not exceed 127 characters.
+
+	@raises
+	  EJwsclWinCallFailedException: This exception will be raised
+	    if the call to LsaRegisterLogonProcess failed.
+	}
     constructor Create(const LogonProcessName: AnsiString);
+	               
+    {<B>CreateUntrusted</B> creates a new instance of TJwSecurityLsa and
+	 creates an untrusted connection to LSA 
+	 
+	 @raises
+	  EJwsclWinCallFailedException: This exception will be raised
+	    if the call to LsaConnectUntrusted failed.
+	}	
+  	constructor CreateUntrusted;
 
     destructor Destroy; override;
 
+    {<B>LsaLogonUser</B> creates a new authentication token where
+	even token groups can be adapted.
+	
+	@param anAuthenticationInformation Use JwCreate_MSV1_0_INTERACTIVE_LOGON for 
+		interactive logondata)
+
+	}
     procedure LsaLogonUser(anOriginName: AnsiString;
       aLogonType: SECURITY_LOGON_TYPE;
       anAuthenticationPackageName: AnsiString;
@@ -194,8 +224,9 @@ The returned pointer can be freed by LocalFree .
 }
 function JwCreate_MSV1_0_INTERACTIVE_LOGON(
   MessageType: MSV1_0_LOGON_SUBMIT_TYPE;
-  LogonDomainName, UserName,
-  Password: WideString;
+  const LogonDomainName,
+        UserName,
+        Password: WideString;
   out authLen: Cardinal): PMSV1_0_INTERACTIVE_LOGON;
 
 
@@ -219,8 +250,6 @@ function JwInitLsaStringW(
 var
   dwLen : DWORD;
 begin
-  dwLen := 0;
-
   dwLen := Length(pwszString);
   if (dwLen > $7ffe) then  // String is too large
   begin
@@ -246,6 +275,7 @@ end;
 
 
 function JwCreateLSAString(const aString: AnsiString): LSA_STRING;
+//aString must be AnsiString !!
 var
   pStr: PAnsiChar;
 begin
@@ -268,12 +298,26 @@ begin
 end;
 
 
-
+constructor TJwSecurityLsa.CreateUntrusted;
+var res: NTSTATUS;
+begin
+  res := LsaConnectUntrusted(fLsaHandle);
+  if res <> STATUS_SUCCESS then
+  begin
+    res := LsaNtStatusToWinError(res);
+    SetLastError(res);
+    raise EJwsclWinCallFailedException.CreateFmtWinCall(
+      RsWinCallFailed,
+      'CreateUntrusted', ClassName, 'JwsclLsa.pas',
+      0, True, 'LsaConnectUntrusted',
+      ['LsaRegisterLogonProcess']);
+  end;
+end;
 
 constructor TJwSecurityLsa.Create(const LogonProcessName: AnsiString);
 var
   lsaHostString: LSA_STRING;
-  res: Cardinal;
+  res: NTSTATUS;
   lsaSecurityMode: LSA_OPERATIONAL_MODE;
 
 const
@@ -282,7 +326,6 @@ const
     Buffer: '12'#0);
 begin
   lsaHostString := JwCreateLSAString(LogonProcessName);
-
 
   res := LsaRegisterLogonProcess(lsaHostString, fLsaHandle, @lsaSecurityMode);
 
@@ -318,8 +361,9 @@ end;
 
 function JwCreate_MSV1_0_INTERACTIVE_LOGON(
   MessageType: MSV1_0_LOGON_SUBMIT_TYPE;
-  LogonDomainName, UserName,
-  Password: WideString;
+  const LogonDomainName,
+        UserName,
+        Password: WideString;
   out authLen: Cardinal): PMSV1_0_INTERACTIVE_LOGON;
 var
   iSize: integer;
@@ -372,7 +416,7 @@ procedure TJwSecurityLsa.LsaLogonUser(anOriginName: AnsiString;
   out aQuotaLimits: QUOTA_LIMITS; out SubStatus: NTSTATUS);
 
 var
-  res: Cardinal;
+  res: NTSTATUS;
   lsaOrig, lsaPackageName: LSA_STRING;
 
   pLocalGroups: PTokenGroups;
@@ -465,6 +509,7 @@ var p : PSecurityLogonSessionData;
     res : NTSTATUS;
 begin
   p := nil;
+
   res := LsaGetLogonSessionData(@LogonId,p);
 
   if res <> STATUS_SUCCESS then
@@ -508,7 +553,6 @@ begin
     result[i] := LuidPtr^;
     Inc(LuidPtr);
   end;
-  LuidPtr := nil;
 
 
   LsaFreeReturnBuffer(List);
@@ -650,8 +694,8 @@ procedure TJwLsaPolicy.AddAccountRights(const Sid: TJwSecurityId;
 var
   ntsResult : NTSTATUS;
 
-  Privs : PLSA_UNICODE_STRING;
-  PrivCount : Cardinal;
+  //Privs : PLSA_UNICODE_STRING;
+  //PrivCount : Cardinal;
 
   Arr : Array of LSA_UNICODE_STRING;
   i : Integer;
@@ -715,8 +759,8 @@ procedure TJwLsaPolicy.RemoveAccountRights(const Sid: TJwSecurityId;
 var
   ntsResult : NTSTATUS;
 
-  Privs : PLSA_UNICODE_STRING;
-  PrivCount : Cardinal;
+  //Privs : PLSA_UNICODE_STRING;
+  //PrivCount : Cardinal;
 
   Arr : Array of LSA_UNICODE_STRING;
   i : Integer;
@@ -780,7 +824,7 @@ end;
 
 function TJwLsaPolicy.GetPrivateData(Key: WideString): WideString;
 var
-  ntsResult : Cardinal;
+  ntsResult : NTSTATUS;
   pData : PLSA_UNICODE_STRING;
   pStr : LSA_UNICODE_STRING;
   dwLen : Cardinal;
@@ -815,7 +859,7 @@ end;
 
 procedure TJwLsaPolicy.SetPrivateData(Key, Data: WideString);
 var
-  ntsResult : Cardinal;
+  ntsResult : NTSTATUS;
   pData,
   pStr : LSA_UNICODE_STRING;
 begin

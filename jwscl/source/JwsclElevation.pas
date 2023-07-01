@@ -1,13 +1,13 @@
 {
-<B>Abstract</B>Contains structures to support vista elevation. 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>09/10/2007 
-
-
-
+Description
 Project JEDI Windows Security Code Library (JWSCL)
 
+Contains structures to support vista elevation.
+
+Author
+Christian Wimmer
+
+Author
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -28,9 +28,11 @@ your version of this file under either the MPL or the LGPL License.
                                                                              
 For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
 
+Note
+
 The Original Code is JwsclElevation.pas.
 
-WARNING:
+Bugs
 Not compilable by FreePascal/Lazarus. Missing TTypedComObjectFactory.
 }
 {$IFDEF FPC}
@@ -45,7 +47,7 @@ unit JwsclElevation;
 {$IFNDEF SL_IMPLEMENTATION_SECTION}
 
 interface
-uses ComObj, JwaWindows, ShellApi,JwsclStrings;
+uses ComObj, JwaWindows, JwsclStrings;
 
 type
   {<B>TJwElevationClassFactory</B> provides a registration for a typed com object.
@@ -75,7 +77,7 @@ type
     Every com object that must be elevated must be registered by this constructor.
 
     @param ResourceId defines a delphi resource id.
-      This id must be created by "resourcestring". Use @<ResourcestringName> as parameter input 
+      This id must be created by "resourcestring". Use <i>ResourcestringName</i> as parameter input 
     @param DisableProcessIsolation defines whether the elevated com process
      should be isolated (true) or not. }
     constructor Create(
@@ -89,7 +91,7 @@ type
     ); overload;
 
     {<B>UpdateRegistry</B> registers or unregisters a com library.
-     Use "regsvr32.exe <lib>" to register and "regsvr32.exe /u <lib>" to
+     Use <code>"regsvr32.exe <libname>"</code> to register and <code>"regsvr32.exe /u <lib>"</code> to
      unregister a com library.}
 {$IFDEF UNIT_TEST}
     class procedure UpdateRegistry(RegisterFactory: Boolean);
@@ -105,7 +107,7 @@ and returns it; otherwise the elevation dialog will be shown.
 The COM class must be registered in a COM type library.
 The executable which call this function must contain a manifest that defines
 "asInvoker" as the requested execution level.
-"<requestedExecutionLevel level="asInvoker"/>"
+<code><requestedExecutionLevel level="asInvoker"/></code>
 
 This function needs CoInitialize to be called.
 This function only works on Windows Vista and newer OS versions.
@@ -136,7 +138,7 @@ and returns it; otherwise the elevation dialog will be shown.
 The COM class must be registered in a COM type library.
 The executable which call this function must contain a manifest that defines
 "asInvoker" as the requested execution level.
-"<requestedExecutionLevel level="asInvoker"/>"
+<code><requestedExecutionLevel level="asInvoker"/></code>
 
 This function needs CoInitialize to be called.
 This function only works on Windows Vista and newer OS versions.
@@ -166,7 +168,8 @@ and returns it; otherwise the elevation dialog will be shown.
 The COM class must be registered in a COM type library.
 The executable which call this function must contain a manifest that defines
 "asInvoker" as the requested execution level.
-"<requestedExecutionLevel level="asInvoker"/>"
+<code><requestedExecutionLevel level="asInvoker"/></code>
+
 
 This function needs CoInitialize to be called.
 This function only works on Windows Vista and newer OS versions.
@@ -195,7 +198,8 @@ and returns it; otherwise the elevation dialog will be shown.
 The COM class must be registered in a COM type library.
 The executable which call this function must contain a manifest that defines
 "asInvoker" as the requested execution level.
-"<requestedExecutionLevel level="asInvoker"/>"
+
+<code><requestedExecutionLevel level="asInvoker"/></code>
 
 This function needs CoInitialize to be called.
 
@@ -269,7 +273,7 @@ const
 
 {$IFNDEF SL_OMIT_SECTIONS}
 implementation
-uses Registry, SysUtils, ActiveX, Dialogs,
+uses Registry, SysUtils, ActiveX,
      JwsclTypes,   JwsclExceptions, JwsclSid,     JwsclAcl,
      JwsclVersion, JwsclConstants,  JwsclUtils,
      JwsclToken, JwaVista,
@@ -316,7 +320,7 @@ begin
     if sefNoUi in Flags then
       shExecInfo.fMask := shExecInfo.fMask or SEE_MASK_FLAG_NO_UI;
     
-    shExecInfo.Wnd := hWnd;
+    shExecInfo.hwnd := hWnd;
 
 
     if (sefFixDirWithRunAs in Flags) and (Length(Directory) > 0) and
@@ -346,7 +350,7 @@ begin
     shExecInfo.hInstApp := NULL;
 
     SetLastError(0);
-    if {$IFDEF UNICODE}ShellExecuteExW{$ELSE}ShellExecuteExA{$ENDIF}(@shExecInfo) then
+    if {$IFDEF UNICODE}ShellExecuteExW{$ELSE}ShellExecuteExA{$ENDIF}(shExecInfo) then
       result := shExecInfo.hProcess
     else
       raise EJwsclWinCallFailedException.CreateFmtWinCall(RsWinCallFailed,'src','','JwsclElevation.pas',0,
@@ -377,7 +381,7 @@ var
   MonikerName : WideString;
   BindOptions : TBindOpts3;
   Token : TJwSecurityToken;
-  LastError,
+
   iLen : Cardinal;
 begin
   ResultValue := 0;
@@ -420,7 +424,6 @@ function JwCoCreateInstanceAsAdmin(
   const ClassId: TGUID;
   const IID: TGUID;
  out ObjectInterface) : HRESULT;
-var iLen : Cardinal;
 begin
   result := JwCoCreateInstanceAsEx(
     'Elevation:Administrator!new:', ParentWindowHandle, ClassId, IID, ObjectInterface);
@@ -498,7 +501,7 @@ class procedure TJwElevationClassFactory.UpdateRegistry(RegisterFactory: Boolean
 {$ELSE}
 procedure TJwElevationClassFactory.UpdateRegistry(RegisterFactory: Boolean);
 
-  procedure RaiseRegError(Reason, Key : AnsiString);
+  procedure RaiseRegError(Reason, Key : String);
   begin
     try
       raise EJwsclAccessDenied.CreateFmtEx(
@@ -509,7 +512,7 @@ procedure TJwElevationClassFactory.UpdateRegistry(RegisterFactory: Boolean);
       on E : Exception do
       begin
         if Self.ShowErrors then
-          ShowMessage(E.Message)
+          MessageBoxW(0, PWideChar(WideString(E.Message)), 'Error', MB_ICONHAND or MB_OK)
         else
           raise;
       end;
@@ -520,7 +523,7 @@ var
   Reg : TRegistry;
   GuidString,
   DllPath,
-  DllName : AnsiString;
+  DllName : String;
 
   SD : TJwSecurityDescriptor;
   pSecDescr : PSecurityDescriptor;
@@ -550,6 +553,9 @@ begin
   //JwInitWellKnownSIDs;
 
 {$IFDEF UNIT_TEST}
+  //
+  // This is not production code!
+  //
   DllPath := 'c:\programme\mydll.dll';
   DllName := ExtractFileName(DllPath);
   GuidString := '{E108B186-B399-4E46-99B4-345F8179C26E}';

@@ -1,11 +1,13 @@
 {
-<B>Abstract</B>Contains types that are used by the units of JWSCL 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>11/27/2007 
-
+Description
 Project JEDI Windows Security Code Library (JWSCL)
 
+Contains types that are used by the units of JWSCL
+
+Author
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -19,13 +21,14 @@ GNU Lesser General Public License (the  "LGPL License"), in which case the
 provisions of the LGPL License are applicable instead of those above.        
 If you wish to allow use of your version of this file only under the terms   
 of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
-                                                                             
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+under the MPL, indicate your decision by deleting  the provisions above and
+replace  them with the notice and other provisions required by the LGPL
+License.  If you do not delete the provisions above, a recipient may use
+your version of this file under either the MPL or the LGPL License.
 
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
+
+Note
 The Original Code is JwsclTypes.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
@@ -50,7 +53,7 @@ uses
 {$IFNDEF SL_IMPLEMENTATION_SECTION}
 type
 {$IFNDEF DELPHI6_UP}
-  {<B>PCardinal</B> is defined for Delphi 5 because it does not know this types}
+  { <b>PCardinal</b> is defined for Delphi 5 because it does not know this type. }
   PCardinal = ^Cardinal;
 {$ENDIF DELPHI6_UP}
 
@@ -89,16 +92,17 @@ type
   TJwProcessId = DWORD;
 
 
-  TJwAceFlag  = (//e.g. inherit ACE to this folder and its sub files
+  TJwAceFlag  = (
+     //e.g. inherit ACE to this folder and its sub files
     afObjectInheritAce,
 
     //e.g. inherit ACE to this folder sub folders
     afContainerInheritAce,
 
-                {If enabled for an inheritable ACE, it says that when the ACE is
-                copied to any children the child's copy should have all inheritance flags
-                turned off, which prevents the ACE from flowing to grandchildren.
-                by Keith GuideBook}
+    {If enabled for an inheritable ACE, it says that when the ACE is
+    copied to any children the child's copy should have all inheritance flags
+    turned off, which prevents the ACE from flowing to grandchildren.
+    by Keith GuideBook}
     afNoPropagateInheritAce,
 
     //e.g. inherit ACE not to this folder
@@ -259,13 +263,49 @@ type
         systemAuditAce: TSystemAuditAce);
   end;
 
-  TJwEqualAceType    = (eactSameSid,
+  {<b>TJwEqualAceType</b> defines how the method TJwSecurityAccessControlList.FindEqualACE
+   finds an access control element.
+  }
+  TJwEqualAceType    = (
+    {The SID is used to compare (EqualSID) and must be equal}
+    eactSameSid,
+    {The Flags are compared and must be equal}
     eactSameFlags,
+    {The AccessMasks are compared and must be equal}
     eactSameAccessMask,
-    eactSameType);
+    {The ACE type (deny, allow) are compared and must be equal}
+    eactSameType,
+
+    {This flag can only be used in combination with eactSameAccessMask.
+     It defines that the comparison is true if the access mask of the given
+     ACE can be a subset of a found ACE.
+
+     SE = Smaller or Equal
+    }
+    eactSEAccessMask,
+
+    eactGEFlags,
+    eactSEFlags
+   );
+
+  {<b>TJwExclusionFlag</b> whether TJwSecurityAccessControlList.FindEqualACE
+   should ignore inherited or explicit ACEs}
+  TJwExclusionFlag = (
+    efInherited,
+    efExplicit
+  );
+  {<b>TJwExclusionFlags</b> whether TJwSecurityAccessControlList.FindEqualACE
+   should ignore inherited or explicit ACEs}
+  TJwExclusionFlags = set of TJwExclusionFlag;
+
+  {<b>TJwEqualAceTypeSet</b> defines how the method TJwSecurityAccessControlList.FindEqualACE
+   finds an access control element.
+  }
   TJwEqualAceTypeSet = set of TJwEqualAceType;
 
 const
+  {<b>JwAllEqualAceTypes</b> defines that all flags are set for
+   TJwSecurityAccessControlList.FindEqualACE }
   JwAllEqualAceTypes = [eactSameSid, eactSameFlags,
     eactSameAccessMask, eactSameType];
 
@@ -276,7 +316,8 @@ type
 
 
 
-
+  {<b>TJwSecurityInformationFlag</b> defines what types of security information
+  is enforced on or retrevied from an secured object.}
   TJwSecurityInformationFlag    = (
     siOwnerSecurityInformation,
     siGroupSecurityInformation,
@@ -293,9 +334,17 @@ type
     //this flag removes protection from the SACL
     siUnprotectedSaclSecurityInformation);
 
+  {<b>TJwSecurityInformationFlagSet</b> defines what types of security information
+  is enforced on or retrevied from an secured object.}
   TJwSecurityInformationFlagSet = set of TJwSecurityInformationFlag;
 
 const
+  {JwAllSiFlags defines
+    * owner
+    * DACL
+    * SACL
+   security information to be set or retrieved
+    }
   JwAllSiFlags = [siOwnerSecurityInformation,
     siDaclSecurityInformation,
     siSaclSecurityInformation];
@@ -319,14 +368,22 @@ type
   }
   TJwInheritedFromRecord = record
     {<B>GenerationGap</B> defines the gap between the source and heirs.
-    -1 defines that the gap could not be determined.}
+    (-1) defines that the gap could not be determined.}
     GenerationGap: TCardinalE;
-    {<B>AncestorName</B> defines the name of the acestor. (Always unicode.
+    {<B>AncestorName</B> defines the name of the ancestor. (Always unicode.
      See TJwInheritedFromArrayEx )}
     AncestorName:  WideString;
     {<B>SID</B> defines the name of the Sid which this record is dealing with.
-     It looks like <SID account name>@<S-X-X...> }
+     It looks like <pre><SID account name>@<S-X-X...></pre> }
     SID:           WideString;
+
+    {<B>SIDString</B> defines the SID string in format <S-X-X...>}
+    SIDString,
+    {<B>UserName</B> defines the user name of the SID. It can be empty
+     if the name could not retrieved.}
+    UserName,
+    {<B>System</B> defines the systemname (computer or domain) of the SID.}
+    System : WideString;
   end;
 
   TJwInheritedFromArray = array of TJwInheritedFromRecord;
@@ -342,6 +399,7 @@ type
    adapt TJwSecureBaseClass.GetInheritanceSource.}
   TJwInheritedFromArrayEx = array of TInheritedFromW;
 
+  {<b>TJwLuidArray</b> defines an array of TLUID}
   TJwLuidArray = array of TLuid;
 
 
@@ -546,8 +604,7 @@ type
 
 
   TJwAccessMaskArray     = array of TJwAccessMask;
-  TJwObjectTypeListArray = array of TObjectTypeList;
-
+  TJwObjectTypeArray = array of TObjectTypeList;
 
   TJwSidClassName = (scnNone, scnComputer, scnUser, scnGroup,
     scnUnknown);
@@ -592,7 +649,7 @@ type
 
 
    {TJwSecurityDesktopFlags is a set of desktop flags.
-    Actually it can only contain dfAllowOtherAccountHook or nothgin :
+    Currently it can only contain dfAllowOtherAccountHook or nothing :
   Use [] as a aparameter if you don't want other applications to create hooks. Otherwise
   use [dfAllowOtherAccountHook].
   Never use [dfPad0]!
@@ -625,7 +682,7 @@ type
 
   TJwSiAccessArray = array of SI_ACCESS;
 
-  TJwStringArray = array of AnsiString;
+  TJwStringArray = array of TJwString;
 
   TJwIntegrityLabelType = (
     iltNone,
@@ -728,7 +785,7 @@ type
     //If the check box is selected, show the Save check box and return TRUE in the pfSave output parameter, otherwise, return FALSE. CREDUI_FLAGS_DO_NOT_PERSIST must be specified to use this flag. Check box uses the value in pfSave by default.
     , cfFlagsUserNameTargetCredentials
     //The credential is a "runas" credential. The TargetName parameter specifies the name of the command or program being run. It is used for prompting purposes only.
-    );
+  );
   {<B>TJwCredentialFlagSet</B> defines the winapi credential flags bitmask as a set}
   TJwCredentialFlagSet = set of TJwCredentialFlag;
 
@@ -992,53 +1049,120 @@ type
      );
   TJwAuthZResourceManagerFlags = set of TJwAuthZResourceManagerFlag;
 
+  {Currently only available for TJwAuthContext.CreateBySid.
+  Read MSDN doc on AuthzInitializeContextFromSid to get more information.}
   TAuthZSidContextFlag =
     (
+     {}
      authZSF_Default,
+     {}
      authZSF_SkipTokenGroups,
+     {}
      authZSF_RequireS4ULogon,
-     authZSF_ComputePrivleges
+     {}
+     authZSF_ComputePrivileges
      );
+  {<b>TAuthZSidContextFlags</b> is used by TJwAuthContext.}
   TAuthZSidContextFlags = set of TAuthZSidContextFlag;
 
-  TJwObjectTypeArray = array of TObjectTypeList;
 
-
-  TJwReplyErrorEnum = (reSuccess, rePrivilegeNotHeld, reAccessDenied, reUnknown);
+  {<b>TJwReplyErrorEnum</b> is used by TJwAuthZAccessReply to
+   define the result of an access checked element.
+  }
+  TJwReplyErrorEnum = (
+    {The access check was successful for the given element so
+    all access bits are granted (excluding MAXIMUM_ALLOWED).
+    }
+    reSuccess,
+    {The DesiredAccess value contained ACCESS_SYSTEM_SECURITY,
+    but the privilege SE_SECURITY_PRIVILEGE was not set. }
+    rePrivilegeNotHeld,
+    {The access was denied.
+     The following reason can be:
+       * The requested bits are not granted.
+       * MaximumAllowed bit is on and granted access is zero.
+       * DesiredAccess is zero. }
+    reAccessDenied,
+    {The result value was not recognized. You must use the property  TJwAuthZAccessReply.Error to get more information.}
+    reUnknown);
+	
+  {<b>TJwReplyErrorEnumArray</b> defines an dynamic array of TJwReplyErrorEnum.
+  It is used by TJwAuthZAccessReply to save each return value of TJwAuthContext.AccessCheck}
   TJwReplyErrorEnumArray = array of TJwReplyErrorEnum;
 
 
+  {<b>TJwCardinalArray</b> is a utility type that defines a dynamic array of cardinal values.}
   TJwCardinalArray = array of Cardinal;
 
 
-  TJwRequestedTokenType = (rttAuto, rttTokenPrimary, rttTokenImpersonation);
+  {<b>TJwSecurityDescriptor.CreateDefaultByToken</b> is used by TJwRequestedTokenType.CreateDefaultByToken
+  This types defines which token should be used for the new security descriptor.
+  }   
+  TJwRequestedTokenType = (
+    {The token of the thread will be used if any; otherwise the process token.}
+    rttAuto, 
+	{The process token is forced to be use.See TJwSecurityToken.CreateTokenByProcess for more information }
+	rttTokenPrimary, 
+	{The thread token is forced to be used. 
+     See TJwSecurityToken.CreateTokenByThread for more information.}
+	rttTokenImpersonation);
 
+  {<b>TJwTokenMandatoryPolicy</b> is used by TJwSecurityToken.MandatoryPolicy and
+  defines how mandatory policy is enforced for the token.}
   TJwTokenMandatoryPolicy = (
+    {No mandatory integrity policy is enforced for the token.}
     tmpOff,
+    {A process associated with the token cannot write to objects that have a greater mandatory integrity level.}
     tmpNoWriteUp,
-    tmpNewProcessMin);
+    {A process created with the token has an integrity level that is the lesser of the parent-process integrity level and the executable-file integrity level.}
+    tmpNewProcessMin
+    );
 
+  {<b>TJwTokenMandatoryPolicies</b> is used by TJwSecurityToken.MandatoryPolicy and
+  defines how mandatory policy is enforced for the token.
+
+  Remarks
+    An empty set is invalid.
+  }
   TJwTokenMandatoryPolicies = set of TJwTokenMandatoryPolicy;
 
+  {<b>TJwPrivCheck</b> is used by methods from TJwSecurityToken.}
   TJwPrivCheck = (
+    {Use default mechanism.}
     pcDefault,
+    {All privileges must be enabled.}
     pcAllPrivsEnabled);
 
   TWellKnownSidTypeSet = set of TWellKnownSidType;
 
+  {<b>TJwProfileMember</b> is used by TJwSecurityToken.LoadUserProfile 
+   and influences the behavior of the functions.
+   Please retrieve their meaning from the LoadUserProfile MSDN page or TJwProfileInfo}
   TJwProfileMember = (
+    {If this enum constant is set, the flags parameter for WinAPI function LoadUserProfile
+	will just contain PI_NOUI. Otherwise the flags from ProfileInfo.Flags will be used.	}
     pmFlags,
+	{If this enum constant is set the username from the current username of the token instance is used to
+    initialize call the profile. Otherwise the ProfileInfo.UserName member is used.}
     pmUserName,
+	{If this enum constant is set the roaming user's profile path is detected and used. Otherwise
+	the ProfileInfo.ProfilePath member is used.}
     pmProfilePath,
+	{If this enum constant is set the member ProfileInfo.DefaultPath is ignored.}
     pmDefaultPath,
+	{If this enum constant is set the member ProfileInfo.ServerName is ignored.}
     pmServerName,
+	{If this enum constant is set the member ProfileInfo.PolicyPath is ignored.}
     pmPolicyPath
   );
 
+  {<b>TJwProfileMembers</b> defines a set of TJwProfileMember.
+  Used by TJwSecurityToken.LoadUserProfile}
   TJwProfileMembers = set of TJwProfileMember;
 
   {<B>TJwProfileInfo</B> contains and receives information
    about a users profile.
+   TJwSecurityToken.LoadUserProfile
   }
   TJwProfileInfo = record
     // See flags above
@@ -1057,15 +1181,25 @@ type
     Profile: HANDLE;
   end;
 
-
+  {<b>TJwPointerType</b> is used by IJwAutoLock to determine the
+   type of stored pointer.}
   TJwPointerType = (
+    {The pointer type is unknown.}
     ptUnknown,
+    {The pointer was created by New function}
     ptNew,
+    {The pointer was created by GetMem function.}
     ptGetMem,
+    {The pointer was created by LocalAlloc function.}
     ptLocalAlloc,
+    {The pointer is a handle. Use GetHandle method.}
     ptHandle,
+    {The pointer is a class. Use Instance property instead.}
     ptClass);
 
+    
+  {<b>TJwJobLimit</b> is used by TJwJobObject class to set or get job user interface limits.
+  Read the MSDN doc on JOBOBJECT_BASIC_LIMIT_INFORMATION member LimitFlags.}
   TJwJobLimit = (
     jlWORKINGSET,
     jlPROCESSTIME,
@@ -1086,50 +1220,92 @@ type
     jlRESERVED4,
     jlRESERVED5,
     jlRESERVED6,
+    {No limits are applied}
     jlNone
   );
+  {<b>TJwJobLimits</b> is used by TJwJobObject class to set or get job user interface limits.
+  Read the MSDN doc on JOBOBJECT_BASIC_LIMIT_INFORMATION member LimitFlags.}
   TJwJobLimits = set of TJwJobLimit;
 
+  {<b>TJwJobUiLimit</b> is used by TJwJobObject class to set or get job user interface limits.
+  Read the MSDN doc on JOBOBJECT_BASIC_UI_RESTRICTIONS.}
   TJwJobUiLimit = (
+    {Prevents the process from using USER handles not owned by a process assigned to the job.}
     juilHANDLES,
+    {}
     juilREADCLIPBOARD,
+    {}
     juilWRITECLIPBOARD,
+    {}
     juilSYSTEMPARAMETERS,
+    {}
     juilDISPLAYSETTINGS,
+    {}
     juilGLOBALATOMS,
+    {}
     juilDESKTOP,
+    {}
     juilEXITWINDOWS,
+    {No limits are applied}
     juilNone
   );
+  {<b>TJwJobUiLimits</b> is used by TJwJobObject class to set or get job user interface limits}
   TJwJobUiLimits = set of TJwJobUiLimit;
 
+  {<b>TJwJobMessage</b> is used by TJwOnJobNotification
+  to show the type of job message that was received.}
   TJwJobMessage = (
     jmsgUnknown,
     jmsgACTIVEPROCESSZERO,
     jmsgENDOFPROCESSTIME,
     jmsgACTIVEPROCESSLIMIT,
+    {The memory limit of a process was reached.}
     jmsgPROCESSMEMORYLIMIT,
+    {The memory limit of the whole job was reached.}
     jmsgJOBMEMORYLIMIT,
+    {A new process was added to the job}
     jmsgNEWPROCESS,
+    {A process exited the job and was removed.}
     jmsgEXITPROCESS,
+    {A process was forced to be shut down.}
     jmsgABNORMALEXITPROCESS,
+    {The time assigned to a process has ended.}
     jmsgENDOFJOBTIME
   );
+  {<b>TJwJobMessages</b> is used by TJwOnJobNotification
+  to show the types of job message that were received.}
   TJwJobMessages = set of TJwJobMessage;
 
-
+  {<b>TJwRightType</b> is returned by JwRightType and
+  defines the type of a given right access mask.
+  The return type is the first set bit of the access mask.
+  }
   TJwRightType = (
+    {The set bit in the access mask is unknown.}
     rtUnknown,
+    {There is no bit set.}
     rtNone,
+    {A generic bit is set.}
     rtGeneric,
+    {A reserved bit is set.}
     rtReserved,
+    {The maximum allowed bit is set.}
     rtMaximum,
+    {The system security bit is set.}
     rtSystem,
+    {A standard bit is set.}
     rtStandard,
+    {A specific right bit is set.}
     rtSpecific);
 
+  {<b>TJwProcessParameterType</b> is used by JwGetProcessSessionID
+  and defines whether its parameter ProcessIDorHandle is
+  a handle or process ID value.
+  }
   TJwProcessParameterType = (
+    {The given value is a handle obtained by OpenProcess or similar.}
     pptHandle,
+    {The given value is an ID of a process.}
     pptID);
 
   {<B>TJwJobTermination</B> defines how processes in job objects are terminated
@@ -1148,6 +1324,44 @@ type
     ucCopyMemory,
     //use given memory
     ucUseMemory);
+
+  {TCredentialsHash defines a hash value containing
+  a pointer to a memory with the hash
+  and its size.
+  It is used by function JwCreateFileHash defined in unit JwsclUtils.pas .
+  }
+  TJwFileHashData = record
+    {<B>Hash</B> defines a dynamic memory block that contains
+	a hash. The pointer must be freed by TJwHash.FreeBuffer (unit JwsclCryptProvider.pas).
+	}
+	Hash : Pointer;
+    Size : Cardinal;
+  end;
+
+  {<b>TJwSecurityCapability</b> is used by TJwSecurityPackageInfo}
+  TJwSecurityCapability = (
+    scIntegrity,//  SECPKG_FLAG_INTEGRITY         // Supports integrity on messages
+    scPrivacy,  //SECPKG_FLAG_PRIVACY           // Supports privacy (confidentiality)
+    scTokenOnly,  //SECPKG_FLAG_TOKEN_ONLY        // Only security token needed
+    scDatagram,  //SECPKG_FLAG_DATAGRAM          // Datagram RPC support
+    scConnection,  //SECPKG_FLAG_CONNECTION        // Connection oriented RPC support
+    scMultiRequired,  //SECPKG_FLAG_MULTI_REQUIRED    // Full 3-leg required for re-auth.
+    scClientOnly,  //SECPKG_FLAG_CLIENT_ONLY       // Server side functionality not available
+    scExtendedError,  //SECPKG_FLAG_EXTENDED_ERROR    // Supports extended error msgs
+    scImpersonation,  //SECPKG_FLAG_IMPERSONATION     // Supports impersonation
+    scAcceptWin32Name,  //SECPKG_FLAG_ACCEPT_WIN32_NAME // Accepts Win32 names
+    scStream,  //SECPKG_FLAG_STREAM            // Supports stream semantics
+    scNegotiable,  //SECPKG_FLAG_NEGOTIABLE        // Can be used by the negotiate package
+    scGSSCompatible,  //SECPKG_FLAG_GSS_COMPATIBLE    // GSS Compatibility Available
+    scLogon,  //SECPKG_FLAG_LOGON             // Supports common LsaLogonUser
+    scASCIIBuffers,  //SECPKG_FLAG_ASCII_BUFFERS     // Token Buffers are in ASCII
+    scFragment,  //SECPKG_FLAG_FRAGMENT          // Package can fragment to fit
+    scMutualAuth,  //SECPKG_FLAG_MUTUAL_AUTH       // Package can perform mutual authentication
+    scDelegation  //SECPKG_FLAG_DELEGATION        // Package can delegate
+  );
+  {<b>TJwSecurityCapabilities</b> is used by TJwSecurityPackageInfo}
+  TJwSecurityCapabilities = set of TJwSecurityCapability;
+
 
 
 {$ENDIF SL_IMPLEMENTATION_SECTION}

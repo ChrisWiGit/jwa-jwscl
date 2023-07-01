@@ -1,13 +1,14 @@
 {
-<B>Abstract</B>Contains structures to support auto free class instances. 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>09/10/2007 
-
-
-
+Description
 Project JEDI Windows Security Code Library (JWSCL)
 
+Contains structures to support auto free class instances.
+
+Author
+Robert Giesecke
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -19,23 +20,22 @@ and limitations under the License.
 Alternatively, the contents of this file may be used under the terms of the  
 GNU Lesser General Public License (the  "LGPL License"), in which case the   
 provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
-                                                                             
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+If you wish to allow use of your version of this file only under the terms
+of the LGPL License and not to allow others to use your version of this file
+under the MPL, indicate your decision by deleting  the provisions above and
+replace  them with the notice and other provisions required by the LGPL
+License.  If you do not delete the provisions above, a recipient may use
+your version of this file under either the MPL or the LGPL License.
+
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
+
+Note
 
 The Original Code is JwsclComUtils.pas.
-
 The Initial Developer of the Original Code is Robert Giesecke.
 
-TODO: 
-Same for FreeMem, and so on
-
-To use this code simply to the follwoing:
+Example
+To use this code simply do the following:
 <code lang="Delphi">
 var myClass : TMyClass;
 begin
@@ -183,6 +183,7 @@ uses JwaWindows, SysUtils, SyncObjs;
 
 {$IFNDEF SL_INTERFACE_SECTION}
 type
+  { <b>TJwAutoPointerImpl</b> implements the auto pointer interface IJwAutoPointer. }
   TJwAutoPointerImpl = class(TInterfacedObject, IJwAutoPointer)
   protected
     fInstance : TObject;
@@ -207,8 +208,22 @@ type
   TJwAutoLock = class(TInterfacedObject, IJwAutoLock)
   protected
     fAutoPointer : TJwAutoPointerImpl;
+    { The f<b>LeaveFlag</b> field defines whether the entered section is released when
+      the instance is destroyed (false) or not (true).
+      
+      It is for future use only and thus has no public access.                         }
     fLeaveFlag : Boolean;
   public
+    { <b>Create</b> creates a new TJwAutoLock instance and enters the a thread safe
+      section defined by parameter AutoPointer. If this section was already entered by
+      another thread, the constructor is blocked until released. There is no timeout!
+      
+      
+      
+      
+      Parameters
+      AutoPointer :  This parameter defines an auto pointer implementation that holds
+                     the thread section for exclusive access to the resource.          }
     constructor Create(const AutoPointer : TJwAutoPointerImpl);
 
     function GetAutoPointer : IJwAutoPointer;
@@ -217,8 +232,14 @@ type
     function GetPointerType : TJwPointerType;
     function GetHandle : THandle;
 
-    procedure BeforeDestruction;
+    procedure BeforeDestruction; override;
 
+    { <b>UnLock</b> releases the section lock previously gained by creating the
+      instance.
+      
+      
+      See Also
+        * Create                                                                }
     procedure UnLock;
   end;
 

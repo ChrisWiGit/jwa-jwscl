@@ -1,10 +1,13 @@
-{<B>Abstract</B>Contains well known sids 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>09/10/2007 
+{
+Description
 
 Project JEDI Windows Security Code Library (JWSCL)
+Contains well known sids
 
+Author
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -13,24 +16,24 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the  
-GNU Lesser General Public License (the  "LGPL License"), in which case the   
-provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
-                                                                             
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+Alternatively, the contents of this file may be used under the terms of the
+GNU Lesser General Public License (the  "LGPL License"), in which case the
+provisions of the LGPL License are applicable instead of those above.
+If you wish to allow use of your version of this file only under the terms
+of the LGPL License and not to allow others to use your version of this file
+under the MPL, indicate your decision by deleting  the provisions above and
+replace  them with the notice and other provisions required by the LGPL
+License.  If you do not delete the provisions above, a recipient may use
+your version of this file under either the MPL or the LGPL License.
 
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
+
+Note
 The Original Code is JwsclKnownSid.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-Description:
 
 }
 {$IFNDEF SL_OMIT_SECTIONS}
@@ -116,7 +119,7 @@ var
       SD.OwnOwner := false;
       SD.Owner := JwAdministratorsSID;
       ...
-      SD.DACL.Add(TJwDiscretionaryAccessControlEntryDeny.Create(nil,[],FILE_EXECUTE,JwSecurityCurrentThreadUserSID, false)); //see?: false
+      SD.DACL.Add(TJwDiscretionaryAccessControlEntryDeny.Create(nil,[],FILE_EXECUTE,JwAdministratorsSID, false)); //see?: false
      </code>
     }
   JwAdministratorsSID,
@@ -129,7 +132,7 @@ var
       ...
       SD.OwnOwner := false;
       SD.Owner := JwUsersSID;
-      SD.DACL.Add(TJwDiscretionaryAccessControlEntryDeny.Create(nil,[],FILE_EXECUTE,JwSecurityCurrentThreadUserSID, false)); //see?: false
+      SD.DACL.Add(TJwDiscretionaryAccessControlEntryDeny.Create(nil,[],FILE_EXECUTE,JwUsersSID, false)); //see?: false
      </code>
     }
   JwUsersSID,
@@ -263,18 +266,25 @@ var
 
 //    LocalAdministratorSID : TJwSecurityKnownSID;
 
-{<B>JwSecurityCurrentThreadUserSID</B> gets the current owner or impersonated thread owner of the current thread
+{<B>JwSecurityCurrentThreadUserSID</B> gets the current process user or impersonated thread user of the current thread
 that is used to call this function.
 The caller is responsible to free the SecurityID instance.
+
+Despite its name, the function does not fail if the current thread is not impersonated. In this case
+the process user is returned.
 
 Use:
 <code lang="Delphi">
 SD : TJwSecurityDescriptor;
+Sid : TJwSecurityThreadUserSID;
 ...
 SD.OwnOwner := true;
 SD.Owner := JwSecurityCurrentThreadUserSID;
 
-SD.DACL.Add(TJwDiscretionaryAccessControlEntryDeny.Create(nil,[],FILE_EXECUTE,JwSecurityCurrentThreadUserSID, true)); //see?: true
+Sid := JwSecurityCurrentThreadUserSID;
+SD.DACL.Add(TJwDiscretionaryAccessControlEntryDeny.Create(nil,[],FILE_EXECUTE,Sid, true)); //see?: true
+
+Sid.Free;
 </code>
 
 }
@@ -336,6 +346,31 @@ JwKnownSid for additional known SIDs. It calls JwInitWellKnownSIDs automatically
 }
 procedure JwInitWellKnownSIDsEx(const Sids : TWellKnownSidTypeSet);
 procedure JwInitWellKnownSIDsExAll();
+
+{<B>JwCheckInitKnownSid</B> checks whether one or more well known
+sid variables from unit JwsclKnownSid are initialized (not nil).
+If a given variable was not created the procedure raises EJwsclInitWellKnownException;
+otherwise it does nothing.
+
+This procedure is like JwsclUtils.JwCheckInitKnownSid but does a thorough check
+for the variables.
+
+@param Sids defines an array of SID variables to be checked for.
+@param SidNames defines an array of the SID variable names in parameter Sids.
+ On exception the SID's name is printed.
+@param MethodName defines the name of the method this parameter belongs to
+@param ClassName defines the name of the class the method belongs to. Can be
+  empty if the method does not belong to a class
+@param FileName defines the source file of the call to this procedure.
+raises
+ EJwsclInitWellKnownException This exception will be raised if JwInitWellKnownSIDs
+  was not called.
+}
+procedure JwCheckInitKnownSid(
+  const Sids : array of TJwSecurityKnownSID;
+  const SidNames : array of TJwString;
+  const MethodName, ClassName, FileName : TJwString);
+
 
 
 type
@@ -431,13 +466,21 @@ var {<B>JwSidMapDef</B> defines a list of mapped known Sids which are used
     }
     JwSidMapDefErrors : TList;
 
+var
+  {<B>JwInitWellKnownSidStatus</B> shows the status of the
+   well known sid variables. It is set to true if
+   JwInitWellKnownSIDs was called.
+
+   Only read this value. Never set it!
+  }
+  JwInitWellKnownSidStatus : Boolean = false;
+
 {$ENDIF SL_IMPLEMENTATION_SECTION}
 
 {$IFNDEF SL_OMIT_SECTIONS}
 implementation
 
-uses Dialogs, IniFiles;
-
+uses IniFiles;
 {$ENDIF SL_OMIT_SECTIONS}
 
 {$IFNDEF SL_INTERFACE_SECTION}
@@ -469,7 +512,7 @@ begin
 
   i := low(JwSidMapDef);
 
-  {We use goto here because
+  {We use two while here because
    a try/except within a loop can be really slow for
    many loops.
    However the solution creating a new procedure
@@ -478,34 +521,41 @@ begin
    So if we jump out of loop in case of exception
    we can simply jump back to next loop item. 
   }
-RestartLoop:
-  try
-    while i <= high(JwSidMapDef) do
-    begin
-      if Length(JwSidMapDef[i].SidString) > 0 then
+  while i <= high(JwSidMapDef) do
+  begin
+    //this outer loop isn't usually often called 
+    try
+      while i <= high(JwSidMapDef) do
       begin
-        Str := JwSidMapDef[i].SidString;
-        if JwSidMapDef[i].SidString[1] = '-' then
-          Str := LocalSidStr + Str;
+        if Length(JwSidMapDef[i].SidString) > 0 then
+        begin
+          //Create a SID: S-1-x-y-z...
+          Str := JwSidMapDef[i].SidString;
+          if JwSidMapDef[i].SidString[1] = '-' then
+            Str := LocalSidStr + Str;
 
-        Sid := TJwSecurityID.Create(Str);
+          //may fail with an invalid sid
+          //so the outer loop catches it
+          Sid := TJwSecurityID.Create(Str);
 
-        New(Map);
-        Map.Name := JwSidMapDef[i].Name;
-        Map.SidString := Str;
-        Map.Sid := Sid;
-        SidMaps.Add(Map);
+          New(Map);
+          try
+            Map.Name := JwSidMapDef[i].Name;
+            Map.SidString := Str;
+            Map.Sid := Sid;
+            SidMaps.Add(Map);
+          except
+            Dispose(Map);
+            raise;
+          end;
+        end;
+        Inc(i);
       end;
+    except
+      JwSidMapDefErrors.Add(Pointer(i));
       Inc(i);
     end;
-  except
-    JwSidMapDefErrors.Add(Pointer(i));
-    Inc(i);
   end;
-  //also within loop!
-  if i <= high(JwSidMapDef) then
-    goto RestartLoop;
-
 end;
 
 procedure JwDoneMapping;
@@ -517,7 +567,11 @@ begin
   for i := 0 to SidMaps.Count -1 do
   begin
     if SidMaps[i] <> nil then
+    begin
+      PJwSidMap(SidMaps[i]).Sid.Free;
+      PJwSidMap(SidMaps[i]).SidString := '';
       Dispose(PJwSidMap(SidMaps[i]))
+    end;
   end;
   FreeAndNil(SidMaps);
   FreeAndNil(JwSidMapDefErrors);
@@ -537,11 +591,9 @@ end;
 
 function JwSidMap(const Name : TJwString) : TJwSecurityID;
 var i : Integer;
-    Map : PJwSidMap;
+    //Map : PJwSidMap;
 begin
   JwRaiseOnNilParameter(SidMaps, 'JwInitMapping must be called.', 'JwAddMapSid','', RsUNKnownSid);
-
-  result := nil;
 
   for i := 0 to SidMaps.Count-1 do
   begin
@@ -558,7 +610,7 @@ end;
 
 
 function JwGetMachineSid(const ComputerOrDNS : WideString = '') : TJwSecurityId;
-var Token : TJwSecurityToken;
+var //Token : TJwSecurityToken;
     Sid{,Sid2} : TJwSecurityId;
     Arr : TJwSubAuthorityArray;
     Ident : TSidIdentifierAuthority;
@@ -567,10 +619,13 @@ var Token : TJwSecurityToken;
     UserInfo : PUSER_INFO_0;
     //UserInfo2 : PUSER_MODALS_INFO_2;
 
+    //res,
+    //entriesread,
+    //totalentries,
+    //resume_handle : DWORD;
     res,
     entriesread,
-    totalentries,
-    resume_handle : DWORD;
+    totalentries : DWORD;
 begin
   Data := nil;
 
@@ -732,13 +787,13 @@ procedure InitSid(const Idx : Integer; var SID : TJwSecurityKnownSID);
 begin
   if not Assigned(SID) then
   try
-    SID := TJwSecurityKnownSID.Create(KnownSids[Idx]);
+    SID := TJwSecurityKnownSID.Create(TJwString(KnownSids[Idx]));
   except
     On E : Exception do
     begin
-{$IFDEF DEBUG}
-      OutputDebugStringA(PAnsiChar(Format('%s. Security id: %s ',[E.Message,KnownSids[Idx]])));
-{$ENDIF DEBUG}
+{$IFDEF JWSCL_DEBUG_INFO}    
+      JwOutputDebugString('%s. Security id: %s ',[E.Message,KnownSids[Idx]]);
+{$ENDIF JWSCL_DEBUG_INFO}
       SID := nil;
     end;
   end;
@@ -951,12 +1006,15 @@ begin
     JwIntegrityLabelSID[iltSystem]    := TJwSecurityKnownSID.Create(JwSystemIL);
   if not Assigned(JwIntegrityLabelSID[iltProtected]) then
     JwIntegrityLabelSID[iltProtected] := TJwSecurityKnownSID.Create(JwProtectedProcessIL);
+
+  JwInitWellKnownSidStatus := true;
 end;
 
 procedure DoneWellKnownSIDs;
 var ilts : TJwIntegrityLabelType;
     i : TWellKnownSidType;
 begin
+  JwInitWellKnownSidStatus := false;
 
   FreeAndNil(JwAdministratorsSID);
   FreeAndNil(JwUsersSID);
@@ -995,6 +1053,33 @@ begin
   begin
     JwKnownSid[i] := nil;
   end;
+end;
+
+procedure JwCheckInitKnownSid(
+  const Sids : array of TJwSecurityKnownSID;
+  const SidNames : array of TJwString;
+  const MethodName, ClassName, FileName : TJwString);
+var
+  i,count : Integer;
+  Errors : TJwString;
+begin
+  Errors := '';
+  count := 0;
+
+  for i := low(Sids) to high(Sids) do
+  begin
+    if not Assigned(Sids[i]) then
+    begin
+      Errors := ', ' +SidNames[i];
+      Inc(count);
+    end;
+  end;
+  System.Delete(Errors,1,1);
+
+  if count > 0 then
+   raise EJwsclInitWellKnownException.CreateFmtEx(
+      RsInitWellKnownNotCalled2,
+      MethodName, ClassName, FileName, 0, false, [Errors]);
 end;
 
 {$ENDIF SL_INTERFACE_SECTION}

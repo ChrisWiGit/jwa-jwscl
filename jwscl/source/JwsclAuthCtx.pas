@@ -1,10 +1,15 @@
-{<B>Abstract</B>This units provides classes to use the MS AuthZ Technology API. 
-@author(Christian Wimmer)
-<B>Created:</B>01/01/2008 
-<B>Last modification:</B>01/09/2008 
+{
+Description
 
+This unit provides access to the MS AuthZ technology API.
+The main reason is to do AccessCheck without needing a token.
+           
 Project JEDI Windows Security Code Library (JWSCL)
 
+Author
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -25,28 +30,23 @@ your version of this file under either the MPL or the LGPL License.
                                                                              
 For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
 
+Note
+
 The Original Code is JwsclAuthCtx.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-
-
-Description:
-This unit provides access to the MS AuthZ technology API.
-The main reason is to do AccessCheck without needing a token.
-
 Unsupported features :
-
-AuthzEnumerateSecurityEventSources
-AuthzFreeAuditEvent
-AuthzInstallSecurityEventSource
-AuthzOpenObjectAudit
-AuthzRegisterSecurityEventSource
-AuthzReportSecurityEvent
-AuthzReportSecurityEventFromParams
-AuthzUninstallSecurityEventSource
-AuthzUnregisterSecurityEventSource
+* AuthzEnumerateSecurityEventSources
+* AuthzFreeAuditEvent
+* AuthzInstallSecurityEventSource
+* AuthzOpenObjectAudit
+* AuthzRegisterSecurityEventSource
+* AuthzReportSecurityEvent
+* AuthzReportSecurityEventFromParams
+* AuthzUninstallSecurityEventSource
+* AuthzUnregisterSecurityEventSource
 
 
 }
@@ -59,7 +59,7 @@ unit JwsclAuthCtx;
 interface
 
 uses
-  SysUtils, Contnrs, Classes,
+  SysUtils, 
   jwaWindows, JwaVista,
   JwsclResource, JwsclUtils,
 
@@ -217,7 +217,7 @@ type
 
 
 
-  {<B>TJwAuthZAccessReply</B> contains information about a successfull call to TJwAuthContext.AccesCheck}
+  {<B>TJwAuthZAccessReply</B> contains information about a call to TJwAuthContext.AccessCheck}
   TJwAuthZAccessReply = class
   protected
     fGrantedAccessMask : TJwAccessMaskArray;
@@ -240,19 +240,19 @@ type
      Values are from
       http://msdn2.microsoft.com/en-us/library/aa376321(VS.85).aspx
      
-      # ERROR_SUCCESS  All the access bits, not including MAXIMUM_ALLOWED, are granted and the GrantedAccessMask member is not zero. 
-      # ERROR_PRIVILEGE_NOT_HELD DesiredAccess includes ACCESS_SYSTEM_SECURITY and the client does not have SeSecurityPrivilege. 
-      # ERROR_ACCESS_DENIED Includes each of the following:
-    * The requested bits are not granted.
-    * MaximumAllowed bit is on and granted access is zero.
-    * DesiredAccess is zero. 
+     # ERROR_SUCCESS  All the access bits, not including MAXIMUM_ALLOWED, are granted and the GrantedAccessMask member is not zero. 
+     # ERROR_PRIVILEGE_NOT_HELD DesiredAccess includes ACCESS_SYSTEM_SECURITY and the client does not have SeSecurityPrivilege. 
+     # ERROR_ACCESS_DENIED Includes each of the following:
+		* The requested bits are not granted.
+		* MaximumAllowed bit is on and granted access is zero.
+		* DesiredAccess is zero. 
       
      }
     property Error : TJwCardinalArray read fError;
 
     {<B>ErrorByType</B> defines an array of at least one element that contains
      the error result of the access check. It is the same result as in property
-     Error.
+     Error but instead a Delphi enumeration type (TJwReplyErrorEnumArray) is used for better understanding.
      }
     property ErrorByType : TJwReplyErrorEnumArray read fErrorByType;
   end;
@@ -645,9 +645,6 @@ type
 implementation
 
 uses
-{$IFDEF DEBUG}
-  Dialogs,
-{$ENDIF DEBUG}
   JwsclSecureObjects,
   Math;
 {$ENDIF SL_OMIT_SECTIONS}
@@ -948,7 +945,6 @@ constructor TJwAuthContext.CreateAndAddSids(
   const RestrictedSids : TJwSecurityIdList);
 var luid : TLuid;
     pSid, pRSid : PSidAndAttributesArray;
-    tSid, tRSid : TSidAndAttributes;
 
     c1, c2 : Cardinal;
 begin

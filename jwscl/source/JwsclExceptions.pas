@@ -1,10 +1,13 @@
-{<B>Abstract</B>Contains exceptions that are used by the units of the JWSCL 
-@author(Christian Wimmer)
-<B>Created:</B>03/23/2007 
-<B>Last modification:</B>11/19/2007 
-
+{
+Description
 Project JEDI Windows Security Code Library (JWSCL)
 
+Contains exceptions that are used by the units of the JWSCL
+
+Author
+Christian Wimmer
+
+License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -20,7 +23,7 @@ If you wish to allow use of your version of this file only under the terms
 of the LGPL License and not to allow others to use your version of this file 
 under the MPL, indicate your decision by deleting  the provisions above and
 replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
+License.  If you do not delete the provisions above, a recipient may use
 your version of this file under either the MPL or the LGPL License.          
                                                                              
 For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
@@ -30,11 +33,9 @@ The Original Code is JwsclExceptions.pas.
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-Description:
 
-
-Hint: Install JCL and compile this unit with compiler directive SM_JCLDEBUG
-   and TD32 Debug Info.
+Remarks
+Install JCL and compile this unit with compiler directive SM_JCLDEBUG and TD32 Debug Info.
 
 
 }
@@ -50,8 +51,6 @@ uses SysUtils, Classes,
   jwaWindows,
   jwaVista,
   JwsclResource,
-
- 
   JwsclTypes, JwsclStrings;
 
 {$ENDIF SL_OMIT_SECTIONS}
@@ -65,15 +64,15 @@ type
   protected
     fLastError:   Cardinal;
     fSourceProc, fsSourceClass,
-    fsSourceFile: AnsiString;
+    fsSourceFile: TJwString;
     fiSourceLine: Cardinal;
-    fWinCallName: AnsiString;
-    fComSource : AnsiString;
-    fLog : AnsiString;
+    fWinCallName: TJwString;
+    fComSource : TJwString;
+    fLog : TJwString;
 
-    fStackTrace : AnsiString;
+    fStackTrace : TJwString;
   public
-    constructor Create(const Msg: AnsiString); overload;
+    constructor Create(const Msg: String); overload;
            {<B>CreateFmtEx</B> creates an instance of the @classname exception.
             @param sMsg contains a description of the exception. 
             @param sSourceProc contains the caller method name 
@@ -82,23 +81,23 @@ type
             @param bShowLastError defines if windows GetLastError information is used 
             @param Args contains string formatting information for sMsg. 
             }
-    constructor CreateFmtEx(const MessageString: AnsiString;
+    constructor CreateFmtEx(const MessageString: TJwString;
       sSourceProc, sSourceClass,
-      sSourceFile: AnsiString; iSourceLine:
+      sSourceFile: TJwString; iSourceLine:
       Cardinal; bShowLastError: boolean;
       const Args: array of const);
       overload; virtual;
-    constructor CreateFmtEx(const MessageString: AnsiString;
+    constructor CreateFmtEx(const MessageString: TJwString;
       sSourceProc, sSourceClass,
-      sSourceFile: AnsiString; iSourceLine:
+      sSourceFile: TJwString; iSourceLine:
       Cardinal; iLastError: Cardinal;
       const Args: array of const);
       overload; virtual;
-    constructor CreateFmtWinCall(const sMsg: AnsiString;
+    constructor CreateFmtWinCall(const sMsg: TJwString;
       sSourceProc, sSourceClass,
-      sSourceFile: AnsiString; iSourceLine:
+      sSourceFile: TJwString; iSourceLine:
       Cardinal; bShowLastError: boolean;
-      sWinCall: AnsiString;
+      sWinCall: TJwString;
       const Args: array of const); virtual;
     constructor Create(const anException: EJwsclSecurityException);
       overload;
@@ -113,24 +112,25 @@ type
               the GetLastError() call is used.}
     class function GetLastErrorMessage(
       const iGetLastError: Cardinal = Cardinal(-1)): TJwString; virtual;
-  published
+
+  public
     {<B>LastError</B> contains the LastError error code provided the the CreateFmtEx constructor}
     property LastError: Cardinal Read fLastError write fLastError;
 
-    property SourceProc: AnsiString Read fSourceProc Write fSourceProc;
-    property SourceClass: AnsiString
+    property SourceProc: TJwString Read fSourceProc Write fSourceProc;
+    property SourceClass: TJwString
       Read fsSourceClass Write fsSourceClass;
-    property SourceFile: AnsiString
+    property SourceFile: TJwString
       Read fsSourceFile Write fsSourceFile;
     property SourceLine: Cardinal
       Read fiSourceLine Write fiSourceLine;
 
     {<B>WinCallName</B> defines the winapi function name of the failed call.}
-    property WinCallName: AnsiString Read fWinCallName Write fWinCallName;
+    property WinCallName: TJwString Read fWinCallName Write fWinCallName;
 
-    property Log : AnsiString read fLog write fLog;
-    property ComSource: AnsiString read fComSource write fComSource;
-    property StackTrace : AnsiString read fStackTrace write fStackTrace;
+    property Log : TJwString read fLog write fLog;
+    property ComSource: TJwString read fComSource write fComSource;
+    property StackTrace : TJwString read fStackTrace write fStackTrace;
   end;
 
   //<B>EJwsclOpenThreadTokenException</B> is raised if the thread token could not be opened
@@ -244,6 +244,10 @@ type
 
   EJwsclStreamHashException = class(EJwsclStreamException);
 
+  //EHashMismatch is raised in case of unequal hash data
+  EJwsclHashMismatch = class(EJwsclSecurityException);
+
+
   EJwsclSecurityObjectException = class(EJwsclSecurityException);
   EJwsclInvalidObjectException = class(EJwsclSecurityException);
 
@@ -348,7 +352,46 @@ type
   EJwsclInvalidIndex = class(EJwsclSecurityException);
 
   EJwsclInvalidHandle = class(EJwsclSecurityException);
+  EJwsclClassTypeMismatch = class(EJwsclSecurityException);
 
+  EJwsclEndOfStream = class(EJwsclSecurityException);
+
+
+  {}
+  EJwsclEnumerateProcessFailed = class(EJwsclSecurityException);
+
+  EJwsclGenericFirewallException = class(EJwsclSecurityException);
+
+	  EJwsclFirewallInitException = class(EJwsclGenericFirewallException);
+	  EJwsclFirewallProfileInitException = class(EJwsclGenericFirewallException);  
+
+	  EJwsclSetFWStateException = class(EJwsclGenericFirewallException);
+	  EJwsclGetFWStateException = class(EJwsclGenericFirewallException);
+
+	  EJwsclGetFWExceptionsAllowedException = class(EJwsclGenericFirewallException);
+	  EJwsclSetFWExceptionsAllowedException = class(EJwsclGenericFirewallException);
+
+	  EJwsclGetIncommingPingAllowedException = class(EJwsclGenericFirewallException);
+	  EJwsclSetIncommingPingAllowedException = class(EJwsclGenericFirewallException);
+
+	  EJwsclGetRemoteAdminAllowedException = class(EJwsclGenericFirewallException);
+	  EJwsclSetRemoteAdminAllowedException = class(EJwsclGenericFirewallException);
+
+	  EJwsclGetRemoteAdminAdressException = class(EJwsclGenericFirewallException);
+	  EJwsclSetRemoteAdminAdressException = class(EJwsclGenericFirewallException);
+
+	  EJwsclFirewallAddRuleException = class(EJwsclGenericFirewallException);
+	  EJwsclAddTcpPortToFirewallException = class(EJwsclGenericFirewallException);
+	  EJwsclAddUdpPortToFirewallException = class(EJwsclGenericFirewallException);
+	  EJwsclFirewallDelRuleException = class(EJwsclGenericFirewallException);
+
+	  EJwsclFirewallInactiveException = class(EJwsclGenericFirewallException);
+	  EJwsclFirewallNoExceptionsException = class(EJwsclGenericFirewallException); 
+
+
+
+  EJwsclInvalidStartupInfo = class(EJwsclSecurityException);
+  
 
   JwGeneralExceptionClass = class of Exception;
 
@@ -443,18 +486,18 @@ end;
 
 
 {$IFNDEF SL_INTERFACE_SECTION}
-constructor EJwsclSecurityException.Create(const Msg: AnsiString);
+constructor EJwsclSecurityException.Create(const Msg: String);
 begin
   inherited Create(Msg);
 
   fLastError := GetLastError;
 end;
 
-constructor EJwsclSecurityException.CreateFmtWinCall(const sMsg: AnsiString;
+constructor EJwsclSecurityException.CreateFmtWinCall(const sMsg: TJwString;
   sSourceProc, sSourceClass,
-  sSourceFile: AnsiString; iSourceLine:
+  sSourceFile: TJwString; iSourceLine:
   Cardinal; bShowLastError: boolean;
-  sWinCall: AnsiString;
+  sWinCall: TJwString;
   const Args: array of const);
 begin
   CreateFmtEx(sMsg, sSourceProc, sSourceClass, sSourceFile,
@@ -475,18 +518,18 @@ begin
   fWinCallName := anException.fWinCallName;
 end;
 
-constructor EJwsclSecurityException.CreateFmtEx(const MessageString: AnsiString;
+constructor EJwsclSecurityException.CreateFmtEx(const MessageString: TJwString;
   sSourceProc, sSourceClass,
-  sSourceFile: AnsiString;
+  sSourceFile: TJwString;
   iSourceLine: Cardinal;
   iLastError: Cardinal;
   const Args: array of const);
 var
-  aMessage, sData, sLastError,sJCLText : AnsiString;
+  aMessage, sData, sLastError,sJCLText : TJwString;
 {$IFDEF SM_JCLDEBUG}
     CallStackStrings: TStringList;
     pCaller : Pointer;
-    sModule: AnsiString;
+    sModule: TJwString;
     sI : TJclStackInfoList;
 {$ENDIF SM_JCLDEBUG}
 
@@ -540,9 +583,9 @@ begin
                         false,//IncludeStartProcLineOffset: Boolean = False;
                         false//IncludeVAdress: Boolean = False): Boolean;
                       ) ;
-         sJCLText := CallStackStrings.Text;
+         sJCLText := TJwString(CallStackStrings.Text);
 
-         fStackTrace := CallStackStrings.Text;
+         fStackTrace := TJwString(CallStackStrings.Text);
        end;
        CallStackStrings.Free;
     end;
@@ -561,19 +604,19 @@ end;
 
 
 
-constructor EJwsclSecurityException.CreateFmtEx(const MessageString: AnsiString;
+constructor EJwsclSecurityException.CreateFmtEx(const MessageString: TJwString;
   sSourceProc, sSourceClass,
-  sSourceFile: AnsiString;
+  sSourceFile: TJwString;
   iSourceLine:  Cardinal;
   bShowLastError: boolean;
   const Args: array of const);
 var
   aMessage, sData, sLastError,
-  sJCLText: AnsiString;
+  sJCLText: TJwString;
 {$IFDEF SM_JCLDEBUG}
     CallStackStrings: TStringList;
     pCaller : Pointer;
-    sModule: AnsiString;
+    sModule: TJwString;
     sI : TJclStackInfoList;
 {$ENDIF SM_JCLDEBUG}
 begin
@@ -633,8 +676,8 @@ begin
                         false,//IncludeStartProcLineOffset: Boolean = False;
                         false//IncludeVAdress: Boolean = False): Boolean;
                       ) ;
-         sJCLText := CallStackStrings.Text;
-         fStackTrace := CallStackStrings.Text;
+         sJCLText := TJwString(CallStackStrings.Text);
+         fStackTrace := TJwString(CallStackStrings.Text);
        end;
        CallStackStrings.Free;
     end;

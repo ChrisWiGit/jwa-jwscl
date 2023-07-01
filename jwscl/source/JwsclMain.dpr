@@ -1,7 +1,8 @@
 {This project is for analyze purposes only!}
 Program JwsclMain;
 uses
-	JwsclAccounts,
+  JwaWindows,
+  JwsclAccounts,
 	JwsclAcl,
 	JwsclAuthCtx,
 	JwsclComUtils,
@@ -13,8 +14,9 @@ uses
 	JwsclElevation,
 	JwsclEncryption,
 	JwsclEnumerations,
-	JwsclEurekaLogUtils,
+	//JwsclEurekaLogUtils,
 	JwsclExceptions,
+  JwsclFirewall,
 	JwsclImpersonation,
 	JwsclKnownSid,
 	JwsclLogging,
@@ -28,6 +30,7 @@ uses
 	JwsclSecureUserObjects,
 	JwsclSecurityDialogs,
 	JwsclSid,
+  JwsclStreams,
 	JwsclStrings,
 	JwsclTerminalServer,
 	JwsclToken,
