@@ -27,17 +27,29 @@ program UnitTests;
 
 
 uses
+{$IFDEF FASTMM4}
+  FastMm4,
+{$ENDIF FASTMM4}  
+  //JEDI API LIB
   jwaWindows,
   JwaVista,
+  
+  //VCL
   SysUtils,
   Dialogs,
   Forms,
   Classes,
-  Windows,
+  Windows, //only for TKeyboardState 
+
+  //DUNIT
   TestFramework,
   GUITestRunner,
   TextTestRunner,
+
+  //Tools
   UMessageForm in '..\..\source\UMessageForm.pas' {frmMessage},
+
+  //JEDI WSCL
   JwsclResource,
   JwsclAcl,
   JwsclConstants,
@@ -67,6 +79,8 @@ uses
   JwsclSecurePrivateObjects,
   JwsclSecureUserObjects,
   JwsclAccounts,
+
+  //JWSCL Unit Tests
   JwsclAclTests in '..\..\source\JwsclAclTests.pas',
   JwsclDescriptorTests in '..\..\source\JwsclDescriptorTests.pas',
   JwsclDesktopsTests in '..\..\source\JwsclDesktopsTests.pas',
@@ -77,9 +91,8 @@ uses
   JwsclSIDTests in '..\..\source\JwsclSIDTests.pas',
   JwsclTokenTests in '..\..\source\JwsclTokenTests.pas',
   JwsclUnitUtilsTests in '..\..\source\JwsclUnitUtilsTests.pas',
-  JwsclUtilsTests in '..\..\source\JwsclUtilsTests.pas',
-  JwsclSecurePrivateObjectsTests in '..\..\source\JwsclSecurePrivateObjectsTests.pas',
-  JwsclRegistry in '..\..\..\source\JwsclRegistry.pas';
+  JwsclSecurePrivateObjectsTests in '..\..\source\JwsclSecurePrivateObjectsTests.pas';
+
 
 //never ever use JwsclLibrary and one of the Jwscl units at the same time!!
 
@@ -102,3 +115,5 @@ begin
     GUITestRunner.RunRegisteredTests;
 {$ENDIF}
 end.
+ 
+

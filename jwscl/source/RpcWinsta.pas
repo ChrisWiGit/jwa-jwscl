@@ -1,16 +1,5 @@
 {RpcWinsta is only for testing purposes and may not be used for
 productive use!
-
-Version
-The following values are automatically injected by Subversion on commit.
-<table>
-\Description                                                        Value
-------------------------------------------------------------------  ------------
-Last known date the file has changed in the repository              \$Date: 2010-08-29 14:26:48 +0000 (Sun, 29 Aug 2010) $
-Last known revision number the file has changed in the repository   \$Revision: 1006 $
-Last known author who changed the file in the repository.           \$Author: dezipaitor $
-Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/trunk/source/RpcWinsta.pas $
-</table>
 }
 unit RpcWinsta;
 
@@ -57,7 +46,7 @@ function RpcWinStationFUSCanRemoteUserDisconnect(IcaApiHandle : THandle; var fun
  domainName : PWideChar; domainNameLength : DWORD; userName : PWideChar; userNameLength : DWORD): Boolean;
   stdcall;
 
-// function can be also used to open a new handle to the local server, if needed, which needs to be closed.
+// function can be also used to open a new handle to the local server, if needed, which needs to be closed. 
 function WinStationCloseServer(var ServerHandle : THandle) : DWORD;
 function WinStationOpenServer(ServerName : WideString) : THandle;
 function WinStationGetLocalServerHandle : THandle; // returns a auto open local handle. Do not close it!!!

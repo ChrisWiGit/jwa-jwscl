@@ -29,10 +29,6 @@ type
     procedure TestGlobalAllocMem;
     procedure TestMakeGlobalAllocLeak;
     procedure TestCheckAdministratorAccess;
-    procedure TestJwFormatMessage;
-
-    procedure TestDeviceToDosDrive;
-    procedure TestDeviceToDosDriveUNC;
 
     procedure TestSetThreadName;
   end;
@@ -69,37 +65,6 @@ begin
     Check(false,'Test failure is normal: User has Administrator rights');
 end;
 
-procedure TestUnitUtils.TestDeviceToDosDrive;
-const
-  DriveA = 'A:';
-  DeviceA = 'floppy0';
-
-  DriveC = 'C:';
-  DeviceC = 'Harddisk0\Partition0';
-
-  FileTest = 'test123.txt';
-
-begin
-  CheckEquals('', JwDeviceToDosDrive(''));
-//  CheckEquals(DriveC+'\', JwDeviceToDosDrive('\device\'+DeviceC));
-  CheckEquals(DriveA+'\', JwDeviceToDosDrive('\device\'+DeviceA+''));
-  CheckEquals(DriveA+'\', JwDeviceToDosDrive('\device\'+DeviceA+'\'));
-
-  try
-    CheckEquals(DriveA+'\'+FileTest, JwDeviceToDosDrive('\device\test123'));
-  except
-    on E : EOSError do;
-  end;
-  //CheckEquals(DriveA+'\'+FileTest, JwDeviceToDosDrive('\device\'+DeviceA+'\'+FileTest));
-
-end;
-
-procedure TestUnitUtils.TestDeviceToDosDriveUNC;
-begin
-  //CheckEquals('', JwDeviceToDosDrive('\\?\Device\floppy0\'));
-  CheckEquals('\\server\path', JwDeviceToDosDrive('\device\mup\server\path'));
-end;
-
 procedure TestUnitUtils.TestGlobalAllocMem;
 var Mem : HGLOBAL;
 begin
@@ -107,100 +72,6 @@ begin
 
   JwGlobalFreeMem(Mem);
 
-end;
-
-
-
-
-procedure TestUnitUtils.TestJwFormatMessage;
-type
-{$IFDEF UNICODE}
-  TLChar = AnsiChar;
-  TLPChar = PAnsiChar;
-  TLString = AnsiString;
-{$ELSE}
-  TLChar = WideChar;
-  TLPChar = PWideChar;
-  TLString = WideString;
-{$ENDIF UNICODE}
-
-
-var
-  S, S1, S2, S3, S4 : String;
-begin
-  S := '%1';
-  S1 := JwFormatMessage(
-    S,                 //const MessageString : TJwString;
-    [fmfIgnoreInserts],//const Flags : TJwFormatMessageFlags;
-    []      //const Arguments : array of const
-  );
-
-
-  try
-    S1 := JwFormatMessage(
-      S,                 //const MessageString : TJwString;
-      [],//const Flags : TJwFormatMessageFlags;
-      [High(Int64)]      //const Arguments : array of const
-    );
-  except
-    on E : Exception do
-      CheckIs(E, EJwsclUnsupportedInsertParameterTypeException);
-  end;
-
-  try
-    S1 := JwFormatMessage(
-      S,                 //const MessageString : TJwString;
-      [],//const Flags : TJwFormatMessageFlags;
-      [Variant(1)]      //const Arguments : array of const
-    );
-  except
-    on E : Exception do
-      CheckIs(E, EJwsclUnsupportedInsertParameterTypeException);
-  end;
-
-   try
-    S1 := JwFormatMessage(
-      S,                 //const MessageString : TJwString;
-      [],//const Flags : TJwFormatMessageFlags;
-      [1.1]      //const Arguments : array of const
-    );
-  except
-    on E : Exception do
-      CheckIs(E, EJwsclUnsupportedInsertParameterTypeException);
-  end;
-
-  try
-    S1 := JwFormatMessage(
-      S,                 //const MessageString : TJwString;
-      [],//const Flags : TJwFormatMessageFlags;
-      [TLChar('a')]      //const Arguments : array of const
-    );
-  except
-    on E : Exception do
-      CheckIs(E, EJwsclInvalidInsertParameterTypeException);
-  end;
-
-  try
-    S1 := JwFormatMessage(
-      S,                 //const MessageString : TJwString;
-      [],//const Flags : TJwFormatMessageFlags;
-      [TLString('test')]      //const Arguments : array of const
-    );
-  except
-    on E : Exception do
-      CheckIs(E, EJwsclInvalidInsertParameterTypeException);
-  end;
-
-  try
-    S1 := JwFormatMessage(
-      S,                 //const MessageString : TJwString;
-      [],//const Flags : TJwFormatMessageFlags;
-      [TLChar('a')]      //const Arguments : array of const
-    );
-  except
-    on E : Exception do
-      CheckIs(E, EJwsclInvalidInsertParameterTypeException);
-  end;
 end;
 
 procedure TestUnitUtils.TestLocalAllocMem;
@@ -249,3 +120,4 @@ initialization
   // Alle Testfälle beim Test-Runner registrieren
   RegisterTest(TestUnitUtils.Suite);
 end.
+

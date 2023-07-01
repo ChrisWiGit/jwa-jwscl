@@ -9,7 +9,7 @@ program AclUnitTest;
 
 {Define one of these directive to use memory leak manager}
 {.$DEFINE FASTMM4}
-{.$UNDEF FASTMM4}
+{$UNDEF FASTMM4}
 
 {$IFDEF FASTMM4}
   {$UNDEF MEMCHECK}
@@ -27,20 +27,19 @@ program AclUnitTest;
 
 
 uses
-  ExceptionLog,
 {$IFDEF FASTMM4}
   FastMm4,
-{$ENDIF FASTMM4}
+{$ENDIF FASTMM4}  
   //JEDI API LIB
   jwaWindows,
   JwaVista,
-
+  
   //VCL
   SysUtils,
   Dialogs,
   Forms,
   Classes,
-  Windows, //only for TKeyboardState
+  Windows, //only for TKeyboardState 
 
   //DUNIT
   TestFramework,
@@ -91,8 +90,7 @@ begin
   JwInitWellKnownSIDs;
 
 {$IFDEF FASTMM4}
-  //{$IFNDEF COMPILER_8_UP}FastMM4.{$ENDIF}
-  //FastMM4.ReportMemoryLeaksOnShutdown := true;
+  {$IFNDEF COMPILER_8_UP}FastMM4.{$ENDIF}ReportMemoryLeaksOnShutdown := true;
 {$ENDIF}
 
    Application.Initialize;
@@ -106,3 +104,5 @@ begin
     GUITestRunner.RunRegisteredTests;
 {$ENDIF}
 end.
+ 
+

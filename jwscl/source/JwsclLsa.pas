@@ -1,14 +1,10 @@
-{
-Description
+{<B>Abstract</B>This unit provides access to the Local Security Authority Subsystem that provides function like LSALogonUser to create a logon session. 
+@author(Christian Wimmer)
+<B>Created:</B>03/23/2007 
+<B>Last modification:</B>09/10/2007 
 
 Project JEDI Windows Security Code Library (JWSCL)
 
-This unit provides access to the Local Security Authority Subsystem that provides function like LSALogonUser to create a logon session.
-
-Author
-Christian Wimmer
-
-License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -17,39 +13,30 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the
-GNU Lesser General Public License (the  "LGPL License"), in which case the
-provisions of the LGPL License are applicable instead of those above.
-If you wish to allow use of your version of this file only under the terms
-of the LGPL License and not to allow others to use your version of this file
-under the MPL, indicate your decision by deleting  the provisions above and
-replace  them with the notice and other provisions required by the LGPL
-License.  If you do not delete the provisions above, a recipient may use
-your version of this file under either the MPL or the LGPL License.
+Alternatively, the contents of this file may be used under the terms of the  
+GNU Lesser General Public License (the  "LGPL License"), in which case the   
+provisions of the LGPL License are applicable instead of those above.        
+If you wish to allow use of your version of this file only under the terms   
+of the LGPL License and not to allow others to use your version of this file 
+under the MPL, indicate your decision by deleting  the provisions above and  
+replace  them with the notice and other provisions required by the LGPL      
+License.  If you do not delete the provisions above, a recipient may use     
+your version of this file under either the MPL or the LGPL License.          
+                                                                             
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
 
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
-
-Note
 The Original Code is JwsclLSA.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-Version
-The following values are automatically injected by Subversion on commit.
-<table>
-\Description                                                        Value
-------------------------------------------------------------------  ------------
-Last known date the file has changed in the repository              \$Date: 2010-10-14 14:09:29 +0000 (Thu, 14 Oct 2010) $
-Last known revision number the file has changed in the repository   \$Revision: 1025 $
-Last known author who changed the file in the repository.           \$Author: dezipaitor $
-Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/trunk/source/JwsclLsa.pas $
-</table>
+Description:
+
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclLsa;
-{$INCLUDE ..\includes\Jwscl.inc}
-
+{$INCLUDE Jwscl.inc}
+// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
 
@@ -58,8 +45,7 @@ uses SysUtils,
   JwsclResource,
   JwsclSid, JwsclToken,
   JwsclTypes, JwsclExceptions,
-  JwsclVersion, JwsclConstants,
-  JwsclUtils,
+  JwsclVersion, JwsclConstants, 
   JwsclStrings; //JwsclStrings, must be at the end of uses list!!!
 {$ENDIF SL_OMIT_SECTIONS}
 
@@ -72,40 +58,13 @@ type
   protected
     fLsaHandle: THandle;
   public
-    {<B>Create</B> creates a new instance of TJwSecurityLsa and
-        registers the current process as a logon process.
-        This call needs TCB privilege!
-    @param LogonProcessName This parameter receives a name in ansi format that
-        does not exceed 127 characters.
-
-    @raises
-        EJwsclWinCallFailedException: This exception will be raised
-        if the call to LsaRegisterLogonProcess failed.
-    }
     constructor Create(const LogonProcessName: AnsiString);
-
-    {<B>CreateUntrusted</B> creates a new instance of TJwSecurityLsa and
-        creates an untrusted connection to LSA
-
-    @raises
-        EJwsclWinCallFailedException: This exception will be raised
-        if the call to LsaConnectUntrusted failed.
-    }
-    constructor CreateUntrusted;
 
     destructor Destroy; override;
 
-    {<B>LsaLogonUser</B> creates a new authentication token where
-        even token groups can be adapted.
-
-    @param anAuthenticationInformation Use JwCreate_MSV1_0_INTERACTIVE_LOGON for
-        interactive logondata)
-
-    }
-    procedure LsaLogonUser(
-      const anOriginName: AnsiString;
+    procedure LsaLogonUser(anOriginName: AnsiString;
       aLogonType: SECURITY_LOGON_TYPE;
-      const anAuthenticationPackageName: AnsiString;
+      anAuthenticationPackageName: AnsiString;
       anAuthenticationInformation: Pointer;
       anAuthenticationInformationLength: Cardinal;
       aLocalGroups: TJwSecurityIdList;
@@ -122,7 +81,7 @@ type
 
   end;
 
-
+  TJwWideStringArray = array of WideString;
   TJwAccountRightStringW = TJwWideStringArray;
   TJwEnumerationInformation = array of TJwSecurityId;
 
@@ -235,9 +194,8 @@ The returned pointer can be freed by LocalFree .
 }
 function JwCreate_MSV1_0_INTERACTIVE_LOGON(
   MessageType: MSV1_0_LOGON_SUBMIT_TYPE;
-  const LogonDomainName,
-        UserName,
-        Password: WideString;
+  LogonDomainName, UserName,
+  Password: WideString;
   out authLen: Cardinal): PMSV1_0_INTERACTIVE_LOGON;
 
 
@@ -252,7 +210,6 @@ procedure JWFreeLsaStringW(Lsa : LSA_UNICODE_STRING);
 implementation
 
 
-
 { TJwSecurityLsa }
 
 
@@ -262,6 +219,8 @@ function JwInitLsaStringW(
 var
   dwLen : DWORD;
 begin
+  dwLen := 0;
+
   dwLen := Length(pwszString);
   if (dwLen > $7ffe) then  // String is too large
   begin
@@ -287,7 +246,6 @@ end;
 
 
 function JwCreateLSAString(const aString: AnsiString): LSA_STRING;
-//aString must be AnsiString !!
 var
   pStr: PAnsiChar;
 begin
@@ -310,26 +268,12 @@ begin
 end;
 
 
-constructor TJwSecurityLsa.CreateUntrusted;
-var res: NTSTATUS;
-begin
-  res := LsaConnectUntrusted(fLsaHandle);
-  if res <> STATUS_SUCCESS then
-  begin
-    res := LsaNtStatusToWinError(res);
-    SetLastError(res);
-    raise EJwsclWinCallFailedException.CreateFmtWinCall(
-      RsWinCallFailed,
-      'CreateUntrusted', ClassName, RsUNLSA,
-      0, True, 'LsaConnectUntrusted',
-      ['LsaRegisterLogonProcess']);
-  end;
-end;
+
 
 constructor TJwSecurityLsa.Create(const LogonProcessName: AnsiString);
 var
   lsaHostString: LSA_STRING;
-  res: NTSTATUS;
+  res: Cardinal;
   lsaSecurityMode: LSA_OPERATIONAL_MODE;
 
 const
@@ -338,6 +282,7 @@ const
     Buffer: '12'#0);
 begin
   lsaHostString := JwCreateLSAString(LogonProcessName);
+
 
   res := LsaRegisterLogonProcess(lsaHostString, fLsaHandle, @lsaSecurityMode);
 
@@ -349,7 +294,7 @@ begin
     SetLastError(res);
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsWinCallFailed,
-      'Create', ClassName, RsUNLSA,
+      'Create', ClassName, 'JwsclLsa.pas',
       0, True, 'LsaRegisterLogonProcess',
       ['LsaRegisterLogonProcess']);
   end;
@@ -362,45 +307,63 @@ begin
   fLsaHandle := 0;
 end;
 
-
-function JwCreate_MSV1_0_INTERACTIVE_LOGON(
-        MessageType: MSV1_0_LOGON_SUBMIT_TYPE;
-  const LogonDomainName,
-        UserName,
-        Password: WideString;
-    out authLen: Cardinal)
-     : PMSV1_0_INTERACTIVE_LOGON;
-type
-  PAuthInfo = ^TAuthInfo;
-  TAuthInfo = record
-    Header: MSV1_0_INTERACTIVE_LOGON;
-    Domain: array[0..DNLEN] of WideChar;
-    User: array[0..UNLEN] of WideChar;
-    Password: array[0..UNLEN] of WideChar;
-  end;
-
-var AuthInfo : PAuthInfo absolute result;
+procedure _initUnicodeString(target: PUNICODE_STRING;
+  Source: PWideChar; cbMax: USHORT);
 begin
-  AuthInfo := PAuthInfo(LocalAlloc(LPTR, sizeof(TAuthInfo)));
-  authLen := sizeof(TAuthInfo);
-
-  AuthInfo.Header.MessageType := MessageType;
-
-  StringCbCopyW(@AuthInfo.Domain, sizeof(AuthInfo.Domain), @LogonDomainName[1]);
-  StringCbCopyW(@AuthInfo.User, sizeof(AuthInfo.User), @UserName[1]);
-  StringCbCopyW(@AuthInfo.Password, sizeof(AuthInfo.Password), @Password[1]);
-
-
-  RtlInitUnicodeString(@AuthInfo.Header.LogonDomainName, AuthInfo.Domain);
-  RtlInitUnicodeString(@AuthInfo.Header.UserName, AuthInfo.User);
-  RtlInitUnicodeString(@AuthInfo.Header.Password, AuthInfo.Password);
+  target.Length := cbMax;//-2;//- sizeof(source^);
+  target.MaximumLength := cbMax;
+  target.Buffer := Source;
 end;
 
 
-procedure TJwSecurityLsa.LsaLogonUser(
-  const anOriginName: AnsiString;
-  aLogonType: SECURITY_LOGON_TYPE;
-  const anAuthenticationPackageName: AnsiString;
+function JwCreate_MSV1_0_INTERACTIVE_LOGON(
+  MessageType: MSV1_0_LOGON_SUBMIT_TYPE;
+  LogonDomainName, UserName,
+  Password: WideString;
+  out authLen: Cardinal): PMSV1_0_INTERACTIVE_LOGON;
+var
+  iSize: integer;
+  p: PWCHAR;
+
+  cbHeader, cbDom, cbUser, cbPass: integer;
+
+  pDom, pUser, pPass: PWChar;
+
+const
+  iUSHORT = sizeof(USHORT);
+  iWCHAR  = sizeof(widechar);
+begin
+  cbHeader := sizeof(MSV1_0_INTERACTIVE_LOGON);
+  cbDom  := Length(LogonDomainName) * iWCHAR;
+  cbUser := Length(UserName) * iWCHAR;
+  cbPass := Length(Password) * iWCHAR;
+
+  iSize := cbHeader + cbDom + cbUser + cbPass;
+
+  authLen := iSize;
+
+  Result := PMSV1_0_INTERACTIVE_LOGON(LocalAlloc(LMEM_ZEROINIT or
+    LMEM_FIXED, iSize));
+
+  Result.MessageType := MessageType;
+  p := PWCHAR(Result);
+  Inc(integer(p), cbHeader);
+
+  pDom  := p;
+  pUser := PWChar(integer(p) + cbDom);
+  pPass := PWChar(integer(p) + cbDom + cbUser);
+
+  CopyMemory(pDom, @LogonDomainName[1], cbDom);
+  CopyMemory(pUser, @UserName[1], cbUser);
+  CopyMemory(pPass, @Password[1], cbPass);
+
+  _initUnicodeString(@Result.LogonDomainName, pDom, cbDom);
+  _initUnicodeString(@Result.UserName, pUser, cbUser);
+  _initUnicodeString(@Result.Password, pPass, cbPass);
+end;
+
+procedure TJwSecurityLsa.LsaLogonUser(anOriginName: AnsiString;
+  aLogonType: SECURITY_LOGON_TYPE; anAuthenticationPackageName: AnsiString;
   anAuthenticationInformation: Pointer;
   anAuthenticationInformationLength: Cardinal;
   aLocalGroups: TJwSecurityIdList; aSourceContext: TTokenSource;
@@ -409,7 +372,7 @@ procedure TJwSecurityLsa.LsaLogonUser(
   out aQuotaLimits: QUOTA_LIMITS; out SubStatus: NTSTATUS);
 
 var
-  res: NTSTATUS;
+  res: Cardinal;
   lsaOrig, lsaPackageName: LSA_STRING;
 
   pLocalGroups: PTokenGroups;
@@ -437,7 +400,7 @@ begin
     SetLastError(res);
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsWinCallFailed,
-      'Create', ClassName, RsUNLSA,
+      'Create', ClassName, 'JwsclLsa.pas',
       0, True, 'LsaLookupAuthenticationPackage',
       ['LsaRegisterLogonProcess']);
   end;
@@ -484,13 +447,14 @@ begin
     SetLastError(res);
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsLSALogonUserFailedSubStatus,
-      'Create', ClassName, RsUNLSA,
+      'Create', ClassName, 'JwsclLsa.pas',
       0, True, 'LsaLogonUser', [SubStatus]);
   end;
 
   aToken := nil;
   if (hToken <> 0) and (hToken <> INVALID_HANDLE_VALUE) then
     aToken := TJwSecurityToken.Create(hToken, shOwned, TOKEN_ALL_ACCESS);
+
 end;
 
 { TJwLsaLogonSession }
@@ -501,7 +465,6 @@ var p : PSecurityLogonSessionData;
     res : NTSTATUS;
 begin
   p := nil;
-
   res := LsaGetLogonSessionData(@LogonId,p);
 
   if res <> STATUS_SUCCESS then
@@ -509,7 +472,7 @@ begin
     SetLastError(LsaNtStatusToWinError(res));
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsWinCallFailedWithNTStatus,
-      'GetSessionData', ClassName, RsUNLSA,
+      'GetSessionData', ClassName, 'JwsclLsa.pas',
       0, True, 'LsaGetLogonSessionData', ['LsaGetLogonSessionData', res]);
   end;
 
@@ -519,11 +482,10 @@ begin
 end;
 
 class function TJwLsaLogonSession.GetSessions: TJwLogonSessionArray;
-var
-  List,
-  LuidPtr : PLuid;
-  Count : ULONG;
-  res : NTSTATUS;
+var List,
+    LuidPtr : PLuid;
+    Count : ULONG;
+    res : NTSTATUS;
   I: Integer;
 begin
   List := nil;
@@ -535,7 +497,7 @@ begin
     SetLastError(LsaNtStatusToWinError(res));
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsWinCallFailedWithNTStatus,
-      'GetSessionData', ClassName, RsUNLSA,
+      'GetSessionData', ClassName, 'JwsclLsa.pas',
       0, True, 'LsaEnumerateLogonSessions', ['LsaEnumerateLogonSessions', res]);
   end;
 
@@ -546,6 +508,7 @@ begin
     result[i] := LuidPtr^;
     Inc(LuidPtr);
   end;
+  LuidPtr := nil;
 
 
   LsaFreeReturnBuffer(List);
@@ -592,7 +555,7 @@ end;
 
 destructor TJwLsaLogonSessionData.Destroy;
 begin
-  JwFree(fSid);
+  FreeAndNil(fSid);
   inherited;
 end;
 
@@ -619,7 +582,7 @@ begin
     SetLastError(LsaNtStatusToWinError(ntsResult));
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsWinCallFailed,
-      'EnumerateAccountRights', ClassName, RsUNLSA,
+      'EnumerateAccountRights', ClassName, 'JwsclLsa.pas',
       0, True, 'LsaOpenPolicy',
       ['LsaOpenPolicy']);
   end;
@@ -669,7 +632,7 @@ begin
     SetLastError(LsaNtStatusToWinError(ntsResult));
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsWinCallFailed,
-      'CreateAndOpenPolicy', ClassName, RsUNLSA,
+      'CreateAndOpenPolicy', ClassName, 'JwsclLsa.pas',
       0, True, 'LsaOpenPolicy',
       ['LsaOpenPolicy']);
   end;
@@ -687,8 +650,8 @@ procedure TJwLsaPolicy.AddAccountRights(const Sid: TJwSecurityId;
 var
   ntsResult : NTSTATUS;
 
-  //Privs : PLSA_UNICODE_STRING;
-  //PrivCount : Cardinal;
+  Privs : PLSA_UNICODE_STRING;
+  PrivCount : Cardinal;
 
   Arr : Array of LSA_UNICODE_STRING;
   i : Integer;
@@ -713,7 +676,7 @@ begin
       SetLastError(LsaNtStatusToWinError(ntsResult));
       raise EJwsclWinCallFailedException.CreateFmtWinCall(
         RsWinCallFailed,
-        'CreateAndOpenPolicy', ClassName, RsUNLSA,
+        'CreateAndOpenPolicy', ClassName, 'JwsclLsa.pas',
         0, True, 'LsaAddAccountRights',
         ['LsaAddAccountRights']);
     end;
@@ -752,8 +715,8 @@ procedure TJwLsaPolicy.RemoveAccountRights(const Sid: TJwSecurityId;
 var
   ntsResult : NTSTATUS;
 
-  //Privs : PLSA_UNICODE_STRING;
-  //PrivCount : Cardinal;
+  Privs : PLSA_UNICODE_STRING;
+  PrivCount : Cardinal;
 
   Arr : Array of LSA_UNICODE_STRING;
   i : Integer;
@@ -778,7 +741,7 @@ begin
       SetLastError(LsaNtStatusToWinError(ntsResult));
       raise EJwsclWinCallFailedException.CreateFmtWinCall(
         RsWinCallFailed,
-        'RemoveAccountRights', ClassName, RsUNLSA,
+        'RemoveAccountRights', ClassName, 'JwsclLsa.pas',
         0, True, 'LsaRemoveAccountRights',
         ['LsaRemoveAccountRights']);
     end;
@@ -817,7 +780,7 @@ end;
 
 function TJwLsaPolicy.GetPrivateData(Key: WideString): WideString;
 var
-  ntsResult : NTSTATUS;
+  ntsResult : Cardinal;
   pData : PLSA_UNICODE_STRING;
   pStr : LSA_UNICODE_STRING;
   dwLen : Cardinal;
@@ -835,7 +798,7 @@ begin
       SetLastError(LsaNtStatusToWinError(ntsResult));
       raise EJwsclWinCallFailedException.CreateFmtWinCall(
         RsWinCallFailed,
-        'RemoveAccountRights', ClassName, RsUNLSA,
+        'RemoveAccountRights', ClassName, 'JwsclLsa.pas',
         0, True, 'LsaRemoveAccountRights',
         ['LsaRemoveAccountRights']);
     end;
@@ -852,7 +815,7 @@ end;
 
 procedure TJwLsaPolicy.SetPrivateData(Key, Data: WideString);
 var
-  ntsResult : NTSTATUS;
+  ntsResult : Cardinal;
   pData,
   pStr : LSA_UNICODE_STRING;
 begin
@@ -870,7 +833,7 @@ begin
       SetLastError(LsaNtStatusToWinError(ntsResult));
       raise EJwsclWinCallFailedException.CreateFmtWinCall(
         RsWinCallFailed,
-        'RemoveAccountRights', ClassName, RsUNLSA,
+        'RemoveAccountRights', ClassName, 'JwsclLsa.pas',
         0, True, 'LsaRemoveAccountRights',
         ['LsaRemoveAccountRights']);
     end;

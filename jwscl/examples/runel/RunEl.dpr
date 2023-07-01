@@ -17,8 +17,6 @@ uses
   JwsclToken,
   JwsclElevation,
   JwsclVersion,
-  JwsclTypes,
-  JwsclConstants,
   JwsclExceptions;
 
 
@@ -266,7 +264,7 @@ begin
     //get rest of parameters
     Parameter := ParamStr(iP);
 
-    i2 := Pos(Parameter, WideString(CmdLine));
+    i2 := Pos(Parameter, String(CmdLine));
     if i2 > 0 then
     begin
       P := CmdLine;

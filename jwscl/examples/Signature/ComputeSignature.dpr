@@ -9,9 +9,7 @@ program ComputeSignature;
 uses
   SysUtils,
   Classes,
-  JwaWindows,
   JwsclCryptProvider,
-  JwsclExceptions,
   JwsclTypes;
 
 //The files are put into the current directory. If you do not have
@@ -25,44 +23,31 @@ var Provider: TJwCryptProvider; Key: TJwCryptKey; Hash: TJwHash;
 begin
   //If the default key container has not yet been created, specify
   //[ccfNewKeyset] as the last parameter
-  TJwCryptProvider.DeleteKeyset('');
-  Provider := TJwCryptProvider.Create('', '', ctRsaFull, [ccfNewKeyset]);
+  Provider := TJwCryptProvider.Create('', '', ctRsaFull, []);
   try
+    Hash := TJwHash.Create(haSHA, Provider);
     try
-      //try to get the user key
-      Key := TJwCryptKey.GetUserKey(Provider, kptSignature);
-    except
-      on E: EJwsclKeyApiException do
-        if E.LastError = Cardinal(NTE_NO_KEY) then
-          //No signature key pair was stored in the key container.
-          //We create one and store it.
-          Key := TJwCryptKey.GenerateContainerKey(Provider, kptSignature, [], 0)
-        else
-          raise;
-    end;
-    try
-      Hash := TJwHash.Create(haSHA, Provider);
+      Writeln('Enter a string! Its signature will be stored in '+SignatureFile+'.');
+      Readln(Data);
+      Hash.HashData(Pointer(Data), Length(Data));
+      Blob := Hash.Sign(Len, kptSignature);
       try
-        Writeln('Enter a string! Its signature will be stored in '+SignatureFile+'.');
-        Readln(Data);
-        Hash.HashData(Pointer(Data), Length(Data));
-        Blob := Hash.Sign(Len, kptSignature);
+        FS := TFileStream.Create(SignatureFile, fmCreate);
         try
-          FS := TFileStream.Create(SignatureFile, fmCreate);
-          try
-            FS.WriteBuffer(Blob^, Len);
-          finally
-            FS.Free;
-          end;
+          FS.WriteBuffer(Blob^, Len);
         finally
-          Hash.FreeBuffer(Blob);
+          FS.Free;
         end;
-        Writeln('Signature successfully stored');
       finally
-        Hash.Free;
+        Hash.FreeBuffer(Blob);
       end;
+      Writeln('Signature successfully stored');
+    finally
+      Hash.Free;
+    end;
 
-
+    Key := TJwCryptKey.GetUserKey(Provider, kptSignature);
+    try
       Blob := Key.ExportKey(nil, kekPublic, [], Len);
       try
         FS := TFileStream.Create(PublicKeyFile, fmCreate);

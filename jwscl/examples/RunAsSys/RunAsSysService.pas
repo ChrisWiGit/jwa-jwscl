@@ -19,8 +19,9 @@ uses
   Messages, SysUtils, Classes, Graphics, Controls, SvcMgr, Dialogs;
 
 type
-  TRunAsSysSvc9 = class(TService)
+  TRunAsSysSvc3 = class(TService)
     procedure ServiceExecute(Sender: TService);
+    procedure ServiceStart(Sender: TService; var Started: Boolean);
   private
     { Private-Deklarationen }
     procedure OnWinLogonFoundInSameSession(const Sender2 : TJwTerminalServer; var Process : TJwWTSProcess;
@@ -37,7 +38,7 @@ type
   end;
 
 var
-  RunAsSysSvc9 : TRunAsSysSvc9;
+  RunAsSysSvc3 : TRunAsSysSvc3;
 
 implementation
 
@@ -54,12 +55,11 @@ type
     SessionID : DWORD;
   end;
 
-procedure TRunAsSysSvc9.OnWinLogonFoundInSameSession(const Sender2 : TJwTerminalServer; var Process : TJwWTSProcess;
+procedure TRunAsSysSvc3.OnWinLogonFoundInSameSession(const Sender2 : TJwTerminalServer; var Process : TJwWTSProcess;
       var Cancel : Boolean; Data : Pointer);
 
 var ProcessData : PInternalProcessData absolute Data;
 begin
-  try
   Cancel :=
       {
         same session
@@ -75,14 +75,11 @@ begin
         So we ignore them otherwise the user gets a system elevated process.
       }
       and (Assigned(Process.UserSid) and Process.UserSid.EqualSid(JwLocalSystemSID));
-  except
-    cancel := false;
-  end;
 end;
 
 procedure ServiceController(CtrlCode: DWord); stdcall;
 begin
-  RunAsSysSvc9.Controller(CtrlCode);
+  RunAsSysSvc3.Controller(CtrlCode);
 end;
 
 
@@ -95,18 +92,18 @@ end;
 
 { TRunAsSysSvc }
 
-procedure TRunAsSysSvc9.DoExecute;
+procedure TRunAsSysSvc3.DoExecute;
 begin
   Self.ServiceExecute(nil);
 end;
 
-function TRunAsSysSvc9.GetServiceController: TServiceController;
+function TRunAsSysSvc3.GetServiceController: TServiceController;
 begin
   Result := ServiceController;
 end;
 
 {.$DEFINE CMD}
-procedure TRunAsSysSvc9.ServiceExecute(Sender: TService);
+procedure TRunAsSysSvc3.ServiceExecute(Sender: TService);
 
 function _ParamCount : Integer;
 begin
@@ -148,14 +145,12 @@ var
   Log : IJwLogClient;
   Flags : Cardinal;
 begin
- // Sleep(10000);
-
   Log := uLogging.LogServer.Connect(etThread, '','Service Execute','RunAsSysService.pas','Entering service main thread');
 
-
+  //Sleep(10000);
 
   CmdLine := '';
-  for iP := 0 to _ParamCount-1  do
+  for iP := 0 to _ParamCount  do
   begin
     CmdLine := CmdLine + #13#10 + _Param(iP);
   end;
@@ -241,7 +236,7 @@ begin
       on e: Exception do
       begin
         Log.Log(lsError, 'Could not start process:'+E.Message);
-        Log.Exception(E);
+        Log.Exception(E);                                      
       end;
     end;
 
@@ -257,7 +252,7 @@ begin
 
 end;
 
-procedure TRuRunAsSysSvc9erviceStart(Sender: TService;
+procedure TRunAsSysSvc3.ServiceStart(Sender: TService;
   var Started: Boolean);
 begin
   Started := true;

@@ -1,14 +1,13 @@
 {
-Description
+<B>Abstract</B>Contains structures to support auto free class instances. 
+@author(Christian Wimmer)
+<B>Created:</B>03/23/2007 
+<B>Last modification:</B>09/10/2007 
+
+
+
 Project JEDI Windows Security Code Library (JWSCL)
 
-Contains structures to support auto free class instances.
-
-Author
-Robert Giesecke
-Christian Wimmer
-
-License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -17,25 +16,26 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the
-GNU Lesser General Public License (the  "LGPL License"), in which case the
-provisions of the LGPL License are applicable instead of those above.
-If you wish to allow use of your version of this file only under the terms
-of the LGPL License and not to allow others to use your version of this file
-under the MPL, indicate your decision by deleting  the provisions above and
-replace  them with the notice and other provisions required by the LGPL
-License.  If you do not delete the provisions above, a recipient may use
-your version of this file under either the MPL or the LGPL License.
-
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
-
-Note
+Alternatively, the contents of this file may be used under the terms of the  
+GNU Lesser General Public License (the  "LGPL License"), in which case the   
+provisions of the LGPL License are applicable instead of those above.        
+If you wish to allow use of your version of this file only under the terms   
+of the LGPL License and not to allow others to use your version of this file 
+under the MPL, indicate your decision by deleting  the provisions above and  
+replace  them with the notice and other provisions required by the LGPL      
+License.  If you do not delete the provisions above, a recipient may use     
+your version of this file under either the MPL or the LGPL License.          
+                                                                             
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
 
 The Original Code is JwsclComUtils.pas.
+
 The Initial Developer of the Original Code is Robert Giesecke.
 
-Example
-To use this code simply do the following:
+TODO: 
+Same for FreeMem, and so on
+
+To use this code simply to the follwoing:
 <code lang="Delphi">
 var myClass : TMyClass;
 begin
@@ -46,25 +46,16 @@ begin
 end; //autodestruction of myClass here.
 </code>
 
-Version
-The following values are automatically injected by Subversion on commit.
-<table>
-\Description                                                        Value
-------------------------------------------------------------------  ------------
-Last known date the file has changed in the repository              \$Date: 2010-11-14 15:40:34 +0000 (Sun, 14 Nov 2010) $
-Last known revision number the file has changed in the repository   \$Revision: 1059 $
-Last known author who changed the file in the repository.           \$Author: dezipaitor $
-Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/trunk/source/JwsclComUtils.pas $
-</table>
+
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclComUtils;
-{$INCLUDE ..\includes\Jwscl.inc}
+// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
 
 uses
-  JwaWindows, ActiveX, Classes, JwsclTypes, JwsclResource ,Jwsclexceptions;
+  Classes, JwsclTypes, JwsclResource ,Jwsclexceptions;
 {$ENDIF SL_OMIT_SECTIONS}
 
 {$IFNDEF SL_IMPLEMENTATION_SECTION}
@@ -75,141 +66,43 @@ const
 type
   IJwAutoPointer = interface;
 
-  {The interface IJwAutoLock is returned by the Lock method of IJwAutoPointer.}
   IJwAutoLock = interface
   [IIDIJwAutoLock]
     function GetAutoPointer : IJwAutoPointer;
-    {This method returns the data as Pointer type.
-
-   Returns
-    The function returns the value of the stored pointer.
-    The property Pointertype must be ptNew, ptLocalAlloc,
-    ptGetMem or ptCOMPointer; otherwise the return value is undefined.
-  }
     function GetPointer   : Pointer;
-    {This method returns the data as object type.
-
-   Returns
-    The property Pointertype must be ptClass;
-    otherwise the return value is undefined.
-  }
-  function GetInstance  : TObject;
-  {This method returns the pointer as Pointer type.
-
-   Returns
-     The method returns the type of stored pointer.
-     Any value of TJwPointerType may be returned.
-  }
+    function GetInstance  : TObject;
     function GetPointerType : TJwPointerType;
-
-  {This method returns the data as object type.
-
-   Returns
-    The property Pointertype must be ptCOMPointer;
-    otherwise the return value is undefined.
-  }
     function GetHandle : THandle;
 
-    {The method UnLock removes the exclusive lock on the data;
-
-     Remarks
-     Do not use this method. Instead destroy the interface by setting
-     all references to nil.
-  }
     procedure UnLock;
 
-  //See method GetPointer for more information
     property Pointer   : Pointer read GetPointer;
-  //See method Instance for more information
     property Instance  : TObject read GetInstance;
-  //See method PointerType for more information
     property PointerType  : TJwPointerType read GetPointerType;
   end;
 
-  {The interface <b>IJwAutoPointer</b> is returned by any of
-   the TJwAutoPointer wrap methods.
-
-   The interface does not provide reference counting on the data.
-  }
   IJwAutoPointer = interface
   [IIDIJwAutoPointer]
-    {This method returns the data as Pointer type.
-
- Remarks
-     Use the Get methods of the interface IJwAutoLock retunred by Lock
-     in a multithread environment.
-
-   Returns
-    The function returns the value of the stored pointer.
-    The property Pointertype must be ptNew, ptLocalAlloc,
-    ptGetMem or ptCOMPointer; otherwise the return value is undefined.
-  }
     function GetPointer   : Pointer;
-    {This method returns the data as object type.
-
-     Remarks
-     Use the Get methods of the interface IJwAutoLock retunred by Lock
-     in a multithread environment.
-
-   Returns
-    The property Pointertype must be ptClass;
-    otherwise the return value is undefined.
-  }
-  function GetInstance  : TObject;
-  {This method returns the pointer as Pointer type.
-
-   Remarks
-     Use the Get methods of the interface IJwAutoLock retunred by Lock
-     in a multithread environment.
-
-   Returns
-     The method returns the type of stored pointer.
-     Any value of TJwPointerType may be returned.
-  }
+    function GetInstance  : TObject;
     function GetPointerType : TJwPointerType;
-
-  {This method returns the data as object type.
-
-   Remarks
-     Use the Get methods of the interface IJwAutoLock retunred by Lock
-     in a multithread environment.
-
-   Returns
-    The property Pointertype must be ptCOMPointer;
-    otherwise the return value is undefined.
-  }
     function GetHandle : THandle;
 
-  //See method GetPointer for more information
     property Pointer   : Pointer read GetPointer;
-  //See method Instance for more information
     property Instance  : TObject read GetInstance;
-  //See method PointerType for more information
     property PointerType  : TJwPointerType read GetPointerType;
 
-  {The method Lock joins an exclusive lock and stops
-   further access to the data using this function.
-
-   Remarks
-     Only this function makes sure that the pointer is accessed
-     exclusively. Calling any Get method without Lock
-     has unpredictable results.
-  }
     function Lock : IJwAutoLock;
   end;
 
-
   {<B>TJwAutoPointer</B> implements tool functions for creating new and wrapping existing
-   pointers and classes for auto destruction.
-   The class does not provide reference counting on the data.
-  }
+   pointers and classes for auto destruction. }
   TJwAutoPointer = class
-  public
     {<B>Wrap</B> wraps an existing class instance for auto pointer desctruction.
      When the returned auto pointer interface goes out of scope the
      given instance will be destroyed.
     @param Instance defines the class instance that will be automatically
-     destroyed
+     destroyed 
     @return Returns an auto pointer interface that is resposible for
       auto destruction. }
     class function Wrap(const Instance  : TObject) : IJwAutoPointer; overload;
@@ -217,43 +110,29 @@ type
     {<B>Wrap</B> wraps an existing pointer for auto desctruction.
      When the returned auto pointer interface goes out of scope the
      given pointer will be destroyed.
-     @param Ptr Defines a pointer that is automatically destroyed.
+     @param Ptr Defines a pointer that is automatically destroyed. 
      @param Size Defines the size of the pointer data. If size is
         not zero, the memory will be overwritten with zeroes before
-        it is freed.
+        it is freed. 
      @param PointerType Defines the pointer type. It is used to call
-      the appropriate free function.
+      the appropriate free function. 
      @return Returns an auto pointer interface that is resposible for
-      auto destruction.
+      auto destruction. 
      }
     class function Wrap(const Ptr : Pointer;
         Size : Cardinal;
         PointerType : TJwPointerType) : IJwAutoPointer; overload;
 
-    {Wrap wraps a windows handle and closes it using CloseHandle.
-
-   Parameters
-     ShowLastError Defines whether the exception EJwsclInvalidHandle will
-       include the last error value (true) or not (false).
-
-   Raises
-     EJwsclInvalidHandle The handle was invalid (0 or INVALID_HANDLE_VALUE).
-  }
     class function Wrap(const Handle : THandle; const
        ShowLastError : Boolean = false) : IJwAutoPointer; overload;
-
-    {WrapCOM wraps a COM memory allocation with CoTaskMemAlloc.
-   The pointer will be freed using CoTaskMemFree.
-  }
-    class function WrapCOM(const Ptr : Pointer) : IJwAutoPointer;
 
     {<B>CreateInstance</B> creates a new auto pointer class instance and also
      creates the given class with a default constructor (no parameters).
      Use instead Wrap if you cannot use standard constructor or
       your class does not support a standard constructor.
-     @param ClassReference defines the class type which is to be created
+     @param ClassReference defines the class type which is to be created 
      @return Returns an auto pointer interface that is resposible for
-      auto destruction.
+      auto destruction. 
      }
     class function CreateInstance(
       const ClassReference : TClass) : IJwAutoPointer; overload;
@@ -262,11 +141,11 @@ type
      creates the given component class.
      Use instead Wrap if you cannot use standard component constructor or
       your class does not support a standard component constructor.
-     @param ClassReference defines the class type which is to be created
+     @param ClassReference defines the class type which is to be created 
      @param Owner defines the component owner which is applied to the
-      component constructor.
+      component constructor. 
      @return Returns an auto pointer interface that is resposible for
-      auto destruction.
+      auto destruction. 
      }
     class function CreateInstance(
       const ClassReference : TComponentClass;
@@ -274,20 +153,20 @@ type
 
     {<B>CreateNewPointer</B> creates a new pointer or wraps an existing one.
      The following pointer types are created automatically :
-
-        # ptGetMem
-        # ptLocalAlloc
-
+      
+        # ptGetMem 
+        # ptLocalAlloc 
+      
      The following pointer types are tunneled through and must
      be created by the caller:
-
-        # ptNew
-
+      
+        # ptNew  
+      
      The following pointer types are not supported and raises EJwsclInvalidPointerType
-
-        # ptUnknown
-        # ptClass
-
+      
+        # ptUnknown 
+        # ptClass 
+      
 
      }
     class function CreateNewPointer(
@@ -298,13 +177,12 @@ type
 
 {$IFNDEF SL_OMIT_SECTIONS}
 implementation
-uses SysUtils, SyncObjs;
+uses JwaWindows, SysUtils, SyncObjs;
 {$ENDIF SL_OMIT_SECTIONS}
 
 
 {$IFNDEF SL_INTERFACE_SECTION}
 type
-  { <b>TJwAutoPointerImpl</b> implements the auto pointer interface IJwAutoPointer. }
   TJwAutoPointerImpl = class(TInterfacedObject, IJwAutoPointer)
   protected
     fInstance : TObject;
@@ -329,22 +207,8 @@ type
   TJwAutoLock = class(TInterfacedObject, IJwAutoLock)
   protected
     fAutoPointer : TJwAutoPointerImpl;
-    { The f<b>LeaveFlag</b> field defines whether the entered section is released when
-      the instance is destroyed (false) or not (true).
-
-      It is for future use only and thus has no public access.                         }
     fLeaveFlag : Boolean;
   public
-    { <b>Create</b> creates a new TJwAutoLock instance and enters the a thread safe
-      section defined by parameter AutoPointer. If this section was already entered by
-      another thread, the constructor is blocked until released. There is no timeout!
-
-
-
-
-      Parameters
-      AutoPointer :  This parameter defines an auto pointer implementation that holds
-                     the thread section for exclusive access to the resource.          }
     constructor Create(const AutoPointer : TJwAutoPointerImpl);
 
     function GetAutoPointer : IJwAutoPointer;
@@ -353,14 +217,8 @@ type
     function GetPointerType : TJwPointerType;
     function GetHandle : THandle;
 
-    procedure BeforeDestruction; override;
+    procedure BeforeDestruction;
 
-    { <b>UnLock</b> releases the section lock previously gained by creating the
-      instance.
-
-
-      See Also
-        * Create                                                                }
     procedure UnLock;
   end;
 
@@ -377,8 +235,6 @@ class function TJwAutoPointer.CreateInstance(
 begin
   Result := Wrap(classReference.Create());
 end;
-
-
 
 class function TJwAutoPointer.CreateInstance(
   const ClassReference : TComponentClass;
@@ -411,13 +267,8 @@ begin
     raise EJwsclInvalidHandle.CreateFmtEx(
       RsInvalidWrapHandle, 'Wrap', ClassName, RsUNComUtils,
       0, ShowLastError, []);
-
+  
   result := Wrap(Pointer(Handle), Cardinal(-1), ptHandle);
-end;
-
-class function TJwAutoPointer.WrapCOM(const Ptr: Pointer): IJwAutoPointer;
-begin
-  result := Wrap(Ptr, 0, ptCOMPointer);
 end;
 
 class function TJwAutoPointer.Wrap(const Ptr: Pointer;
@@ -457,10 +308,9 @@ begin
     case fPointerType of
       ptClass  : fInstance.Free();
       ptGetMem : FreeMem(fPointer);
-      ptLocalAlloc : LocalFree(HLOCAL(fPointer));
+      ptLocalAlloc : LocalFree(Cardinal(fPointer));
       ptNew : Dispose(fPointer);
-      ptHandle : CloseHandle(fHandle);
-      ptCOMPointer : CoTaskMemFree(fPointer);
+      ptHandle : CloseHandle(fHandle); 
     end;
 
     fPointer := nil;

@@ -10,7 +10,6 @@ uses
   jwaWindows,
   jwaVista,
 
-  JwsclKnownSid,
   JwsclMapping,
   JwsclTypes,
   JwsclAcl,
@@ -53,7 +52,7 @@ type
     procedure TearDown; override;
 
   published
-
+  
     procedure Test_ACEFlagsToCardinal;
     procedure Test_CardinalFlagsToACEFlags;
 
@@ -77,8 +76,6 @@ type
 
     procedure Test_ChangeProperties;
     procedure Test_MandatoryLabel;
-
-    procedure Test_IsEqual;
   end;
 
 implementation
@@ -395,28 +392,6 @@ begin
   finally
     aSID.Free;
   end;
-end;
-
-procedure TJwSecurityAccessControlEntryTests.Test_IsEqual;
-var A1 , A2 : TJwSecurityAccessControlList;
-begin
-  //
-  A1 := TJwDAccessControlList.Create;
-  try
-    A1.Add(TJwDiscretionaryAccessControlEntryAllow.Create(nil, [], 0, JwAdministratorsSID));
-    A2 := TJwDAccessControlList.Create;
-    try
-      CheckFalse(A1.IsEqual(A2));
-
-      A2.Add(TJwDiscretionaryAccessControlEntryAllow.Create(nil, [], 0, JwAdministratorsSID));
-      CheckTrue(A1.IsEqual(A2));
-    finally
-      A2.Free;
-    end;
-  finally
-    A1.Free;
-  end;
-
 end;
 
 procedure TJwSecurityAccessControlEntryTests.TestGetTextMap;
@@ -762,7 +737,7 @@ begin
     //audit class has an adapted assign method
     fEntry[3] := TJwAuditAccessControlEntry.Create(nil,[afObjectInheritAce],GENERIC_READ,aSID,false);
     audit1 := TJwAuditAccessControlEntry(fEntry[3]);
-
+    
     fEntry[4] := TJwAuditAccessControlEntry.Create(nil,[],GENERIC_ALL,nil,true);
     fEntry[4].Assign(fEntry[3]);
     audit2 := TJwAuditAccessControlEntry(fEntry[4]); // audit2 = fEntry[3]
@@ -1106,7 +1081,7 @@ begin
   finally
   end;
 
-
+  
   try
     fList[2].Add(nil);
     CheckIs(nil,EJwsclNILParameterException,'EJwsclNILParameterException did not raise');
@@ -1237,7 +1212,7 @@ begin
   aNegACEs[7] := TJwDiscretionaryAccessControlEntryDeny.Create(fList[2],[],GENERIC_READ,nil,false);
   aPosACEs[7] := TJwDiscretionaryAccessControlEntryAllow.Create(fList[2],[],GENERIC_READ,nil,false);
 
-  CheckSame(aNegACEs[7],fList[2].Items[0],'ACE is not in correct position in list'); //1. NEG
+  CheckSame(aNegACEs[7],fList[2].Items[0],'ACE is not in correct position in list'); //1. NEG 
   CheckSame(aPosACEs[7],fList[2].Items[1],'ACE is not in correct position in list'); //2. POS
   CheckSame(aNegACEs[6],fList[2].Items[2],'ACE is not in correct position in list'); //3. NEG inh
   CheckSame(aPosACEs[6],fList[2].Items[3],'ACE is not in correct position in list'); //4. POS inh
@@ -1297,7 +1272,7 @@ begin
 
 
   TJwDiscretionaryAccessControlEntryAllow.Create(fList[2],[afObjectInheritAce],GENERIC_READ,aSID,false);
-
+  
   fList[3] := TJwDAccessControlList.Create(true);
   fList[3].Assign(fList[2]);
 
@@ -1348,7 +1323,7 @@ begin
 
   fList[1].Free_PACL(pPACL);
   aSID.Free;
-end;
+end;  
 
 procedure TJwSecurityAccessControlListTests.Test_FirstLast;
 var f1,f2 : TJwSecurityAccessControlEntry;
@@ -1371,7 +1346,7 @@ begin
 
 
   fList[1].Clear;
-
+  
   CheckSame(nil,fList[1].First);
   CheckSame(nil,fList[1].Last);
 end;
@@ -1421,10 +1396,11 @@ begin
 end;
 
 initialization
-  JwInitWellKnownSIDs;
+
   TestFramework.RegisterTest('JwsclAclTests Suite',
     TJwSecurityAccessControlListTests.Suite);
   TestFramework.RegisterTest('JwsclAclTests Suite',
     TJwSecurityAccessControlEntryTests.Suite);
 
 end.
+

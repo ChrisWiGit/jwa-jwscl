@@ -1,13 +1,13 @@
 {
-Description
+<B>Abstract</B>This unit is for testing purposes only!!. TBD 
+@author(Christian Wimmer)
+<B>Created:</B>03/23/2007 
+<B>Last modification:</B>09/10/2007 
+
+
+
 Project JEDI Windows Security Code Library (JWSCL)
 
-This unit is for testing purposes only!!. TBD
-
-Author
-Christian Wimmer
-
-License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -16,50 +16,35 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the
-GNU Lesser General Public License (the  "LGPL License"), in which case the
-provisions of the LGPL License are applicable instead of those above.
-If you wish to allow use of your version of this file only under the terms
-of the LGPL License and not to allow others to use your version of this file
-under the MPL, indicate your decision by deleting  the provisions above and
-replace  them with the notice and other provisions required by the LGPL
-License.  If you do not delete the provisions above, a recipient may use
-your version of this file under either the MPL or the LGPL License.
+Alternatively, the contents of this file may be used under the terms of the  
+GNU Lesser General Public License (the  "LGPL License"), in which case the   
+provisions of the LGPL License are applicable instead of those above.        
+If you wish to allow use of your version of this file only under the terms   
+of the LGPL License and not to allow others to use your version of this file 
+under the MPL, indicate your decision by deleting  the provisions above and  
+replace  them with the notice and other provisions required by the LGPL      
+License.  If you do not delete the provisions above, a recipient may use     
+your version of this file under either the MPL or the LGPL License.          
+                                                                             
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
 
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
-
-Note
 The Original Code is JwsclSecureUserObjects.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-Version
-The following values are automatically injected by Subversion on commit.
-<table>
-\Description                                                        Value
-------------------------------------------------------------------  ------------
-Last known date the file has changed in the repository              \$Date: 2010-10-15 20:12:04 +0000 (Fri, 15 Oct 2010) $
-Last known revision number the file has changed in the repository   \$Revision: 1029 $
-Last known author who changed the file in the repository.           \$Author: dezipaitor $
-Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/trunk/source/JwsclSecureUserObjects.pas $
-</table>
+!!!
+Warning: This unit is only for testing purposes!!!
 }
 unit JwsclSecureUserObjects;
-{$INCLUDE ..\includes\Jwscl.inc}
-
-{$WARNINGS ON}
-
-{$IFNDEF DEBUG}
-  {$MESSAGE FAIL 'File JwsclSecureUserObjects.pas is not intended for usage. It is under development'}
-{$ELSE}
-  {$MESSAGE WARN 'File JwsclSecureUserObjects.pas is not intended for usage. It is under development'}
-{$ENDIF}
+// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
+{$INCLUDE Jwscl.inc}
 
 interface
 
 uses
-  SysUtils,
+  Classes,
+  SysUtils, Contnrs,
   JwsclTypes, JwsclExceptions, JwsclAcl, JwsclMapping, JwsclSid,
   JwsclSecureObjects, JwsclResource, JwsclSecurePrivateObjects,
   JwsclVersion, JwsclConstants,  JwsclDescriptor, JwsclToken,
@@ -95,21 +80,21 @@ type
   public
     {<B>GetObjectInformation</B> retrieves information about the private objec
      @param ObjectInformationSet contains information which
-     information must be returned.
+     information must be returned. 
      @return Defines a structure which contains information about the private
-       object
+       object 
     }
     function GetObjectInformation(const ObjectInformationSet :
             TJwSecurityObjectInformationFlagSet): TJwSecurityObjectInformation;
 
     {<B>GetParent</B> is called to retrieve the parent security descriptor of
-     the current private object. This is used by GetPrivateInheritanceSource and
+     the actual private object. This is used by GetPrivateInheritanceSource and
      other inheritance methods)
      @param Parent received a pointer to the parent private object. Return nil
-      if no parent exists - e.g. it is on top of a tree structure.
-     @return Return S_OK if the parameter Parent is valid or the current object
+      if no parent exists - e.g. it is on top of a tree structure. 
+     @return Return S_OK if the parameter Parent is valid or the actual object
       has no parent.
-      Return E_NOTIMPL if the private object does not support tree structures.
+      Return E_NOTIMPL if the private object does not support tree structures. 
      }
     function GetParent(out Parent : IJwPrivateSecurityInformation) : HRESULT;
 
@@ -119,11 +104,11 @@ type
      set or get and SetSecurityDescriptor and SetSecurityDescriptor wants
      to know whether the process should be checked vor validity.
      @param AccessCheckType defines whether the access check shall be performed
-      for a get or set operation.
+      for a get or set operation. 
      @return If the function returns true an access check will prevent unauthorized
      change or retrieving of security information.
      If the function returns false no access check will be done and the user
-     should do access check.
+     should do access check. 
 
      }
     function GetUseAccessCheck(const AccessCheckType : TJwGetAccessCheckType) : Boolean;
@@ -139,12 +124,12 @@ type
      @param SecurityInformation This parameter contains the security descriptor
       parts which must be copied into the new descriptor. Only the given
       descriptor parts should be retrieved. No more or less.
-
+       
      @param SecurityDescriptor Contains a security descriptor that must be adapted.
       The descriptor is already created and contains empty parts. Do not Free it!
       This method should only change the requested security parts
       in SecurityDescriptor defined by SecurityInformation!
-
+       
     }
 
     procedure GetSecurity(const SecurityInformation :
@@ -161,10 +146,10 @@ type
 
      @param SecurityInformation This parameter contains the security descriptor
       parts which must be copied into the private descriptor. Only the given
-      descriptor parts should be set. No more or less.
+      descriptor parts should be set. No more or less. 
      @param SecurityDescriptor Contains a security descriptor that only contains
       parts which are defined in SecurityInformation. Do not free the
-       the descriptor!
+       the descriptor! 
      )
     }
 
@@ -177,12 +162,12 @@ type
      rights are mapped to your private access rights.
 
      @param GenericMap receives a classname (not instance) which describes how
-       to map generic access rights
-     @return
-              # Return S_OK if the call succeeded.
-              # Return E_NOTIMPL to use TJwSecurityGenericMapping as standard map.
-              # Any other result will raise EJwsclInvalidObjectException
-
+       to map generic access rights 
+     @return 
+              # Return S_OK if the call succeeded. 
+              # Return E_NOTIMPL to use TJwSecurityGenericMapping as standard map. 
+              # Any other result will raise EJwsclInvalidObjectException 
+             
     }
     function MapGenericMask(out GenericMap : TJwSecurityGenericMappingClass) : HRESULT;
   public

@@ -76,7 +76,6 @@ var
   Group : TJwSecurityId;
   Stats : TJwSecurityTokenStatistics;
 begin
-try
   //privilege must be enabled in VISTA (at least Sp1)
   //can be added by JwsclLsa.TJwLsaPolicy members for SYSTEM (or any) user
   //adding to SYSTEM needs restart, adding to user needs relogon (or call to LogonUser)
@@ -103,15 +102,12 @@ try
   //create our own logon id
   //this logon ID must be registered first! (don't know how yet)
   //AllocateLocallyUniqueId(AuthenticationId);
-
+  
   //get any logon session we want
   {if not GetSession(UserToken, AuthenticationId) then
     exit;}
   //get the logon ID from the user token object
   AuthenticationId := Stats.AuthenticationId;
-  //this one does not work in Vista - createtoken says : the logon id may be already finished
-  AllocateLocallyUniqueId(AuthenticationId);
-
   writeln(Stats.GetText);
   Stats.Free;
   //GetUserName reads the username from the token logon id rather than token user
@@ -119,21 +115,17 @@ try
 
   //get default token groups
   UserGroups := UserToken.TokenGroups;
-
-
+  
+  
   //add terminal server user (just for testing)
   Sid := TJwSecurityId.Create('S-1-5-13');
   Sid.AttributesType := [sidaGroupMandatory];
   UserGroups.Add(Sid);//S-1-5-1-1-1'));
 
   //add unknown Sid
-  try
-    Sid := TJwSecurityId.Create('','NT SERVICE\TrustedInstaller');
-    Sid.AttributesType := [sidaGroupMandatory];
-    UserGroups.Add(Sid);
-  except
-    //ignore
-  end;
+  Sid := TJwSecurityId.Create('S-1-5-1-1-3');
+  Sid.AttributesType := [sidaGroupMandatory];
+  UserGroups.Add(Sid);
 
 
   //JwLocalSystemSID.AttributesType := [sidaGroupOwner];
@@ -167,14 +159,14 @@ try
   end;
 
 
-  //Target session ID from user
+  //Target session ID from user 
   SToken.TokenSessionId := UserToken.TokenSessionId;
 
   ZeroMemory(@StartInfo, sizeof(StartInfo));
-
+  
   //necessary only in XP and if user is SYSTEM
   StartInfo.lpDesktop := PChar('winsta0\default');
-
+  
   if not CreateProcessAsUser(SToken.TokenHandle, PChar('C:\Windows\system32\cmd.exe'), nil,
            nil, nil, True, CREATE_NEW_CONSOLE,
            nil, nil, StartInfo, ProcInfo) then
@@ -185,20 +177,16 @@ try
 
   {WARNING:
    TODO: delete objects here
-
+   
   }
-
-
+  
+  
   {
   these rights are necessary to read desktop content
-STANDARD_RIGHTS_READ or
-DESKTOP_ENUMERATE or
-DESKTOP_READOBJECTS or
+STANDARD_RIGHTS_READ or 
+DESKTOP_ENUMERATE or 
+DESKTOP_READOBJECTS or 
 DESKTOP_WRITEOBJECTS
   }
-except
-  on e  : exception do
-    showmessage(e.Message);
-end;
-
+  
 end.

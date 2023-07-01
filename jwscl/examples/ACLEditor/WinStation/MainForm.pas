@@ -14,7 +14,7 @@ uses
   Buttons,
 {$ENDIF FPC}
      ActiveX,
-
+     
      jwaWindows,
      JwsclTypes, JwsclExceptions, JwsclSid, JwsclAcl, JwsclToken,
      JwsclMapping, JwsclKnownSid, JwsclSecureObjects, JwsclSecurityDialogs,
@@ -50,7 +50,7 @@ type
     procedure OnSetSecurity(Sender : TJwSecurityDescriptorDialog;
               SecurityType : TJwSecurityInformationFlagSet;
               SecurityDialogFlags : TJwSecurityDialogFlags;
-              SecurityResetType : TJwSecurityResetTypes;
+              SecurityResetType : TJwSecurityResetType;
               Settings : TJwSecurityDescriptorControlSet;
               NewSecurityDescriptor,
               MergedSecurityDescriptor
@@ -272,7 +272,7 @@ begin
 
 
       try
-        Name := Winsta.Name;
+        Name := Winsta.Name; 
         result := TJwSecureGeneralObject.GetSecurityInfo(WinSta.Handle, SE_WINDOW_OBJECT, Flags);
       finally
         FreeAndNil(WinSta);
@@ -388,7 +388,7 @@ begin
     SD := GetSelectedPermissions(mapping, Name, ReadOnlyDACL,ReadOnlyOwner, bAuditAccess);
 
     Title := mapping.ClassName;
-    System.Delete(Title,1,1);
+    System.Delete(Title,1,1); 
     ACLEditor.PageTitle := Title;
 
     ACLEditor.ObjectName := Name;
@@ -552,7 +552,7 @@ end;
 procedure TForm1.OnSetSecurity(Sender: TJwSecurityDescriptorDialog;
   SecurityType: TJwSecurityInformationFlagSet;
   SecurityDialogFlags: TJwSecurityDialogFlags;
-  SecurityResetType: TJwSecurityResetTypes;
+  SecurityResetType: TJwSecurityResetType;
   Settings: TJwSecurityDescriptorControlSet;
   NewSecurityDescriptor,
   MergedSecurityDescriptor: TJwSecurityDescriptor;
@@ -621,7 +621,7 @@ begin
                     false,//const doInherit: Boolean;
                     GENERIC_ALL,//const aDesiredAccess: ACCESS_MASK;
                     SD//const aSecurityDescriptor: TJwSecurityDescriptor
-                   );
+                   );      
     finally
       FreeAndNil(SD);
       FreeAndNil(desk);
@@ -638,7 +638,7 @@ end;
 destructor TForm1.Destroy;
 begin
   FreeAndNil(fMyWinStation);
-  inherited;
+  inherited;                
 end;
 
 procedure TForm1.TreeView1Change(Sender: TObject; Node: TTreeNode);
@@ -851,3 +851,5 @@ initialization
   {$I MainForm.lrs}
 {$ENDIF FPC}
 end.
+
+

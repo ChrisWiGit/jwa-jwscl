@@ -1,13 +1,10 @@
-{
-Description
+{<B>Abstract</B>Provides access to credentials tools functions 
+@author(Christian Wimmer)
+<B>Created:</B>03/23/2007 
+<B>Last modification:</B>09/10/2007 
+
 Project JEDI Windows Security Code Library (JWSCL)
 
-Provides access to credentials tools functions
-
-Author
-Christian Wimmer
-
-License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -16,48 +13,42 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the
-GNU Lesser General Public License (the  "LGPL License"), in which case the
-provisions of the LGPL License are applicable instead of those above.
-If you wish to allow use of your version of this file only under the terms
-of the LGPL License and not to allow others to use your version of this file
-under the MPL, indicate your decision by deleting  the provisions above and
-replace  them with the notice and other provisions required by the LGPL
-License.  If you do not delete the provisions above, a recipient may use
-your version of this file under either the MPL or the LGPL License.
+Alternatively, the contents of this file may be used under the terms of the  
+GNU Lesser General Public License (the  "LGPL License"), in which case the   
+provisions of the LGPL License are applicable instead of those above.        
+If you wish to allow use of your version of this file only under the terms   
+of the LGPL License and not to allow others to use your version of this file 
+under the MPL, indicate your decision by deleting  the provisions above and  
+replace  them with the notice and other provisions required by the LGPL      
+License.  If you do not delete the provisions above, a recipient may use     
+your version of this file under either the MPL or the LGPL License.          
+                                                                             
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
 
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
-
-Note
 The Original Code is JwsclCredentials.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-Version
-The following values are automatically injected by Subversion on commit.
-<table>
-\Description                                                        Value
-------------------------------------------------------------------  ------------
-Last known date the file has changed in the repository              \$Date: 2010-11-14 15:40:34 +0000 (Sun, 14 Nov 2010) $
-Last known revision number the file has changed in the repository   \$Revision: 1059 $
-Last known author who changed the file in the repository.           \$Author: dezipaitor $
-Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/trunk/source/JwsclCredentials.pas $
-</table>
+
+
+Description:
+
+
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclCredentials;
-{$INCLUDE ..\includes\Jwscl.inc}
+{$INCLUDE Jwscl.inc}
+// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 
 interface
 
-uses SysUtils,
-  Graphics {includes Windows, SysUtils, Classes},
+uses SysUtils, Contnrs, Classes, Graphics,
   jwaWindows,
   JwsclResource,
   JwsclTypes, JwsclExceptions, JwsclSid, JwsclAcl,
-  JwsclVersion, JwsclConstants,
+  JwsclVersion, JwsclConstants, 
   JwsclStrings; //JwsclStrings, must be at the end of uses list!!!
 
 {$ENDIF SL_OMIT_SECTIONS}
@@ -89,7 +80,7 @@ type
 
         @param Input [in] gets a fully qualified name to be parsed.
         @param User [out] receives the username
-        @param Domain [out] receives the domain name. If Input specifies a certificate, the parameter is empty.
+        @param Domain [out] receives the domain name. If Input specifies a certificate, the parameter is empty. 
 
         raises
  EJwsclInvalidParameterException:  will be raised if the username is not valid.
@@ -156,21 +147,17 @@ type
        }
     property Password: TJwString Read fPassword Write fPassword;
 
-     {<B>MaxUserNameLength</B> sets or gets the maximum (input) length of the username.
-      This value is CRED_MAX_USERNAME_LENGTH (513) by default;
-
-      This property is ignored. For more information see remarks section of method ShowModal.
-      }
+       {<B>MaxUserNameLength</B> sets or gets the maximum (input) length of the username.
+        Do not set it to greater CRED_MAX_USERNAME_LENGTH.
+         }
     property MaxUserNameLength: Cardinal
-      Read fMaxUserNameLength write fMaxUserNameLength;
+      Read fMaxUserNameLength Write fMaxUserNameLength;
 
        {<B>MaxPasswordLength</B> sets or gets the maximum (input) length of the password.
-        This value is CREDUI_MAX_PASSWORD_LENGTH (256) by default;
-
-        This property is ignored. For more information see remarks section of method ShowModal.
-        }
+        Do not set it to greater CREDUI_MAX_PASSWORD_LENGTH.
+         }
     property MaxPasswordLength: Cardinal
-      Read fMaxPasswordLength write fMaxPasswordLength;
+      Read fMaxPasswordLength Write fMaxPasswordLength;
 
        {<B>SaveCheck</B> sets or gets the save checkbox state.
          It is automatically reset to the checkbox state in the prompt.
@@ -190,49 +177,25 @@ type
     property OnConfirmCredential: TJwOnConfirmCredential
       Read fOnConfirmCredential Write fOnConfirmCredential;
 
-       { <b>ShowModal</b> displays a GUI or console credential promp.t
-         Parameters
-         CommandLine :  If set to true, the commandline version of credential prompt is used. Read the Remarks section to get
-                        more information.
-         Exceptions
-         EJwsclInvalidFlagsException :      will be raised if the flag cfFlagsExpectConfirmation is set but
-                                            OnConfirmCredential is nil. will raised if fhe property Flags is invalid! This
-                                            message comes from a winapi call and does not contain more information
-         EJwsclInvalidParameterException :  will be raised if
-                                            * Length of Servername exceeds CREDUI_MAX_DOMAIN_TARGET_LENGTH
-                                            * Length of Servername is zero
-                                            * Length of property Username is greater than CRED_MAX_USERNAME_LENGTH ( 513)
-                                            * Length of property Password is greater than CREDUI_MAX_PASSWORD_LENGTH (256)
-                                            * One or more parameters of CredUIPromptForCredentials are invalid! This also
-                                              happens if the user enters a username or password that is greater than
-                                              CREDUI_MAX_PASSWORD_LENGTH or CREDUI_MAX_PASSWORD_LENGTH. This error comes from
-                                              the WinAPI call itself.
-         EJwsclNoSuchLogonSession :         will raised if there is no such logon session! This message comes from a winapi
-                                            call and does not contain more information<p />
-         Returns
-         <b>ShowModal</b> returns true if the credential prompt was closed by OK; otherwise false. If OnConfirmCredential is
-         not nil, the parameter bConfirm will be used as the result.
-         The method will also return false if CommandLine is true, property Flags contains cfFlagsRequireSmartCard (also implicitly :
-          see Remarks) and there are no smartcards in the system.
-         Remarks
-         MaxUserNameLength and MaxPasswordLength are obsolete and are ignored. For more information see Bugs section.
+       {<B>ShowModal</B> displays a GUI or console credential promp.t
+       @param CommandLine If set to true, the commandline version of credential prompt is used.
+          Currently this feature does not work.
 
+       raises
+ EJwsclInvalidFlagsException:  will be raised if the flag cfFlagsExpectConfirmation is set but
+          OnConfirmCredential is nil.
+        EJwsclInvalidParameterException: will be raised if
+         
+           # Length of Servername exceeds CREDUI_MAX_DOMAIN_TARGET_LENGTH 
+           # Length of Servername is zero 
+           # One or more parameters of CredUIPromptForCredentials are invalid! 
+         
+        EJwsclInvalidFlagsException: will raised if fhe property Flags is invalid! This message comes from a winapi call and does not contain more information
+        EJwsclNoSuchLogonSession: will raised if there is no such logon session! This message comes from a winapi call and does not contain more information
 
-
-         If parameter CommandLine is true, the property Flags must contain either cfFlagsRequireSmartCard or
-         cfFlagsExcludeCertificates. If none is given, JWSCL will assume cfFlagsExcludeCertificates. If both flags are given,
-         the flag cfFlagsExcludeCertificates will be removed for the call.
-
-
-
-         Be aware, if parameter CommandLine is true, that the Flags are constricted more. For more information read the
-         \Remarks section of CredUICmdLinePromptForCredentials in MSDN.
-         Bugs
-         To the MSDN doc of CredUIPromptForCredentials (http://msdn.microsoft.com/en-us/library/aa375171%28VS.85%29.aspx) the
-         function truncates the output string to the maximum given length.
-
-         However, in tests the function returned an error 87 (ERROR_INVALID_PARAMETER) in such a case instead. Thus the
-         Username and Password properties can receive CRED_MAX_USERNAME_LENGTH and CREDUI_MAX_PASSWORD_LENGTH chars now.      }
+       @return <B>ShowModal</B> returns true if the credential prompt was closed by OK; otherwise false.
+                If OnConfirmCredential is not nil, the parameter bConfirm will be used as the result.
+       }
     function ShowModal(const CommandLine: boolean = False): boolean;
 
        {<B>ParseInstanceUserName</B> parses the property UserName into the user and domain.
@@ -251,7 +214,7 @@ type
 
 {$IFNDEF SL_OMIT_SECTIONS}
 implementation
-uses JwsclEnumerations, JwsclUtils, JwsclComUtils;
+uses JwsclEnumerations;
 
 
 {$ENDIF SL_OMIT_SECTIONS}
@@ -294,8 +257,8 @@ begin
 
   if (Result <> NO_ERROR) then
   begin
-    LocalFree(HLOCAL(pUser));
-    LocalFree(HLOCAL(pDomain));
+    LocalFree(Cardinal(pUser));
+    LocalFree(Cardinal(pDomain));
     case Result of
       ERROR_INVALID_PARAMETER:
         raise EJwsclInvalidParameterException.CreateFmtEx(
@@ -342,15 +305,15 @@ begin
   fParentWindow := GetActiveWindow;
   fBanner  := nil;
 
-  fAuthError := 0;
+  fAuthError := 1004;
 
   fServerName := RsUNCredentialsLocalServerNameDefault;
   fUserName  := '';
   fPassword  := '';
   fSaveCheck := False;
 
-  fMaxUserNameLength := CREDUI_MAX_USERNAME_LENGTH;
-  fMaxPasswordLength := CREDUI_MAX_PASSWORD_LENGTH;
+  fMaxUserNameLength := CREDUI_MAX_USERNAME_LENGTH + 1;
+  fMaxPasswordLength := CREDUI_MAX_PASSWORD_LENGTH + 1;
 
   fFlags := [cfFlagsAlwaysShowUi,
     cfFlagsGenericCredentials];
@@ -372,7 +335,6 @@ destructor TJwCredentialsPrompt.Destroy;
 var
   i: integer;
 begin
-  //overwrite the password and username with zeroes
   for i := 1 to Length(fPassword) do
     fPassword[i] := '0';
   fPassword := '';
@@ -405,16 +367,23 @@ end;
 
 function TJwCredentialsPrompt.ShowModal(const CommandLine: boolean): boolean;
 var
-  info: {$IFDEF UNICODE}TCredUIInfoW{$ELSE}TCredUIInfoA{$ENDIF}
+  info:
+{$IFDEF UNICODE}TCredUIInfoW{$ELSE}
+  TCredUIInfoA
+{$ENDIF}
   ;
   aBool: longbool;
+  //[Hint] ppBool : BOOL;
+
   pUser, pPass: TJwPChar;
-  hRes : HRESULT;
+  //[Hint] i : Integer;
+
   lResult: Cardinal;
 
   bConfirm: boolean;
-  tempFlag : TJwCredentialFlagSet;
 begin
+  SetLastError(0);
+
   if (cfFlagsExpectConfirmation in Flags) and not
     Assigned(OnConfirmCredential) then
     raise EJwsclInvalidFlagsException.CreateFmtEx(
@@ -431,32 +400,24 @@ begin
       RsUNCredentialsEmptyServerName, 'ShowModal',
       ClassName, RsUNCredentials, 0, False, []);
 
-  GetMem(pUser, CRED_MAX_USERNAME_LENGTH * sizeof(TJwChar));
-  //release point automatically and overwrite it with zeroes
-  TJwAutoPointer.Wrap(pUser, CRED_MAX_USERNAME_LENGTH * sizeof(TJwChar), ptGetMem);
 
-  hRes := {$IFDEF UNICODE}StringCchCopyW{$ELSE}StringCchCopyA{$ENDIF}
-    (pUser, CRED_MAX_USERNAME_LENGTH, TJwPChar(fUserName));
 
-  if FAILED(hRes) then
-  begin
-    raise EJwsclInvalidParameterException.CreateFmtEx(
-      'Property %0:s must be between %1:d and %2:d.', 'ShowModal',
-      ClassName, RsUNCredentials, 0, hRes, ['UserName', 0, CRED_MAX_USERNAME_LENGTH]);
-  end;
+  pUser := TJwPChar(LocalAlloc(LMEM_ZEROINIT, fMaxUserNameLength *
+    sizeof(TJwChar)));
+  {$IFDEF UNICODE}
+      CopyMemory(pUser,TJwPChar(fUserName),Length(fUserName)*sizeof(TJwChar));
+  {$ELSE}
+  StrCopy(pUser, TJwPChar(fUserName + #0));
+  {$ENDIF}
 
-  GetMem(pPass, CREDUI_MAX_PASSWORD_LENGTH * sizeof(TJwChar));
-  //release point automatically and overwrite it with zeroes
-  TJwAutoPointer.Wrap(pPass, CREDUI_MAX_PASSWORD_LENGTH * sizeof(TJwChar), ptGetMem);
+  pPass := TJwPChar(LocalAlloc(LMEM_ZEROINIT, fMaxPasswordLength *
+    sizeof(TJwChar)));
+  {$IFDEF UNICODE}
+      CopyMemory(pPass,TJwPChar(fPassword),Length(fPassword)*sizeof(TJwChar));
+  {$ELSE}
+  StrCopy(pPass, TJwPChar(fPassword + #0));
+  {$ENDIF}
 
-  hRes := {$IFDEF UNICODE}StringCchCopyW{$ELSE}StringCchCopyA{$ENDIF}
-    (pPass, CREDUI_MAX_PASSWORD_LENGTH, TJwPChar(fPassword));
-  if FAILED(hRes) then
-  begin
-    raise EJwsclInvalidParameterException.CreateFmtEx(
-      'Property %0:s must be between %1:d and %2:d.', 'ShowModal',
-      ClassName, RsUNCredentials, 0, hRes, ['Password', 0, CREDUI_MAX_PASSWORD_LENGTH]);
-  end;
 
   FillChar(info, sizeof(info), 0);
   info.cbSize := sizeof(info);
@@ -467,84 +428,97 @@ begin
   if Assigned(fBanner) then
     info.hbmBanner := fBanner.Handle;
 
+
   aBool := fSaveCheck;
 
   if (CommandLine) then
   begin
-    tempFlag := fFlags;
-    //CredUICmdLinePromptForCredentials needs cfFlagsRequireSmartCard or cfFlagsExcludeCertificates
-    if not (cfFlagsRequireSmartCard in Flags)  then
-      Include(tempFlag, cfFlagsExcludeCertificates)
-    else
-      Exclude(tempFlag, cfFlagsExcludeCertificates);
-
+    //7/6/2007 how to make this work?
+    //[Hint] ppBool := false;
     lResult :=
 {$IFDEF UNICODE}
-      CredUICmdLinePromptForCredentialsW
-{$ELSE}
+                  CredUICmdLinePromptForCredentialsW
+              {$ELSE}
       CredUICmdLinePromptForCredentialsA
-{$ENDIF}
-          (TJwPChar(fServerName),      //PCTSTR pszTargetName,
-          nil,     //PCtxtHandle Reserved,
-          fAuthError,     //DWORD dwAuthError,
-          pUser,     //PCTSTR pszUserName,
-          CRED_MAX_USERNAME_LENGTH,     //ULONG ulUserNameMaxChars,
-          pPass,     //PCTSTR pszPassword,
-          CREDUI_MAX_PASSWORD_LENGTH,     //ULONG ulPasswordMaxChars,
-          @aBool,     //PBOOL pfSave,
-          TJwEnumMap.ConvertToCredentialFlag(tempFlag)     //DWORD dwFlags
-          );
+              {$ENDIF}
+      (TJwPChar(fServerName),      //PCTSTR pszTargetName,
+      nil,     //PCtxtHandle Reserved,
+      fAuthError,     //DWORD dwAuthError,
+      pUser,     //PCTSTR pszUserName,
+      fMaxUserNameLength,     //ULONG ulUserNameMaxChars,
+      pPass,     //PCTSTR pszPassword,
+      fMaxPasswordLength,     //ULONG ulPasswordMaxChars,
+      @aBool,     //PBOOL pfSave,
+      TJwEnumMap.ConvertToCredentialFlag(fFlags)     //DWORD dwFlags
+      );
   end
   else
   begin
     lResult :=
 {$IFDEF UNICODE}
-      CredUIPromptForCredentialsW
-{$ELSE}
+                  CredUIPromptForCredentialsW
+              {$ELSE}
       CredUIPromptForCredentialsA
-{$ENDIF}
-        (@info,      //PCREDUI_INFO pUiInfo,
-        TJwPChar(fServerName),      //PCTSTR pszTargetName,
-        nil,     //PCtxtHandle Reserved,
-        fAuthError,     //DWORD dwAuthError,
-        pUser,     //PCTSTR pszUserName,
-        CRED_MAX_USERNAME_LENGTH,     //ULONG ulUserNameMaxChars,
-        pPass,     //PCTSTR pszPassword,
-        CREDUI_MAX_PASSWORD_LENGTH,     //ULONG ulPasswordMaxChars,
-        aBool,     //PBOOL pfSave,
-        TJwEnumMap.ConvertToCredentialFlag(fFlags)      //DWORD dwFlags
-        );
-
+              {$ENDIF}
+      (@info,      //PCREDUI_INFO pUiInfo,
+      TJwPChar(fServerName),      //PCTSTR pszTargetName,
+      nil,     //PCtxtHandle Reserved,
+      fAuthError,     //DWORD dwAuthError,
+      pUser,     //PCTSTR pszUserName,
+      fMaxUserNameLength,     //ULONG ulUserNameMaxChars,
+      pPass,     //PCTSTR pszPassword,
+      fMaxPasswordLength,     //ULONG ulPasswordMaxChars,
+      aBool,     //PBOOL pfSave,
+      TJwEnumMap.ConvertToCredentialFlag(fFlags)     //DWORD dwFlags
+      );
   end;
 
   if (lResult <> NO_ERROR) then
   begin
-    SetLastError(lResult);
+    LocalFree(Cardinal(pUser));
+    LocalFree(Cardinal(pPass));
+
 
     case lResult of
-      ERROR_CANCELLED: ;
       ERROR_INVALID_FLAGS:
         raise EJwsclInvalidFlagsException.CreateFmtEx(
           RsUNCredentialsInvalidPropertyFlags, 'ShowModal', ClassName, RsUNCredentials,
-          0, true, []);
+          0, True, []);
       ERROR_INVALID_PARAMETER:
         raise EJwsclInvalidParameterException.CreateFmtEx(
           RsUNCredentialsInvalidParametersCUIPFC, 'ShowModal',
-          ClassName, RsUNCredentials, 0, true, []);
+          ClassName, RsUNCredentials, 0, True, []);
       ERROR_NO_SUCH_LOGON_SESSION: raise EJwsclNoSuchLogonSession.CreateFmtEx(
           RsUNCredentialsInvalidLogonSession, 'ShowModal', ClassName, RsUNCredentials,
-          0, true, []);
-    else
-      raise EJwsclWinCallFailedException.CreateFmtWinCall(
-          RsWinCallFailed, 'ShowModal', ClassName, RsUNCredentials,
-          0, true, 'CredUIPromptForCredentials',['CredUIPromptForCredentials']);
+          0, True, []);
     end;
   end
   else
   if (lResult = NO_ERROR) then
   begin
+  {$IFDEF UNICODE}
+    SetLength(fUserName,fMaxUserNameLength);
+  {$ELSE}
+    SetLength(fUserName, StrLen(pUser));
+  {$ENDIF}
+
     fUserName := TJwString(pUser);
+
+  {$IFDEF UNICODE}
+    SetLength(fPassword,fMaxPasswordLength);
+  {$ELSE}
+    SetLength(fPassword, StrLen(pPass));
+  {$ENDIF}
     fPassword := TJwString(pPass);
+
+
+    FillChar(pUser^, fMaxUserNameLength, 0);
+    FillChar(pPass^, fMaxPasswordLength, 0);
+
+    //FreeMemory(pUser);
+    LocalFree(Cardinal(pUser));
+    LocalFree(Cardinal(pPass));
+    //FreeMemory(pPass);
   end;
 
   fSaveCheck := aBool;

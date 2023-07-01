@@ -15,7 +15,7 @@ uses
   JwsclTypes, JwsclExceptions, JwsclSid,JwsclAcl,
   JwsclVersion, JwsclConstants, JwsclProcess, JwsclToken,
   JwsclSecureObjects, JwsclDescriptor, JwsclKnownSid,
-//  USecurityTreeResetForm,
+  USecurityTreeResetForm,
 
   JwsclStrings,
   TestFrameWork;
@@ -244,7 +244,7 @@ type
   protected
 
 //    procedure SetUp; override;
-//    procedure TearDown; override;
+//    procedure TearDown; override;                                                                         
 
   published
 
@@ -552,7 +552,7 @@ end;
 
 procedure TSecureFileObjectTests.Test_Destroy;
 begin
-  //see Text_CreateX
+  //see Text_CreateX 
 end;
 
 procedure TSecureFileObjectTests.Test_GetDACL;
@@ -763,7 +763,7 @@ begin
   aDACL1.Add(TJwDiscretionaryAccessControlEntryAllow.Create(nil,[],
         (*
         do not use GENERIC_ALL, because some flags are discareded and
-        so the written and read access mask would differ.
+        so the written and read access mask would differ. 
         *)
                 FILE_ALL_ACCESS,
                 JwSecurityCurrentThreadUserSID,true));//we are responsible to free
@@ -873,7 +873,7 @@ begin
     CheckFALSE(pDACL = @aDACL2);
   finally
     fSecureFileObjects.Free;
-  end;
+  end;                      
 
 end;
 
@@ -909,7 +909,7 @@ begin
     CheckFALSE(v1 = @v2);
   finally
     fSecureFileObjects.Free;
-  end;
+  end;                      
 
 
 end;
@@ -1042,7 +1042,7 @@ var HasSACL: Boolean;
     SD : TJwSecurityDescriptor;
     x : TJwSecurityInformationFlagSet;
     threadUser : TJwSecurityId;
-begin
+begin 
   fFileNames[1] := GetSecurityFileNameTemp(HasSACL);
 
   fSecureFileObjects[1] := TJwSecureFileObject.Create(fFileNames[1]);
@@ -1302,7 +1302,7 @@ try
     CheckEquals(0, AccessMask);
 
     clientToken.Free;
-
+                        
 
   finally
     if Assigned(oldToken) then
@@ -1486,14 +1486,13 @@ var
   s : TJwString;
   p : Pointer;
 begin
-
+  
   DACL := TJwDAccessControlList.Create;
   DACL.Add(TJwDiscretionaryAccessControlEntryAllow.Create(nil,[afContainerInheritAce],GENERIC_ALL,JwWorldSID, false));
 
   try
-  {TODO: error
-   TJwSecureFileObject.TreeResetNamedSecurityInfo(
-                                '',
+    TJwSecureFileObject.TreeResetNamedSecurityInfo(
+                                'P:\Eigene Dateien\Dezipaitor\Projekte\Delphi\7\SecurityManager\dunit\2',
                                                 [siDaclSecurityInformation,siUnprotectedDaclSecurityInformation],//const aSecurityInfo : TJwSecurityInformationFlagSet; //  SECURITY_INFORMATION SecurityInfo,
                                                 nil,//const Owner : TJwSecurityId;
                                                 nil,//const Group : TJwSecurityId;
@@ -1504,7 +1503,7 @@ begin
                                                 FNProgressMethod, //const FNProgressMethod : TJwFnProgressMethod;
                                                 nil,//const FNProgressProcedure : TJwFnProgressProcedure;
                                                 Pointer(1234),//const ProgressUserData : Pointer);
-                                                );   }
+                                                );
   finally
     DACL.Free;
   end;
@@ -1736,7 +1735,7 @@ end;
 
 procedure TSecureRegistryKeyTests.Test_SecurityTreeResetForm;
 begin
-  //TODO: error TSM_SecurityTreeReset_Form.CreateSecurityTreeResetForm(Application.MainForm);
+  TSM_SecurityTreeReset_Form.CreateSecurityTreeResetForm(Application.MainForm);
 end;
 
 procedure TSecureRegistryKeyTests.Test_TreeKeyObjectSetNamedSecurityInfo;
@@ -1748,10 +1747,8 @@ var hThreadHandle : THandle;
     Reg : TRegistry;
     i,i2 : Integer;
 
-    //TODO: Error SecurityTreeReset_Form : TSM_SecurityTreeReset_Form;
+    SecurityTreeReset_Form : TSM_SecurityTreeReset_Form;
 begin
-(*
-//TODO: Error
   Reg := TRegistry.Create;
   Reg.RootKey := HKEY_CURRENT_USER;
  { Reg.OpenKey(SECURE_OBJECT_KEY, true);
@@ -1819,7 +1816,7 @@ begin
      end;
   finally
     Reg.Free;
-  end;        *)
+  end;
 end;
 
 initialization

@@ -1,13 +1,12 @@
-{
-Description
+{<B>Abstract</B>This unit provides access to winstation api functions 
+@author(Christian Wimmer)
+<B>Created:</B>03/23/2007 
+<B>Last modification:</B>09/10/2007 
+
+
+
 Project JEDI Windows Security Code Library (JWSCL)
 
-This unit provides access to winstation api functions
-
-Author
-Christian Wimmer
-
-License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -16,48 +15,35 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the
-GNU Lesser General Public License (the  "LGPL License"), in which case the
-provisions of the LGPL License are applicable instead of those above.
-If you wish to allow use of your version of this file only under the terms
-of the LGPL License and not to allow others to use your version of this file
-under the MPL, indicate your decision by deleting  the provisions above and
-replace  them with the notice and other provisions required by the LGPL
-License.  If you do not delete the provisions above, a recipient may use
-your version of this file under either the MPL or the LGPL License.
-
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
-
-Note
+Alternatively, the contents of this file may be used under the terms of the  
+GNU Lesser General Public License (the  "LGPL License"), in which case the   
+provisions of the LGPL License are applicable instead of those above.        
+If you wish to allow use of your version of this file only under the terms   
+of the LGPL License and not to allow others to use your version of this file 
+under the MPL, indicate your decision by deleting  the provisions above and  
+replace  them with the notice and other provisions required by the LGPL      
+License.  If you do not delete the provisions above, a recipient may use     
+your version of this file under either the MPL or the LGPL License.          
+                                                                             
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
 
 The Original Code is JwsclWinStations.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
-
-Version
-The following values are automatically injected by Subversion on commit.
-<table>
-\Description                                                        Value
-------------------------------------------------------------------  ------------
-Last known date the file has changed in the repository              \$Date: 2010-08-29 14:26:48 +0000 (Sun, 29 Aug 2010) $
-Last known revision number the file has changed in the repository   \$Revision: 1006 $
-Last known author who changed the file in the repository.           \$Author: dezipaitor $
-Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/trunk/source/JwsclWinStations.pas $
-</table>
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclWinStations;
-{$INCLUDE ..\includes\Jwscl.inc}
+{$I Jwscl.inc}
+// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 
 interface
 
-uses
-  SysUtils,
-  Contnrs {for TStack},
+uses SysUtils, Classes, Registry, Contnrs,
+
   JwsclUtils, JwsclResource,
-  jwaWindows,
+  jwaWindows, StdCtrls, ComCtrls, ActiveX,
   JwsclTypes, JwsclExceptions, JwsclSid, JwsclAcl, JwsclToken,
   JwsclMapping, JwsclKnownSid, JwsclSecureObjects,
   JwsclVersion, JwsclConstants, JwsclDescriptor,
@@ -74,7 +60,7 @@ type
   TJwSecurityWindowStationArray = array of TJwSecurityWindowStation;
 
   {<B>TJwSecurityWindowStation</B> provides access to window station api.}
-  TJwSecurityWindowStation = class
+  TJwSecurityWindowStation = class(TPersistent)
   private
   protected
     fOldWinStations: TStack;
@@ -99,7 +85,7 @@ type
       aSD: TJwSecurityDescriptor); virtual;
   public
      {<B>Open</B> opens a window station using a name and desired access rights.
-      The window station must be of the current session.
+      The window station must be of the actual session.
      @param sName defines the name of the window station.
      @param bInherit TBD
      @param cDesiredAccess defines winstation access righs
@@ -126,14 +112,9 @@ type
       cDesiredAccess: TJwAccessMask; bCreateOnly: boolean;
       SecurityDescriptor: TJwSecurityDescriptor); overload;
 
-    {<B>CreateByHandle</B> creates a new instance and assigns an existing handle to it.
-     By default the handle is destroyed on freeing.
-     Set property DestroyWinSta manually to false.}
-    constructor CreateByHandle(const Handle  :THandle);
-
     destructor Destroy; override;
 
-     {<B>SetWindowStation</B> changes the current window station for the process to the given on in the current instance.
+     {<B>SetWindowStation</B> changes the actual window station for the process to the given on in the actual instance.
       raises
  EJwsclWinCallFailedException:  if a call to SetProcessWindowStation failed.
      }
@@ -141,7 +122,7 @@ type
 
      {<B>RevertWindowStation</B> reverts to the saved window station from SetWindowStation.
      raises
- EJwsclWinCallFailedException:  if a call to SetProcessWindowStation failed.
+ EJwsclWinCallFailedException:  if a call to SetProcessWindowStation failed. 
      }
     procedure RevertWindowStation;
 
@@ -178,7 +159,7 @@ type
       This method raises EJwsclWinCallFailedException if a call to GetUserObjectInformation failed.}
     property UserSID: TJwSecurityId Read GetUserSID;
 
-     {<B>SecurityDescriptor[Info</B> sets or gets the security descriptor of the current window station.
+     {<B>SecurityDescriptor[Info</B> sets or gets the security descriptor of the actual window station.
       This property uses a parameter Info to set which information is to be set or get.
        ex. SecurityDescriptor[[sif_XXXX,sif_XXXX]]
 
@@ -194,7 +175,7 @@ type
 
 
   {<B>TJwSecurityWindowStations</B> provides access to window stations}
-  TJwSecurityWindowStations = class
+  TJwSecurityWindowStations = class(TPersistent)
   private
   protected
     fWinstationList: TJwSecurityWindowStationArray;
@@ -213,7 +194,7 @@ type
     destructor Destroy; override;
 
 
-     {<B>GetWindowStationNames</B> returns a list of window station of the current session.
+     {<B>GetWindowStationNames</B> returns a list of window station of the actual session.
       raises
  EJwsclWinCallFailedException:  if a call to EnumWindowStationsW failed.}
     class function GetWindowStationNames: TJwTJwStringArray; virtual;
@@ -234,6 +215,9 @@ type
 
 {$IFNDEF SL_OMIT_SECTIONS}
 implementation
+uses Dialogs;
+
+
 
 {$ENDIF SL_OMIT_SECTIONS}
 
@@ -449,7 +433,8 @@ begin
 
   if fHandle = 0 then
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
-      RsWinStationCreateFailed,     //const sMsg: TJwString;
+      RsWinStationCreateFailed,
+      //const sMsg: AnsiString;
       'Create',                               //sSourceProc
       ClassName,                                //sSourceClass
       RsUNWinStation,                          //sSourceFile
@@ -463,20 +448,14 @@ begin
 end;
 
 
-constructor TJwSecurityWindowStation.CreateByHandle(const Handle: THandle);
-begin
-  Self.Create;
-  fHandle := HAndle;
-end;
-
 destructor TJwSecurityWindowStation.Destroy;
 begin
   if fDestroyWinSta then
     CloseWindowStation(Handle);
   fHandle := 0;
-  JwFree(fOldWinStations);
-  JwFree(fUserSid);
-  JwFree(fSD);
+  FreeAndNil(fOldWinStations);
+  FreeAndNil(fUserSid);
+  FreeAndNil(fSD);
 
   inherited;
 end;
@@ -628,7 +607,7 @@ begin
       'GetUserObjectInformation',                  //sWinCall
       ['GetUserObjectInformation']);                                  //const Args: array of const
 
-  SetLength(Result, len div TJwCharSize - 1);
+  SetLength(Result, len div TJwCharSize - 1);  
   if Result = '' then;
 end;
 
@@ -653,6 +632,7 @@ var
 begin
   Result := nil;
   len := 0;
+  apSID := nil;
   GetUserObjectInformation(fHandle,//HANDLE hObj,
     UOI_USER_SID,//int nIndex,
     nil,//PVOID pvInfo,
@@ -709,7 +689,8 @@ begin
     (TJwPChar(sName), bInherit, cDesiredAccess);
   if fHandle = 0 then
     raise EJwsclOpenWindowStationException.CreateFmtWinCall(
-      RsWinStationOpenFailed,      //const sMsg: TJwString;
+      RsWinStationOpenFailed,
+      //const sMsg: AnsiString;
       'Open',                               //sSourceProc
       ClassName,                                //sSourceClass
       RsUNWinStation,                          //sSourceFile

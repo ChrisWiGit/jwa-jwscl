@@ -1,13 +1,10 @@
-{
-Description
+{<B>Abstract</B>This unit contains classes and methods to create a proper bug report for JEDI API service.
+@author(Christian Wimmer)
+<B>Created:</B>03/05/2008
+<B>Last modification:</B>03/05/2008
+
 Project JEDI Windows Security Code Library (JWSCL)
 
-This unit contains classes and methods to create a proper bug report for JEDI API service.
-
-Author
-Christian Wimmer
-
-License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -16,39 +13,28 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the
-GNU Lesser General Public License (the  "LGPL License"), in which case the
-provisions of the LGPL License are applicable instead of those above.
-If you wish to allow use of your version of this file only under the terms
-of the LGPL License and not to allow others to use your version of this file
-under the MPL, indicate your decision by deleting  the provisions above and
-replace  them with the notice and other provisions required by the LGPL
-License.  If you do not delete the provisions above, a recipient may use
-your version of this file under either the MPL or the LGPL License.
+Alternatively, the contents of this file may be used under the terms of the  
+GNU Lesser General Public License (the  "LGPL License"), in which case the   
+provisions of the LGPL License are applicable instead of those above.        
+If you wish to allow use of your version of this file only under the terms   
+of the LGPL License and not to allow others to use your version of this file 
+under the MPL, indicate your decision by deleting  the provisions above and  
+replace  them with the notice and other provisions required by the LGPL      
+License.  If you do not delete the provisions above, a recipient may use     
+your version of this file under either the MPL or the LGPL License.          
+                                                                             
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
 
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
-
-Note
 The Original Code is JwsclEurekaLogUtils.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-Version
-The following values are automatically injected by Subversion on commit.
-<table>
-\Description                                                        Value
-------------------------------------------------------------------  ------------
-Last known date the file has changed in the repository              \$Date: 2010-10-15 20:12:04 +0000 (Fri, 15 Oct 2010) $
-Last known revision number the file has changed in the repository   \$Revision: 1029 $
-Last known author who changed the file in the repository.           \$Author: dezipaitor $
-Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/trunk/source/JwsclEurekaLogUtils.pas $
-</table>
+Description:
+This unit contains classes and methods to create a proper bug report for JEDI API service.
+
 }
 unit JwsclEurekaLogUtils;
-{$INCLUDE ..\includes\Jwscl.inc}
-
-{$WARNINGS ON}
 
 interface
 uses
@@ -74,15 +60,15 @@ type
        to the Eurekalog component you want to use so this class is
        automatically freed. This class does not anything of the
        Eurekalog component.
-
-
+       
+       
        Parameters
        AOwner :           Set the owner of this class. If the owner
                           is freed this class instance will also be
                           freed; otherwise the creator have to free
-                          it.
+                          it. 
        ApplicationName :  Name of this application. Must not be empty
-
+       
        Exceptions
        EJwsclInvalidParameterException :  This exception will be
                                           raised if parameter ApplicationName
@@ -105,22 +91,11 @@ procedure JEDI_WebFieldsRequestNotify(
         EurekaExceptionRecord: TEurekaExceptionRecord;
         WebFields: TStrings);
 
-{$IFDEF DEBUG}
-//for testing Eurekalog only!
-procedure CreateLeak;
-{$ENDIF DEBUG}
 implementation
 
-{$IFDEF DEBUG}
-procedure CreateLeak;
-var P : Pointer;
-begin
-  GetMEm(P, 100);
-end;
-{$ENDIF DEBUG}
 
 constructor TJwEurekaLogNotify.Create(AOwner: TComponent;
-  const ApplicationName : String);
+  const ApplicationName : String); 
 begin
   inherited Create(AOwner);
   if Length(ApplicationName) = 0 then
@@ -173,7 +148,7 @@ begin
 
   try
     F := TJclFileVersionInfo.Create(ParamStr(0));
-    with F do  //<--- only for F.AddField
+    with F do
     begin
       AddField('Info_BinFileVersion',BinFileVersion);
       AddField('Info_BinProductVersion',BinProductVersion);
@@ -217,14 +192,15 @@ begin
       AddField('Info_ProductName',ProductName);
       AppName := ProductName;
       AddField('Info_ProductVersion',ProductVersion);
-      AddField('ApplicationName',AppName);
+      AddField('ApplicationName',AppName);      
       Free;
     end;
   except
     on E : Exception do
-      OutputDebugStringA(PAnsiChar(AnsiString('Could not get version information: '+E.Message)));
+      OutputDebugStringA(PChar('Could not get version information: '+E.Message));
   end;
 end;
 
 
 end.
+ 

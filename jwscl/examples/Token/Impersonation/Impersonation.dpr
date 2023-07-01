@@ -1,10 +1,3 @@
-{This demo shows how to use LogonUser, ImpersonateLoggedOnUser and the
-class TJwCredentialsPrompt.
-It gets your logon information (Administrator by default) and tries to log you on
-and tell your name.
-
-Be aware that Windows Vista disables the Administrator account.
-}
 program Impersonation;
 
 {.$APPTYPE CONSOLE}
@@ -51,7 +44,7 @@ begin
 
   Prompt := TJwCredentialsPrompt.Create;
   Prompt.UserName := 'Administrator';
-  Prompt.Password := '123';
+  Prompt.Password := '123'; 
   Prompt.Caption := 'Impersonation demonstration';
   Prompt.MessageText := 'Enter a account name and passwort to impersonate that user.';
   Prompt.Flags := [cfFlagsDoNotPersist];

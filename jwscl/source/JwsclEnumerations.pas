@@ -1,13 +1,10 @@
-{
-Description
+{<B>Abstract</B>This unit provides conversion functions from windows api constants to delphi enumeration types and vice versa. 
+@author(Christian Wimmer)
+<B>Created:</B>03/23/2007 
+<B>Last modification:</B>11/27/2007 
+
 Project JEDI Windows Security Code Library (JWSCL)
 
-This unit provides conversion functions from windows api constants to delphi enumeration types and vice versa.
-
-Author
-Christian Wimmer
-
-License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -16,46 +13,41 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the
-GNU Lesser General Public License (the  "LGPL License"), in which case the
-provisions of the LGPL License are applicable instead of those above.
-If you wish to allow use of your version of this file only under the terms
-of the LGPL License and not to allow others to use your version of this file
-under the MPL, indicate your decision by deleting  the provisions above and
-replace  them with the notice and other provisions required by the LGPL
-License.  If you do not delete the provisions above, a recipient may use
-your version of this file under either the MPL or the LGPL License.
+Alternatively, the contents of this file may be used under the terms of the  
+GNU Lesser General Public License (the  "LGPL License"), in which case the   
+provisions of the LGPL License are applicable instead of those above.        
+If you wish to allow use of your version of this file only under the terms   
+of the LGPL License and not to allow others to use your version of this file 
+under the MPL, indicate your decision by deleting  the provisions above and  
+replace  them with the notice and other provisions required by the LGPL      
+License.  If you do not delete the provisions above, a recipient may use     
+your version of this file under either the MPL or the LGPL License.          
+                                                                             
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
 
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
-
-Note
 The Original Code is JwsclEnumerations.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
 
-Version
-The following values are automatically injected by Subversion on commit.
-<table>
-\Description                                                        Value
-------------------------------------------------------------------  ------------
-Last known date the file has changed in the repository              \$Date: 2010-11-14 15:40:34 +0000 (Sun, 14 Nov 2010) $
-Last known revision number the file has changed in the repository   \$Revision: 1059 $
-Last known author who changed the file in the repository.           \$Author: dezipaitor $
-Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/trunk/source/JwsclEnumerations.pas $
-</table>
+Description:
+This unit provides conversion functions from windows api constants to delphi enumeration types and vice versa.
+
+
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclEnumerations;
-{$INCLUDE ..\includes\Jwscl.inc}
+{$INCLUDE Compilers.inc}
+// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
+//do not move header comment from above unit declaration!
 
 interface
 
 uses
   SysUtils,
-  JwaWindows,
-
+  jwaWindows,
+  jwaVista,
   JwsclTypes,
   JwsclConstants
   ;
@@ -73,7 +65,7 @@ type
     class function ConvertInheritFlags(
       const FlagBits: Cardinal): TJwInheritFlagSet; overload; virtual;
 
-
+    
     class function ConvertSecurityInformation(
       const FlagSet: TJwSecurityInformationFlagSet): Cardinal;
       overload; virtual;
@@ -95,15 +87,15 @@ type
 
     {<B>ConvertAceFlags</B> converts a set of ACE flags to a bit combined Cardinal value.
      @param AceFlags receives the set of flags to be converted. It can be emtpy [].
-            See TJwAceFlags  for more information.
-     @return The return value contains the set as a value.
+            See TJwAceFlags  for more information. 
+     @return The return value contains the set as a value. 
     }
     class function ConvertAceFlags(const AceFlags: TJwAceFlags): Cardinal; overload; virtual;
 
     {<B>ConvertAceFlags</B> converts a cardianl value to set of ACE flags.
      @param AceFlags receives the value to be converted to a set of flags.
-            Unknown bits are ignored in the result.
-     @return The return value contains the set of ace flags. See TJwAceFlags  for more information.
+            Unknown bits are ignored in the result.  
+     @return The return value contains the set of ace flags. See TJwAceFlags  for more information. 
     }
     class function ConvertAceFlags(
       const AceFlags: Cardinal): TJwAceFlags; overload; virtual;
@@ -219,58 +211,8 @@ type
     class function ConvertJobMessage(
       const FlagBits: Cardinal): TJwJobMessages; overload;
 
-    class function ConvertSecurityCapabilityType(
-      const FlagSet: TJwSecurityCapabilities): Cardinal; overload;
-    class function ConvertSecurityCapabilityMessage(
-      const FlagBits: Cardinal): TJwSecurityCapabilities; overload;
-
-    class function ConvertComAppIdRegFlags(
-      const FlagSet: TJwComAppIdRegFlags): Cardinal; overload;
-    class function ConvertComAppIdRegFlags(
-      const FlagBits: Cardinal): TJwComAppIdRegFlags; overload;
-
-    class function ConvertComAuthenticationCapabilities(
-      const FlagSet: TJwComAuthenticationCapabilities): Cardinal; overload;
-    class function ConvertComAuthenticationCapabilities(
-      const FlagBits: Cardinal): TJwComAuthenticationCapabilities; overload;
-
-    class function ConvertComRotFlags(
-      const FlagSet: TJwComRotFlags): Cardinal; overload;
-    class function ConvertComRotFlags(
-      const FlagBits: Cardinal): TJwComRotFlags; overload;
-
-    class function ConvertSecurityPackageCapabilities(
-      const FlagSet: TJwSecurityPackageCapabilities): Cardinal; overload;
-    class function ConvertSecurityPackageCapabilities(
-      const FlagBits: Cardinal): TJwSecurityPackageCapabilities; overload;
-
-     class function ConvertShellRestrictions(
-      const FlagSet: TJwShellRestrictions): Cardinal; overload;
-    class function ConvertShellRestrictions(
-      const FlagBits: Cardinal): TJwShellRestrictions; overload;
-
   end;
 
-//Single values to be converted
-const
-  JwComAuthenticationLevel : array[TJwComAuthenticationLevel] of Cardinal = (
-      DWORD(-1),
-      RPC_C_AUTHN_LEVEL_DEFAULT,
-      RPC_C_AUTHN_LEVEL_NONE,
-      RPC_C_AUTHN_LEVEL_CONNECT,
-      RPC_C_AUTHN_LEVEL_CALL,
-      RPC_C_AUTHN_LEVEL_PKT,
-      RPC_C_AUTHN_LEVEL_PKT_INTEGRITY,
-      RPC_C_AUTHN_LEVEL_PKT_PRIVACY
-   );
-
-  JwComImpersonationLevel : array[TJwComImpersonationLevel] of Cardinal = (
-    RPC_C_IMP_LEVEL_DEFAULT,
-    RPC_C_IMP_LEVEL_ANONYMOUS,
-    RPC_C_IMP_LEVEL_IDENTIFY,
-    RPC_C_IMP_LEVEL_IMPERSONATE,
-    RPC_C_IMP_LEVEL_DELEGATE
-  );
 
 {$ENDIF SL_IMPLEMENTATION_SECTION}
 
@@ -405,7 +347,7 @@ const
   CryptProtectFlag : Array[TJwCryptProtectFlag] of Cardinal = (
     CRYPTPROTECT_LOCAL_MACHINE//cfLocalMachine
     ,CRYPTPROTECT_UI_FORBIDDEN//cfUiFobidden
-    //Vista only
+    //Vista only 
    { ,CRYPTPROTECT_AUDIT//cfAudit
     CRYPTPROTECT_VERIFY_PROTECTION//cfVerifyProtection }
   );
@@ -490,7 +432,6 @@ const
    ,CALG_TEK //eaTek
    ,CALG_CYLINK_MEK //eaCylinkMek
    );
-
 
   MandatoryPolicyFlagValues : array[TJwMandatoryPolicy] of Cardinal = (
    SYSTEM_MANDATORY_LABEL_NO_WRITE_UP
@@ -595,253 +536,6 @@ const
       JOB_OBJECT_MSG_ABNORMAL_EXIT_PROCESS,
       JOB_OBJECT_MSG_END_OF_JOB_TIME
    );
-
-   JwSecurityCapabilities : array[TJwSecurityCapability] of Cardinal = (
-      SECPKG_FLAG_INTEGRITY,
-      SECPKG_FLAG_PRIVACY,
-      SECPKG_FLAG_TOKEN_ONLY,
-      SECPKG_FLAG_DATAGRAM,
-      SECPKG_FLAG_CONNECTION,
-      SECPKG_FLAG_MULTI_REQUIRED,
-      SECPKG_FLAG_CLIENT_ONLY,
-      SECPKG_FLAG_EXTENDED_ERROR,
-      SECPKG_FLAG_IMPERSONATION,
-      SECPKG_FLAG_ACCEPT_WIN32_NAME,
-      SECPKG_FLAG_STREAM,
-      SECPKG_FLAG_NEGOTIABLE,
-      SECPKG_FLAG_GSS_COMPATIBLE,
-      SECPKG_FLAG_LOGON,
-      SECPKG_FLAG_ASCII_BUFFERS,
-      SECPKG_FLAG_FRAGMENT,
-      SECPKG_FLAG_MUTUAL_AUTH,
-      SECPKG_FLAG_DELEGATION
-   );
-
-   JwComAppIdRegFlags : array[TJwComAppIdRegFlag] of Cardinal =(
-    $1, //APPIDREGFLAGS_ACTIVATE_IUSERVER_INDESKTOP
-    $2, //APPIDREGFLAGS_SECURE_SERVER_PROCESS_SD_AND_BIND
-    $4 //APPIDREGFLAGS_ISSUE_ACTIVATION_RPC_AT_IDENTIFY
-  );
-
-
-  JwComAuthenticationCapabilities : array[TJwComAuthenticationCapability] of EOLE_AUTHENTICATION_CAPABILITIES = (
-      EOAC_NONE                ,{= 0,}
-      EOAC_MUTUAL_AUTH         ,{= 0x1,}
-      EOAC_STATIC_CLOAKING     ,{= 0x20,}
-      EOAC_DYNAMIC_CLOAKING    ,{= 0x40,}
-      EOAC_ANY_AUTHORITY       ,{= 0x80,}
-      EOAC_MAKE_FULLSIC        ,{= 0x100,}
-      EOAC_DEFAULT             ,{= 0x800,}
-      EOAC_SECURE_REFS         ,{= 0x2,}
-      EOAC_ACCESS_CONTROL      ,{= 0x4,}
-      EOAC_APPID               ,{= 0x8,}
-      EOAC_DYNAMIC             ,{= 0x10,}
-      EOAC_REQUIRE_FULLSIC     ,{= 0x200,}
-      EOAC_AUTO_IMPERSONATE    ,{= 0x400,}
-      EOAC_NO_CUSTOM_MARSHAL   ,{= 0x2000,}
-      EOAC_DISABLE_AAA         {}
-  );
-
-  JwComRotFlags : array[TJwComRotFlag] of Cardinal =
-   (0,
-    $1//ROTREGFLAGS_ALLOWANYCLIENT //0x1
-   );
-
-
-  JwSecurityPackageCapability : array[TJwSecurityPackageCapability] of Cardinal = (
-    {spcIntegrity}SECPKG_FLAG_INTEGRITY        // = $00000001; // Supports integrity on messages
-    {spcPrivacy},SECPKG_FLAG_PRIVACY          // = $00000002; // Supports privacy (confidentiality)
-    {spcTokenOnly},SECPKG_FLAG_TOKEN_ONLY       // = $00000004; // Only security token needed
-    {spcDatagram},SECPKG_FLAG_DATAGRAM         // = $00000008; // Datagram RPC support
-    {spcConnection},SECPKG_FLAG_CONNECTION       // = $00000010; // Connection oriented RPC support
-    {spcMultiRequired},SECPKG_FLAG_MULTI_REQUIRED   // = $00000020; // Full 3-leg required for re-auth.
-    {spcClientOnly},SECPKG_FLAG_CLIENT_ONLY      // = $00000040; // Server side functionality not available
-    {spcExtendedError},SECPKG_FLAG_EXTENDED_ERROR   // = $00000080; // Supports extended error msgs
-    {spcImpersonation},SECPKG_FLAG_IMPERSONATION    // = $00000100; // Supports impersonation
-    {spcAcceptWin32Name},SECPKG_FLAG_ACCEPT_WIN32_NAME// = $00000200; // Accepts Win32 names
-    {spcStream},SECPKG_FLAG_STREAM           // = $00000400; // Supports stream semantics
-    {spcNegotiable},SECPKG_FLAG_NEGOTIABLE       // = $00000800; // Can be used by the negotiate package
-    {spcGSSCompatible},SECPKG_FLAG_GSS_COMPATIBLE   // = $00001000; // GSS Compatibility Available
-    {spcLogon},SECPKG_FLAG_LOGON            // = $00002000; // Supports common LsaLogonUser
-    {spcASCIIBuffers},SECPKG_FLAG_ASCII_BUFFERS    // = $00004000; // Token Buffers are in ASCII
-    {spcFragment},SECPKG_FLAG_FRAGMENT         // = $00008000; // Package can fragment to fit
-    {spcMutualAuth},SECPKG_FLAG_MUTUAL_AUTH      // = $00010000; // Package can perform mutual authentication
-    {spcDelegation},SECPKG_FLAG_DELEGATION       // = $00020000; // Package can delegate
-    {spcNone},SECPKG_ID_NONE// = $FFFF;
-  );
-
-  JwShellRestrictions : array[TJwShellRestriction] of Cardinal = (
-    REST_NONE                        {= $00000000},
-    REST_NORUN                       {= $00000001},
-    REST_NOCLOSE                     {= $00000002},
-    REST_NOSAVESET                   {= $00000004},
-    REST_NOFILEMENU                  {= $00000008},
-    REST_NOSETFOLDERS                {= $00000010},
-    REST_NOSETTASKBAR                {= $00000020},
-    REST_NODESKTOP                   {= $00000040},
-    REST_NOFIND                      {= $00000080},
-    REST_NODRIVES                    {= $00000100},
-    REST_NODRIVEAUTORUN              {= $00000200},
-    REST_NODRIVETYPEAUTORUN          {= $00000400},
-    REST_NONETHOOD                   {= $00000800},
-    REST_STARTBANNER                 {= $00001000},
-    REST_RESTRICTRUN                 {= $00002000},
-    REST_NOPRINTERTABS               {= $00004000},
-    REST_NOPRINTERDELETE             {= $00008000},
-    REST_NOPRINTERADD                {= $00010000},
-    REST_NOSTARTMENUSUBFOLDERS       {= $00020000},
-    REST_MYDOCSONNET                 {= $00040000},
-    REST_NOEXITTODOS                 {= $00080000},
-    REST_ENFORCESHELLEXTSECURITY     {= $00100000},
-    REST_LINKRESOLVEIGNORELINKINFO   {= $00200000},
-    REST_NOCOMMONGROUPS              {= $00400000},
-    REST_SEPARATEDESKTOPPROCESS      {= $00800000},
-    REST_NOWEB                       {= $01000000},
-    REST_NOTRAYCONTEXTMENU           {= $02000000},
-    REST_NOVIEWCONTEXTMENU           {= $04000000},
-    REST_NONETCONNECTDISCONNECT      {= $08000000},
-    REST_STARTMENULOGOFF             {= $10000000},
-    REST_NOSETTINGSASSIST            {= $20000000},
-    REST_NOINTERNETICON              {= $40000001},
-    REST_NORECENTDOCSHISTORY         {= $40000002},
-    REST_NORECENTDOCSMENU            {= $40000003},
-    REST_NOACTIVEDESKTOP             {= $40000004},
-    REST_NOACTIVEDESKTOPCHANGES      {= $40000005},
-    REST_NOFAVORITESMENU             {= $40000006},
-    REST_CLEARRECENTDOCSONEXIT       {= $40000007},
-    REST_CLASSICSHELL                {= $40000008},
-    REST_NOCUSTOMIZEWEBVIEW          {= $40000009},
-    REST_NOHTMLWALLPAPER             {= $40000010},
-    REST_NOCHANGINGWALLPAPER         {= $40000011},
-    REST_NODESKCOMP                  {= $40000012},
-    REST_NOADDDESKCOMP               {= $40000013},
-    REST_NODELDESKCOMP               {= $40000014},
-    REST_NOCLOSEDESKCOMP             {= $40000015},
-    REST_NOCLOSE_DRAGDROPBAND        {= $40000016},
-    REST_NOMOVINGBAND                {= $40000017},
-    REST_NOEDITDESKCOMP              {= $40000018},
-    REST_NORESOLVESEARCH             {= $40000019},
-    REST_NORESOLVETRACK              {= $4000001A},
-    REST_FORCECOPYACLWITHFILE        {= $4000001B},
-    REST_NOLOGO3CHANNELNOTIFY        {= $4000001C},
-    REST_NOFORGETSOFTWAREUPDATE      {= $4000001D},
-    REST_NOSETACTIVEDESKTOP          {= $4000001E},
-    REST_NOUPDATEWINDOWS             {= $4000001F},
-    REST_NOCHANGESTARMENU            {= $40000020},
-    REST_NOFOLDEROPTIONS             {= $40000021},
-    REST_HASFINDCOMPUTERS            {= $40000022},
-    REST_INTELLIMENUS                {= $40000023},
-    REST_RUNDLGMEMCHECKBOX           {= $40000024},
-    REST_ARP_ShowPostSetup           {= $40000025},
-    REST_NOCSC                       {= $40000026},
-    REST_NOCONTROLPANEL              {= $40000027},
-    REST_ENUMWORKGROUP               {= $40000028},
-    REST_ARP_NOARP                   {= $40000029},
-    REST_ARP_NOREMOVEPAGE            {= $4000002A},
-    REST_ARP_NOADDPAGE               {= $4000002B},
-    REST_ARP_NOWINSETUPPAGE          {= $4000002C},
-    REST_GREYMSIADS                  {= $4000002D},
-    REST_NOCHANGEMAPPEDDRIVELABEL    {= $4000002E},
-    REST_NOCHANGEMAPPEDDRIVECOMMENT  {= $4000002F},
-    REST_MaxRecentDocs               {= $40000030},
-    REST_NONETWORKCONNECTIONS        {= $40000031},
-    REST_FORCESTARTMENULOGOFF        {= $40000032},
-    REST_NOWEBVIEW                   {= $40000033},
-    REST_NOCUSTOMIZETHISFOLDER       {= $40000034},
-    REST_NOENCRYPTION                {= $40000035},
-    REST_DONTSHOWSUPERHIDDEN         {= $40000037},
-    REST_NOSHELLSEARCHBUTTON         {= $40000038},
-    REST_NOHARDWARETAB               {= $40000039},
-    REST_NORUNASINSTALLPROMPT        {= $4000003A},
-    REST_PROMPTRUNASINSTALLNETPATH   {= $4000003B},
-    REST_NOMANAGEMYCOMPUTERVERB      {= $4000003C},
-    REST_NORECENTDOCSNETHOOD         {= $4000003D},
-    REST_DISALLOWRUN                 {= $4000003E},
-    REST_NOWELCOMESCREEN             {= $4000003F},
-    REST_RESTRICTCPL                 {= $40000040},
-    REST_DISALLOWCPL                 {= $40000041},
-    REST_NOSMBALLOONTIP              {= $40000042},
-    REST_NOSMHELP                    {= $40000043},
-    REST_NOWINKEYS                   {= $40000044},
-    REST_NOENCRYPTONMOVE             {= $40000045},
-    REST_NOLOCALMACHINERUN           {= $40000046},
-    REST_NOCURRENTUSERRUN            {= $40000047},
-    REST_NOLOCALMACHINERUNONCE       {= $40000048},
-    REST_NOCURRENTUSERRUNONCE        {= $40000049},
-    REST_FORCEACTIVEDESKTOPON        {= $4000004A},
-    REST_NOCOMPUTERSNEARME           {= $4000004B},
-    REST_NOVIEWONDRIVE               {= $4000004C},
-    REST_NONETCRAWL                  {= $4000004D},
-    REST_NOSHAREDDOCUMENTS           {= $4000004E},
-    REST_NOSMMYDOCS                  {= $4000004F},
-    REST_NOSMMYPICS                  {= $40000050},
-    REST_ALLOWBITBUCKDRIVES          {= $40000051},
-    REST_NONLEGACYSHELLMODE          {= $40000052},
-    REST_NOCONTROLPANELBARRICADE     {= $40000053},
-    REST_NOSTARTPAGE                 {= $40000054},
-    REST_NOAUTOTRAYNOTIFY            {= $40000055},
-    REST_NOTASKGROUPING              {= $40000056},
-    REST_NOCDBURNING                 {= $40000057},
-    REST_MYCOMPNOPROP                {= $40000058},
-    REST_MYDOCSNOPROP                {= $40000059},
-    REST_NOSTARTPANEL                {= $4000005A},
-    REST_NODISPLAYAPPEARANCEPAGE     {= $4000005B},
-    REST_NOTHEMESTAB                 {= $4000005C},
-    REST_NOVISUALSTYLECHOICE         {= $4000005D},
-    REST_NOSIZECHOICE                {= $4000005E},
-    REST_NOCOLORCHOICE               {= $4000005F},
-    REST_SETVISUALSTYLE              {= $40000060},
-    REST_STARTRUNNOHOMEPATH          {= $40000061},
-    REST_NOUSERNAMEINSTARTPANEL      {= $40000062},
-    REST_NOMYCOMPUTERICON            {= $40000063},
-    REST_NOSMNETWORKPLACES           {= $40000064},
-    REST_NOSMPINNEDLIST              {= $40000065},
-    REST_NOSMMYMUSIC                 {= $40000066},
-    REST_NOSMEJECTPC                 {= $40000067},
-    REST_NOSMMOREPROGRAMS            {= $40000068},
-    REST_NOSMMFUPROGRAMS             {= $40000069},
-    REST_NOTRAYITEMSDISPLAY          {= $4000006A},
-    REST_NOTOOLBARSONTASKBAR         {= $4000006B},
-    REST_NOSMCONFIGUREPROGRAMS       {= $4000006F},
-    REST_HIDECLOCK                   {= $40000070},
-    REST_NOLOWDISKSPACECHECKS        {= $40000071},
-    REST_NOENTIRENETWORK             {= $40000072},
-    REST_NODESKTOPCLEANUP            {= $40000073},
-    REST_BITBUCKNUKEONDELETE         {= $40000074},
-    REST_BITBUCKCONFIRMDELETE        {= $40000075},
-    REST_BITBUCKNOPROP               {= $40000076},
-    REST_NODISPBACKGROUND            {= $40000077},
-    REST_NODISPSCREENSAVEPG          {= $40000078},
-    REST_NODISPSETTINGSPG            {= $40000079},
-    REST_NODISPSCREENSAVEPREVIEW     {= $4000007A},
-    REST_NODISPLAYCPL                {= $4000007B},
-    REST_HIDERUNASVERB               {= $4000007C},
-    REST_NOTHUMBNAILCACHE            {= $4000007D},
-    REST_NOSTRCMPLOGICAL             {= $4000007E},
-    REST_NOPUBLISHWIZARD             {= $4000007F},
-    REST_NOONLINEPRINTSWIZARD        {= $40000080},
-    REST_NOWEBSERVICES               {= $40000081},
-    REST_ALLOWUNHASHEDWEBVIEW        {= $40000082},
-    REST_ALLOWLEGACYWEBVIEW          {= $40000083},
-    REST_REVERTWEBVIEWSECURITY       {= $40000084},
-    REST_INHERITCONSOLEHANDLES       {= $40000086},
-    REST_SORTMAXITEMCOUNT            {= $40000087},
-    REST_NOREMOTERECURSIVEEVENTS     {= $40000089},
-    REST_NOREMOTECHANGENOTIFY        {= $40000091},
-    REST_NOSIMPLENETIDLIST           {= $40000092},
-    REST_NOENUMENTIRENETWORK         {= $40000093},
-    REST_NODETAILSTHUMBNAILONNETWORK {= $40000094},
-    REST_NOINTERNETOPENWITH          {= $40000095},
-    REST_ALLOWLEGACYLMZBEHAVIOR      {= $4000009A},
-    REST_DONTRETRYBADNETNAME         {= $4000009B},
-    REST_ALLOWFILECLSIDJUNCTIONS     {= $4000009C},
-    REST_NOUPNPINSTALL               {= $4000009D},
-    REST_NODISCONNECT                {= $41000001},
-    REST_NOSECURITY                  {= $41000002},
-    REST_NOFILEASSOCIATE             {= $41000003},
-    REST_ALLOWCOMMENTTOGGLE          {= $41000004},
-    REST_USEDESKTOPINICACHE          {= $41000005}
-  );
 
 
 
@@ -953,54 +647,6 @@ begin
   end;
 end;
 
-class function TJwEnumMap.ConvertSecurityPackageCapabilities(const FlagSet: TJwSecurityPackageCapabilities): Cardinal;
-var I : TJwSecurityPackageCapability;
-begin
-  result := 0;
-  for I := Low(TJwSecurityPackageCapability) to High(TJwSecurityPackageCapability) do
-  begin
-    if I in FlagSet then
-      result := result or JwSecurityPackageCapability[I];
-  end;
-end;
-
-class function TJwEnumMap.ConvertSecurityPackageCapabilities(const FlagBits: Cardinal): TJwSecurityPackageCapabilities;
-var I : TJwSecurityPackageCapability;
-begin
-  result := [];
-  for I := Low(TJwSecurityPackageCapability) to High(TJwSecurityPackageCapability) do
-  begin
-    if (FlagBits and JwSecurityPackageCapability[I]) = JwSecurityPackageCapability[I] then
-      Include(result, I);
-  end;
-end;
-
-
-
-class function TJwEnumMap.ConvertShellRestrictions(
-  const FlagSet: TJwShellRestrictions): Cardinal;
-var I : TJwShellRestriction;
-begin
-  result := 0;
-  for I := Low(TJwShellRestriction) to High(TJwShellRestriction) do
-  begin
-    if I in FlagSet then
-      result := result or JwShellRestrictions[I];
-  end;
-end;
-
-class function TJwEnumMap.ConvertShellRestrictions(
-  const FlagBits: Cardinal): TJwShellRestrictions;
-var I : TJwShellRestriction;
-begin
-  result := [];
-  for I := Low(TJwShellRestriction) to High(TJwShellRestriction) do
-  begin
-    if (FlagBits and JwShellRestrictions[I]) = JwShellRestrictions[I] then
-      Include(result, I);
-  end;
-end;
-
 class function TJwEnumMap.ConvertSecurityControl(
   const ControlSet: TJwSecurityDescriptorControlSet): jwaWindows.TSecurityDescriptorControl;
 var I : TJwSecurityDescriptorControl;
@@ -1024,8 +670,6 @@ begin
       Include(result, I);
   end;
 end;
-
-
 
 class function TJwEnumMap.ConvertFlags(
   FlagSet: TJwSecurityDialogFlags): Cardinal;
@@ -1302,78 +946,6 @@ begin
   end;
 end;
 
-class function TJwEnumMap.ConvertComAuthenticationCapabilities(const FlagSet: TJwComAuthenticationCapabilities): Cardinal;
-var I : TJwComAuthenticationCapability;
-begin
-  result := Cardinal(EOAC_NONE);
-  for I := Low(TJwComAuthenticationCapability) to High(TJwComAuthenticationCapability) do
-  begin
-    if I in FlagSet then
-      result := result or Cardinal(JwComAuthenticationCapabilities[I]);
-  end;
-end;
-
-class function TJwEnumMap.ConvertComAuthenticationCapabilities
-  (const FlagBits: Cardinal): TJwComAuthenticationCapabilities;
-var I : TJwComAuthenticationCapability;
-begin
-  result := [];
-
-  if FlagBits <> Cardinal(EOAC_NONE) then
-  begin
-    for I := Low(TJwComAuthenticationCapability) to High(TJwComAuthenticationCapability) do
-    begin
-      if (FlagBits and Cardinal(JwComAuthenticationCapabilities[I])) = Cardinal(JwComAuthenticationCapabilities[I]) then
-        Include(result, I);
-    end;
-  end;
-end;
-
-
-class function TJwEnumMap.ConvertComRotFlags(const FlagSet: TJwComRotFlags): Cardinal;
-var I : TJwComRotFlag;
-begin
-  result := 0;
-  for I := Low(TJwComRotFlag) to High(TJwComRotFlag) do
-  begin
-    if I in FlagSet then
-      result := result or JwComRotFlags[I];
-  end;
-end;
-
-class function TJwEnumMap.ConvertComRotFlags(const FlagBits: Cardinal): TJwComRotFlags;
-var I : TJwComRotFlag;
-begin
-  result := [];
-  for I := Low(TJwComRotFlag) to High(TJwComRotFlag) do
-  begin
-    if (FlagBits and JwComRotFlags[I]) = JwComRotFlags[I] then
-      Include(result, I);
-  end;
-end;
-
-class function TJwEnumMap.ConvertComAppIdRegFlags(const FlagSet: TJwComAppIdRegFlags): Cardinal;
-var I : TJwComAppIdRegFlag;
-begin
-  result := 0;
-  for I := Low(TJwComAppIdRegFlag) to High(TJwComAppIdRegFlag) do
-  begin
-    if I in FlagSet then
-      result := result or JwComAppIdRegFlags[I];
-  end;
-end;
-
-class function TJwEnumMap.ConvertComAppIdRegFlags(const FlagBits: Cardinal): TJwComAppIdRegFlags;
-var I : TJwComAppIdRegFlag;
-begin
-  result := [];
-  for I := Low(TJwComAppIdRegFlag) to High(TJwComAppIdRegFlag) do
-  begin
-    if (FlagBits and JwComAppIdRegFlags[I]) = JwComAppIdRegFlags[I] then
-      Include(result, I);
-  end;
-end;
-
 class function TJwEnumMap.ConvertCSPCreationFlags(
   const FlagBits: Cardinal): TJwCSPCreationFlagSet;
 var I : TJwCSPCreationFlag;
@@ -1637,36 +1209,15 @@ begin
   end;
 end;
 
-class function TJwEnumMap.ConvertSecurityCapabilityMessage(
-  const FlagBits: Cardinal): TJwSecurityCapabilities;
-var I : TJwSecurityCapability;
-begin
-  result := [];
-  for I := Low(TJwSecurityCapability) to High(TJwSecurityCapability) do
-  begin
-    if (FlagBits and JwSecurityCapabilities[I]) = JwSecurityCapabilities[I] then
-      Include(result, I);
-  end;
-end;
 
-class function TJwEnumMap.ConvertSecurityCapabilityType(
-  const FlagSet: TJwSecurityCapabilities): Cardinal;
-var I : TJwSecurityCapability;
-begin
-  result := 0;
-  for I := Low(TJwSecurityCapability) to High(TJwSecurityCapability) do
-  begin
-    if I in FlagSet then
-      result := result or JwSecurityCapabilities[I];
-  end;
-end;
+
+
 
 
 
 {$ENDIF SL_INTERFACE_SECTION}
 
 {$IFNDEF SL_OMIT_SECTIONS}
-
 
 
 

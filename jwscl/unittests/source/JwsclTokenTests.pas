@@ -52,9 +52,6 @@ type
 
     procedure TestPrivilegeCheck;
 
-    procedure TestExpandEnvironmentStrings;
-    procedure GetUserProfileDirectory;
-
    { procedure TestDestroy;
     procedure TestCheckTokenHandle;
     procedure TestCheckTokenAccessType;
@@ -189,7 +186,7 @@ uses Classes;
 
 { TSecurityTokenTests }
 
-{.$I Compilers.inc}
+{$I Compilers.inc}
 
 { TPrivilegeTests }
 
@@ -287,7 +284,7 @@ begin
 
       priv.Enabled := true;
       CheckEquals(true,priv.Enabled);
-
+ 
       priv.Enabled := true;
       CheckEquals(true,priv.Enabled);
 
@@ -460,7 +457,7 @@ begin
 
   {do not call
    token2.Free;
-   otherwise the privileges of the token.Tokenhandle are invalid.
+   otherwise the privileges of the token.Tokenhandle are invalid. 
   }
 //           stimmt was net
   try
@@ -501,20 +498,6 @@ end;
 
 { TSecurityTokenTests }
 
-procedure TSecurityTokenTests.GetUserProfileDirectory;
-var
-  Token : TJwSecurityToken;
-  S : TJwString;
-begin
-  Token := TJwSecurityToken.CreateTokenEffective(TOKEN_QUERY);
-  try
-    S := Token.UserProfileDirectory;
-  finally
-    Token.Free;
-  end;
-end;
-
-
 procedure TSecurityTokenTests.SetUp;
 begin
   inherited;
@@ -538,18 +521,6 @@ begin
     Token.Free;
   end;
 end;
-
-procedure TSecurityTokenTests.TestExpandEnvironmentStrings;
-var Token : TJwSecurityToken;
-begin
-  Token := TJwSecurityToken.CreateTokenEffective(TOKEN_IMPERSONATE or TOKEN_QUERY or TOKEN_DUPLICATE);
-  try
-    Token.ExpandEnvironmentStrings('');
-  finally
-    Token.Free;
-  end;
-end;
-
 
 procedure TSecurityTokenTests.TestGetCurrentUserRegKey;
 var Token : TJwSecurityToken;
@@ -581,11 +552,11 @@ end;
 procedure TSecurityTokenTests.TestGetIntegrityLevel;
 var Token : TJwSecurityToken;
     RE : Cardinal;
-    IntLevel : TJwSecurityId;
+    IntLevel : TJwSecurityIdList;
 begin
   Token := TJwSecurityToken.CreateTokenEffective(TOKEN_READ or TOKEN_QUERY);
   try
-    IntLevel := Token.TokenIntegrityLevel;
+    IntLevel := Token.GetIntegrityLevel;
     try
       ShowMessageForm(IntLevel.GetText(true));
     finally
@@ -599,8 +570,8 @@ end;
 
 procedure TSecurityTokenTests.TestGetLinkedToken;
 var Token, LinkedToken : TJwSecurityToken;
-    TokenGroups, LinkedTokenGroups : TJwSecurityIdList;
-    IntLevel : TJwSecurityId;
+    TokenGroups, LinkedTokenGroups,
+    IntLevel : TJwSecurityIdList;
     si : STARTUPINFO;
     pi : PROCESS_INFORMATION;
 begin
@@ -623,7 +594,7 @@ begin
     LinkedToken.SetThreadToken(MAXIMUM_ALLOWED);
     ShellExecuteA(0,'open','cmd.exe','','',SW_SHOW);}
 
-    IntLevel := LinkedToken.TokenIntegrityLevel;
+    IntLevel := LinkedToken.GetIntegrityLevel;
     try
       ShowMessageForm(IntLevel.GetText(true));
     finally
@@ -652,7 +623,7 @@ var Token : TJwSecurityToken;
 begin
   Token := TJwSecurityToken.CreateTokenEffective(TOKEN_READ or TOKEN_QUERY);
   try
-    Pol := Token.MandatoryPolicy;
+    Pol := Token.GetMandatoryPolicy;
 
     P := TJwEnumMap.ConvertTokenMandatoryPolicyFlags(Pol);
     Pol2 := TJwEnumMap.ConvertTokenMandatoryPolicyFlags(P);
@@ -709,7 +680,7 @@ end;
 procedure TSecurityTokenTests.TestPrivilegeCheck;
 var Token : TJwSecurityToken;
     Privs : TJwPrivilegeSet;
-    bRes : Boolean;
+    bRes : Boolean; 
 begin
   Privs := TJwPrivilegeSet.Create;
   Token := TJwSecurityToken.CreateTokenEffective(TOKEN_READ or TOKEN_QUERY);
@@ -749,7 +720,7 @@ begin
   try
     Token1 := TJwSecurityToken.CreateTokenByProcess(0,TOKEN_ALL_ACCESS); //TOKEN_READ or TOKEN_DUPLICATE or TOKEN_WRITE);
     CheckEquals(Integer(TokenPrimary),Integer(Token1.TokenType));
-
+  
     Token1.ConvertToImpersonatedToken(SECURITY_MAX_IMPERSONATION_LEVEL,TOKEN_ALL_ACCESS);
 
     try
@@ -759,7 +730,7 @@ begin
     end;
 
     CheckEquals(Integer(TokenImpersonation),Integer(Token1.TokenType));
-
+  
     Token1.SetThreadToken(0);
 
 

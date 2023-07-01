@@ -15,7 +15,7 @@ uses
   jwsclStrings;
 
 type TMessage = record
-       Data : array[0..1023] of Char;
+       Data : array[0..1023] of Char; 
      end;
 
 var PipeHandle : THandle;
@@ -36,7 +36,7 @@ begin
   SD.DACL.Add(TJwDiscretionaryAccessControlEntryAllow.Create(nil,[],GENERIC_ALL,JwAdministratorsSID, false));
   SD.DACL.Add(TJwDiscretionaryAccessControlEntryAllow.Create(nil,[],GENERIC_ALL,JwLocalSystemSID, false));
 
-  Writeln('Do you want to allow the currently logged on user to connect to the pipe? (y/n)');
+  Writeln('Do you want to allow the actual logged on user to connect to the pipe? (y/n)');
   Writeln('If you say yes, your user will succed to connect to the pipe. However if you are using Vista, the user will get'+
    'the string ''denied'' from the server because he is deny only for admins. Is the process started elevated or on XP it should work fine.');
   Writeln('If you say no, the user will only allowed to be connected to the pipe, if he is an administrator or system ');
@@ -96,7 +96,7 @@ begin
       //throws exception if fails
       TJwSecurityToken.ImpersonateNamedPipeClient(PipeHandle);
       //we are in context of user now
-
+      
       try
         if JwCheckAdministratorAccess then
         begin
@@ -110,7 +110,7 @@ begin
         end;
 
         WriteFile(PipeHandle, @lpData,sizeof(lpData), @iWritten, nil);
-
+        
       finally
         TJwSecurityToken.RevertToSelf;
       end;
@@ -123,3 +123,4 @@ begin
   writeln('Hit enter...');
   readln;
 end.
+ 

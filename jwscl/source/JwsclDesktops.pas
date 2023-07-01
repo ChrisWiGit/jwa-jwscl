@@ -16,17 +16,17 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the
-GNU Lesser General Public License (the  "LGPL License"), in which case the
-provisions of the LGPL License are applicable instead of those above.
-If you wish to allow use of your version of this file only under the terms
-of the LGPL License and not to allow others to use your version of this file
-under the MPL, indicate your decision by deleting  the provisions above and
-replace  them with the notice and other provisions required by the LGPL
-License.  If you do not delete the provisions above, a recipient may use
-your version of this file under either the MPL or the LGPL License.
-
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
+Alternatively, the contents of this file may be used under the terms of the  
+GNU Lesser General Public License (the  "LGPL License"), in which case the   
+provisions of the LGPL License are applicable instead of those above.        
+If you wish to allow use of your version of this file only under the terms   
+of the LGPL License and not to allow others to use your version of this file 
+under the MPL, indicate your decision by deleting  the provisions above and  
+replace  them with the notice and other provisions required by the LGPL      
+License.  If you do not delete the provisions above, a recipient may use     
+your version of this file under either the MPL or the LGPL License.          
+                                                                             
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
 
 The Original Code is JwsclDesktop.pas.
 
@@ -42,26 +42,16 @@ Link List
 Secure object types:
   http://msdn2.microsoft.com/en-us/library/aa379593.aspx
 
-Version
-The following values are automatically injected by Subversion on commit.
-<table>
-\Description                                                        Value
-------------------------------------------------------------------  ------------
-Last known date the file has changed in the repository              \$Date: 2010-08-29 14:26:48 +0000 (Sun, 29 Aug 2010) $
-Last known revision number the file has changed in the repository   \$Revision: 1006 $
-Last known author who changed the file in the repository.           \$Author: dezipaitor $
-Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/trunk/source/JwsclDesktops.pas $
-</table>
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclDesktops;
-{$INCLUDE ..\includes\Jwscl.inc}
+{$I Jwscl.inc}
+// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
 
-uses SysUtils, Classes, Contnrs,
-  Registry,
-  jwaWindows,
+uses SysUtils, Classes, Registry, Contnrs,
+  jwaWindows, StdCtrls, ComCtrls, ActiveX,
   JwsclResource,
   JwsclTypes, JwsclExceptions, JwsclSid, JwsclAcl, JwsclToken,
   JwsclMapping, JwsclKnownSid, JwsclSecureObjects,
@@ -74,6 +64,10 @@ uses SysUtils, Classes, Contnrs,
 type
 
 
+{$IFNDEF DELPHI6_UP}
+  EOSError = EWin32Error;
+{$ENDIF}
+
 
 
   {Forward declaration of TDesktops}
@@ -82,20 +76,20 @@ type
   {Forward declaration of TJwSecurityDesktop}
   TJwSecurityDesktop = class;
 
-   {<B>TJwOnDestroyDesktop</B> is called if a desktop is about to be destroyed.
+   {<B>TJwOnDestroyDesktop</B> is called if a desktop is about to be destroyed. 
     You cannot stop this process!
     @param Sender Contains the desktop instance that is beeing destroyed. }
   TJwOnDestroyDesktop = procedure(Sender: TJwSecurityDesktop) of object;
 
    {<B>TJwSecurityDesktop</B> is the main class that provides methods to create, open
     and manipulate desktops.
-  Be aware of following things:
+  Be aware of following things: 
    1. nearly every function can create an exception.
     If you don't check for them it can happen that a switch back to default desktop does not work.
     This especially happens if Delphi is active and shows the exception source on the default desktop.
    2. This instance does not dynamically react on changes done by direct WinAPI calls.
    }
-  TJwSecurityDesktop = class
+  TJwSecurityDesktop = class(TPersistent)
   private
     { private declarations }
     fParent:        TJwSecurityDesktops;
@@ -119,23 +113,23 @@ type
 
   {<B>OpenDesktop</B> opens an existing Desktop.
     It calls the WinAPI function OpenDesktop. See more information in MSDN.
-    @param aName Contains the name of an existing Desktop. A desktop name is case sensitive.
-    @param DesktopFlags Contains flags for desktop opening. See TJwSecurityDesktopFlags  for more information
-    @param doInherit
+    @param aName Contains the name of an existing Desktop. A desktop name is case sensitive. 
+    @param DesktopFlags Contains flags for desktop opening. See TJwSecurityDesktopFlags  for more information  
+    @param doInherit  
     @param aDesirecAccess Contains flags that defines the type of opening. You can use the following flags
        concatenated by OR-Operator :
          READ_CONTROL, WRITE_DAC, WRITE_OWNER, STANDARD_RIGHTS_READ, STANDARD_RIGHTS_WRITE, STANDARD_RIGHTS_EXECUTE,
        STANDARD_RIGHTS_ALL, SPECIFIC_RIGHTS_ALL, ACCESS_SYSTEM_SECURITY, MAXIMUM_ALLOWED, GENERIC_READ,
        GENERIC_WRITE, GENERIC_EXECUTE, GENERIC_ALL,
-       // Desktop-specific access flags
+       // Desktop-specific access flags 
        DESKTOP_READOBJECTS, DESKTOP_CREATEWINDOW, DESKTOP_CREATEMENU, DESKTOP_HOOKCONTROL, DESKTOP_JOURNALRECORD
        DESKTOP_JOURNALPLAYBACK, DESKTOP_ENUMERATE, DESKTOP_WRITEOBJECTS
      You can look up the meanings in MSDN.
-     @return OpenDesktop returns a handle to the desktop
+     @return OpenDesktop returns a handle to the desktop 
      raises
  OpenDesktop:  raises EJwsclOpenDesktopException with an error description if the desktop could not be opened
-             OpenDesktop raises EJwsclDesktopException if the desktop is already opened by this instance.
-
+             OpenDesktop raises EJwsclDesktopException if the desktop is already opened by this instance. 
+       
   }
     function OpenDesktop(const aName: TJwString;
       const DesktopFlags: TJwSecurityDesktopFlags;
@@ -145,23 +139,23 @@ type
 
   {<B>CreateDesktop</B> creates a new Desktop.
     It calls the WinAPI function CreateDesktop. See more information in MSDN.
-    @param aName Contains the name of an existing Desktop. A desktop name is case sensitive.
-    @param DesktopFlags Contains flags for desktop opening. See TJwSecurityDesktopFlags  for more information
-    @param doInherit
+    @param aName Contains the name of an existing Desktop. A desktop name is case sensitive. 
+    @param DesktopFlags Contains flags for desktop opening. See TJwSecurityDesktopFlags  for more information 
+    @param doInherit  
     @param aDesirecAccess Contains flags that defines the type of opening. You can use the following flags
        concatenated by OR-Operator :
          READ_CONTROL, WRITE_DAC, WRITE_OWNER, STANDARD_RIGHTS_READ, STANDARD_RIGHTS_WRITE, STANDARD_RIGHTS_EXECUTE,
        STANDARD_RIGHTS_ALL, SPECIFIC_RIGHTS_ALL, ACCESS_SYSTEM_SECURITY, MAXIMUM_ALLOWED, GENERIC_READ,
        GENERIC_WRITE, GENERIC_EXECUTE, GENERIC_ALL,
-       // Desktop-specific access flags
+       // Desktop-specific access flags 
        DESKTOP_READOBJECTS, DESKTOP_CREATEWINDOW, DESKTOP_CREATEMENU, DESKTOP_HOOKCONTROL, DESKTOP_JOURNALRECORD
        DESKTOP_JOURNALPLAYBACK, DESKTOP_ENUMERATE, DESKTOP_WRITEOBJECTS
      You can look up the meanings in MSDN.
-     You must at least use the flag DESKTOP_CREATEWINDOW.
-     @param aSecurityDescriptor Contains security aspects to be assigned to the new desktop
-     @return CreateDesktop returns a handle to the desktop
+     You must at least use the flag DESKTOP_CREATEWINDOW. 
+     @param aSecurityDescriptor Contains security aspects to be assigned to the new desktop 
+     @return CreateDesktop returns a handle to the desktop 
      raises
- CreateDesktop:  raises EJwsclCreateDesktopException with an error description if the desktop could not be created.
+ CreateDesktop:  raises EJwsclCreateDesktopException with an error description if the desktop could not be created. 
 
   }
     function CreateDesktop(const aName: TJwString;
@@ -187,7 +181,7 @@ type
    }
     procedure SetDesktopFlags(const DesktopFlags: TJwSecurityDesktopFlags);
 
-     {<B>GetDesktopFlags</B> returns the current flags of the opened desktop.
+     {<B>GetDesktopFlags</B> returns the actual flags of the opened desktop.
     @return GeTSecurityDesktopFlags returns the flag of the opened desktop or a empty set if desktop is not opened/valid }
     function GetDesktopFlags: TJwSecurityDesktopFlags; virtual;
 
@@ -217,30 +211,30 @@ type
     @param aParent Contains the parent instance that administer the desktop.
              You can set it to nil if you want to administer the desktop yourself. In that case you
              must free it by yourself.
-       In the other case you must not call Free because TJwSecurityDesktops(aParent) calls it if it freed.
+       In the other case you must not call Free because TJwSecurityDesktops(aParent) calls it if it freed. 
 
-    @param aFlag Contains the type of work you want to do : Create or Open a desktop. See TJwSecurityDesktopFlags  for more information.
+    @param aFlag Contains the type of work you want to do : Create or Open a desktop. See TJwSecurityDesktopFlags  for more information. 
     @param aCloseOnDestroy Contains a flag that determines if the desktop handle shall be closed if the desktop instance is freed.
             That case is used if aCloseOnDestroy is TRUE otherwise the handle will exists until you close it by yourself or
-         the application is closed.
-    @param aName Contains the name of an existing Desktop. A desktop name is case sensitive.
-    @param DesktopFlags Contains flags for desktop opening. See TJwSecurityDesktopFlags  for more information
-    @param doInherit TBD
+         the application is closed. 
+    @param aName Contains the name of an existing Desktop. A desktop name is case sensitive. 
+    @param DesktopFlags Contains flags for desktop opening. See TJwSecurityDesktopFlags  for more information 
+    @param doInherit TBD 
     @param aDesirecAccess Contains flags that defines the type of opening. You can use the following flags
        concatenated by OR-Operator :
          READ_CONTROL, WRITE_DAC, WRITE_OWNER, STANDARD_RIGHTS_READ, STANDARD_RIGHTS_WRITE, STANDARD_RIGHTS_EXECUTE,
        STANDARD_RIGHTS_ALL, SPECIFIC_RIGHTS_ALL, ACCESS_SYSTEM_SECURITY, MAXIMUM_ALLOWED, GENERIC_READ,
        GENERIC_WRITE, GENERIC_EXECUTE, GENERIC_ALL,
-       // Desktop-specific access flags
+       // Desktop-specific access flags 
        DESKTOP_READOBJECTS, DESKTOP_CREATEWINDOW, DESKTOP_CREATEMENU, DESKTOP_HOOKCONTROL, DESKTOP_JOURNALRECORD
        DESKTOP_JOURNALPLAYBACK, DESKTOP_ENUMERATE, DESKTOP_WRITEOBJECTS
-     You can look up the meanings in MSDN.
+     You can look up the meanings in MSDN. 
     @param aSecurityDescriptor Contains security aspects to be assigned to the new desktop. Set to nil if the security attributes
-           of the application shall be used.
+           of the application shall be used.   
     raises
- EJwsclCreateDesktopException:  is raised if the desktop could not be created.
-     EJwsclOpenDesktopException: is raised if the desktop could not be opened.
-     EJwsclDesktopException: is raised if the desktop is already opened by this instance.
+ EJwsclCreateDesktopException:  is raised if the desktop could not be created. 
+     EJwsclOpenDesktopException: is raised if the desktop could not be opened. 
+     EJwsclDesktopException: is raised if the desktop is already opened by this instance. 
 
    }
     constructor Create(const aParent: TJwSecurityDesktops;
@@ -253,7 +247,7 @@ type
       const aSecurityDescriptor: TJwSecurityDescriptor);
       overload;
 
-     {<B>CreateDesktop</B> creates a new desktop using the current window station.
+     {<B>CreateDesktop</B> creates a new desktop using the actual window station.
       See Create  for more information.
      }
     constructor CreateDesktop(const aParent: TJwSecurityDesktops;
@@ -264,7 +258,7 @@ type
       const aDesiredAccess: ACCESS_MASK;
       const aSecurityDescriptor: TJwSecurityDescriptor);
       overload;
-     {<B>OpenDesktop</B> opens a desktop using the current window station.
+     {<B>OpenDesktop</B> opens a desktop using the actual window station.
       See Create  for more information.
      }
     constructor OpenDesktop(const aParent: TJwSecurityDesktops;
@@ -301,7 +295,7 @@ type
     This function does not check for an already opened desktop in this instance.
      It simply overrides the current handle of this desktop instance.
     For more information about parameters see Create .
-
+    
     Do not use this function, it is used for internal purposes.}
     function OpenDesktopByName(const DesktopFlags: TJwSecurityDesktopFlags;
       const doInherit: boolean;
@@ -310,8 +304,8 @@ type
 
 
      {<B>DesktopFlagsToInt</B> converts the enum type TJwSecurityDesktopFlags to the corresponding
-    integer type.
-    @param DesktopFlags See TJwSecurityDesktopFlags  for more Information.
+    integer type. 
+    @param DesktopFlags See TJwSecurityDesktopFlags  for more Information. 
     @return Returns Windows.dfAllowOtherAccountHook (as integer) if [dfAllowOtherAccountHook] was supplied
       otherise it returns zero. }
     function DesktopFlagsToInt(DesktopFlags: TJwSecurityDesktopFlags)
@@ -328,12 +322,12 @@ type
     This function does check for an already opened desktop in this instance and raises an EOpenDesktop Error
      It simply overrides the current handle of this desktop instance.
     For more information about parameters see Create .
-
+    
     Do not use this function, it is used for internal purposes.
-
+    
     raises
-      EJwsclOpenDesktopException:  with an error description if the desktop could not be opened
-      EJwsclDesktopException: if the desktop is already opened by this instance. }
+ EJwsclOpenDesktopException:  with an error description if the desktop could not be opened 
+	 EJwsclDesktopException: if the desktop is already opened by this instance. }
     function OpenInputDesktop(const DesktopFlags: TJwSecurityDesktopFlags;
       const doInherit: boolean;
       const aDesiredAccess: ACCESS_MASK): HDESK;
@@ -341,7 +335,7 @@ type
 
      {<B>Close</B> frees a desktop handle. The instance cannot be used for more desktop manipulation.
     raises
- EJwsclCloseDesktopException:  can be raised with furhter information
+ EJwsclCloseDesktopException:  can be raised with furhter information 
         if the desktop is already closed or an error occurred. }
     procedure Close;
 
@@ -360,10 +354,10 @@ type
 
    {<B>SwitchDesktop</B> switches input to the desktop of this instance.
     If no desktop is opened this function does nothing.
-
+    
    <B>SwitchDesktop</B> does save a handle to the desktop that was active before it is called so
     it can be changed back in SwitchDesktopBack.
-
+      
      raises
  EJwsclDesktopException:  can be raised if an error occured while switching desktop }
     procedure SwitchDesktop;
@@ -375,6 +369,7 @@ type
 
 
   public
+    { published declarations }
     {The readonly property<B>Name</B> contains the name of the Desktops. Be aware that desktop names are case sensitive.}
     property Name: TJwString Read GetName;
     {The readonly property <B>DesiredAccess</B> contains the access mask specified by the parameter aDesiredAccess in Create }
@@ -414,12 +409,12 @@ type
     property OnDestroyDesktop: TJwOnDestroyDesktop
       Read fOnDestroyDesktop Write fOnDestroyDesktop;
 
-
+     
     property UserSID: TJwSecurityId Read GetUserSID;
     property ObjectType: TJwString Read GetObjectType;
   public
 
-     {<B>SecurityDescriptor[Info</B> sets or gets the security descriptor of the current window station.
+     {<B>SecurityDescriptor[Info</B> sets or gets the security descriptor of the actual window station.
       This property uses a parameter Info to set which information is to be set or get.
        ex. SecurityDescriptor[[sif_XXXX,sif_XXXX]]
 
@@ -440,7 +435,7 @@ type
 
 
    {TJwSecurityDesktops is a administrative class that contains a list of desktops and
-    methods to manipulate desktops.
+    methodes to manipulate desktops.
   All TJwSecurityDesktop instances that are created and assigned to this class are
   automatically freed if this instance is freed.}
   TJwSecurityDesktops = class(TComponent)
@@ -466,7 +461,7 @@ type
 
      {FindDesktopByName searches for a desktop with the given name.
     The search is case sensitive.
-    @param Name contains the desktop name
+    @param Name contains the desktop name 
     @return Returns the instance of the desktop with the given name.
            If this TJwSecurityDesktops instance does not hold a desktop instance with the given name
         it returns nil. That does not mean there is no desktop with that name. }
@@ -476,24 +471,24 @@ type
    {FindDesktopByHandle searches for a desktop in the TJwSecurityDesktops list that has the same handle.
     This function even searches desktops administerd by this instance even if they are closed.
     In this case it temporarily opens the desktop and closes it again.
-   @param Handle contains the handle to be searched for
+   @param Handle contains the handle to be searched for 
    @return Returns the instance of desktop to be found; otherwise found if the desktop is not in list of
           TJwSecurityDesktops }
     function FindDesktopByHandle(const Handle: HDESK): TJwSecurityDesktop;
       virtual;
 
    {FindInpuTSecurityDesktop searches for the desktop that was created with OpenInputDesktop.
-
-    Developer warning:
-      Currently this function returns the first desktop that was created/opened by OpenInputDesktop
-    and not the current real input desktop.
-    TODO: change behaviour
+    
+    Developer warning: 
+      Currently this function returns the first desktop that was created/opened by OpenInputDesktop 
+    and not the actual real input desktop.
+    TODO: change behaviour  
    }
     function FindInputDesktop: TJwSecurityDesktop; virtual;
 
      {Update updates the internal desktop list.
     Some or all pointers to the desktops (TJwSecurityDesktop) can be invalid!
-
+    
     This function removes all desktop instances that are no longer valid on the window station.
     If there are added new desktops new TJwSecurityDesktop instanced are added to the list.
     }
@@ -502,10 +497,10 @@ type
 
 
      {CreateDesktop creates a new desktop and adds it to the list (if successfull).
-
-    @param aName Contains the name of an existing Desktop. A desktop name is case sensitive.
-    @param DesktopFlags Contains flags for desktop opening. See TJwSecurityDesktopFlags  for more information
-    @param doInherit
+     
+    @param aName Contains the name of an existing Desktop. A desktop name is case sensitive. 
+    @param DesktopFlags Contains flags for desktop opening. See TJwSecurityDesktopFlags  for more information  
+    @param doInherit  
     @param aDesirecAccess Contains flags that defines the type of opening. You can use the following flags
        concatenated by OR-Operator :
          READ_CONTROL, WRITE_DAC, WRITE_OWNER, STANDARD_RIGHTS_READ, STANDARD_RIGHTS_WRITE, STANDARD_RIGHTS_EXECUTE,
@@ -515,12 +510,12 @@ type
        DESKTOP_READOBJECTS, DESKTOP_CREATEWINDOW, DESKTOP_CREATEMENU, DESKTOP_HOOKCONTROL, DESKTOP_JOURNALRECORD
        DESKTOP_JOURNALPLAYBACK, DESKTOP_ENUMERATE, DESKTOP_WRITEOBJECTS
      You can look up the meanings in MSDN.
-     You must at least use the flag DESKTOP_CREATEWINDOW.
-     @param aSecurityDescriptor Contains security aspects to be assigned to the new desktop
-     @return CreateDesktop returns a handle to the desktop
+     You must at least use the flag DESKTOP_CREATEWINDOW. 
+     @param aSecurityDescriptor Contains security aspects to be assigned to the new desktop 
+     @return CreateDesktop returns a handle to the desktop 
      raises
- CreateDesktop:  raises EJwsclCreateDesktopException with an error description if the desktop could not be created.
-
+ CreateDesktop:  raises EJwsclCreateDesktopException with an error description if the desktop could not be created. 
+          
    }
     function CreateDesktop(const Name: TJwString;
       const DesktopFlags: TJwSecurityDesktopFlags;
@@ -531,24 +526,24 @@ type
 
 
   { <B>OpenDesktop</B> opens an existing desktop and adds it to the list (if successfull).
-
+    
     It calls the WinAPI function OpenDesktop. See more information in MSDN.
-    @param aName Contains the name of an existing Desktop. A desktop name is case sensitive.
-    @param DesktopFlags Contains flags for desktop opening. See TJwSecurityDesktopFlags  for more information
-    @param doInherit
+    @param aName Contains the name of an existing Desktop. A desktop name is case sensitive. 
+    @param DesktopFlags Contains flags for desktop opening. See TJwSecurityDesktopFlags  for more information  
+    @param doInherit  
     @param aDesirecAccess Contains flags that defines the type of opening. You can use the following flags
        concatenated by OR-Operator :
          READ_CONTROL, WRITE_DAC, WRITE_OWNER, STANDARD_RIGHTS_READ, STANDARD_RIGHTS_WRITE, STANDARD_RIGHTS_EXECUTE,
        STANDARD_RIGHTS_ALL, SPECIFIC_RIGHTS_ALL, ACCESS_SYSTEM_SECURITY, MAXIMUM_ALLOWED, GENERIC_READ,
        GENERIC_WRITE, GENERIC_EXECUTE, GENERIC_ALL,
-       // Desktop-specific access flags
+       // Desktop-specific access flags 
        DESKTOP_READOBJECTS, DESKTOP_CREATEWINDOW, DESKTOP_CREATEMENU, DESKTOP_HOOKCONTROL, DESKTOP_JOURNALRECORD
        DESKTOP_JOURNALPLAYBACK, DESKTOP_ENUMERATE, DESKTOP_WRITEOBJECTS
-     You can look up the meanings in MSDN.
-     @return OpenDesktop returns a handle to the desktop
+     You can look up the meanings in MSDN. 
+     @return OpenDesktop returns a handle to the desktop 
      raises
  OpenDesktop:  raises EJwsclOpenDesktopException with an error description if the desktop could not be opened
-             OpenDesktop raises EJwsclDesktopException if the desktop is already opened by this instance.
+             OpenDesktop raises EJwsclDesktopException if the desktop is already opened by this instance. 
 
   }
     function OpenDesktop(const Name: TJwString;
@@ -564,9 +559,9 @@ type
     For more information about parameters see Create .
 
     Do not use this function, it is used for internal purposes.
-
+    
     raises
- EJwsclOpenDesktopException:  is raised if the desktop could not be opened
+ EJwsclOpenDesktopException:  is raised if the desktop could not be opened 
      EJwsclDesktopException: is raised if the desktop is already opened by this instance. }
     function OpenInputDesktop(const DesktopFlags: TJwSecurityDesktopFlags;
       const aDesiredAccess: ACCESS_MASK;
@@ -576,28 +571,28 @@ type
 
    {<B>GetThreadDesktop</B> returns the desktop that is assigned to the thread given in ThreadID.
     @param ThreadID contains the thread ID that is used to determine which desktop is assigned to the Thread.
-         You can set ThreadID to zero if the current thread shall be used.
-    @return Returns the desktop instance that is assigned to the given thread or
-             nil if no desktop could be found in TJwSecurityDesktops list.
-
+         You can set ThreadID to zero if the current thread shall be used. 
+    @return Returns the desktop instance that is assigned to the given thread or 
+             nil if no desktop could be found in TJwSecurityDesktops list. 
+         
     raises
- GetThreadDesktop:  raises EJwsclDesktopException if the given thread does not have a desktop
+ GetThreadDesktop:  raises EJwsclDesktopException if the given thread does not have a desktop 
     }
     function GetThreadDesktop(ThreadID: Cardinal = 0): TJwSecurityDesktop;
 
      {The class function GeTSecurityDesktopName returns the name of the desktop identified by its handle
-    @param deskt contains the handle value to the desktop
+    @param deskt contains the handle value to the desktop 
     @return Returns the name of the desktop as a unicode string. The return value is a zero string
-            if no desktop name could be retrieved.
+            if no desktop name could be retrieved. 
    }
     class function GetDesktopName(const desk: HDESK): TJwString;
 
      {<B>GetDesktops</B> creates a unicode stringlist that contains all desktop names.
     @param WindowStation contains the window station that shall be used to get the desktop names.
-      You can set it to zero if you want to use the window station of the process.
-    @return Returns always a none nil Stringlist.
+      You can set it to zero if you want to use the window station of the process. 
+    @return Returns always a none nil Stringlist. 
     raises
- EJwsclDesktopException:  can be raised if an error occurs
+ EJwsclDesktopException:  can be raised if an error occurs 
    }
     class function GetDesktops(WindowStation: HWINSTA): TJwTJwStringArray;
       overload; virtual;
@@ -611,17 +606,19 @@ type
 {$IFDEF DELPHI7_UP}
      {<B>GetDesktopHeapSize</B> returns the maximum heap size of the desktop heap.
       This function is only available on Delphi 7 or higher.
-    @return Returns the heap size in bytes
-    raises
+	  @return Returns the heap size in bytes 
+	  raises
  If:  an error occurs EJwsclDesktopException will be raised }
      class function GetDesktopHeapSize : Cardinal; virtual;
 {$ENDIF}
+  published
+    { published declarations }
 
    {The readonly property Desktops contains all desktops that are administered by this instance.
     Be aware that pointers to the instances can be made invalid.}
     property Desktops: TObjectList Read fDesktops;
 
-   {The event property <B>OnDestroyDesktop</B> replaces OnDestroyDesktop of TJwSecurityDesktop if both
+   {The event property <B>OnDestroyDesktop</B> replaces OnDestroyDesktop of TJwSecurityDesktop if both 
      (TJwSecurityDesktop and TJwSecurityDesktops) events are not nil.
     This happens in Clear  method.}
     property OnDestroyDesktop: TJwOnDestroyDesktop
@@ -646,7 +643,7 @@ uses JwsclUtils;
 
 function EnumDesktopProc(lpszDesktop: TJwPChar; lParam: LPARAM): boolean;
   stdcall;
-
+  
 begin
   if lParam <> 0 then
   begin
@@ -716,7 +713,7 @@ end;
 destructor TJwSecurityDesktops.Destroy;
 begin
   Clear;
-  JwFree(fDesktops);
+  FreeAndNil(fDesktops);
   inherited Destroy;
 end;
 
@@ -798,16 +795,16 @@ end;
 {$IFDEF DELPHI7_UP}
 class function TJwSecurityDesktops.GetDesktopHeapSize: Cardinal;
 var Reg : TRegistry;
-    Value, sSize : String; //this depends on TRegistry string type
+    Value, sSize : AnsiString;
     Strings : TStringList;
     p : Integer;
 begin
   result := 0;
-
+  
   Reg := TRegistry.Create;
 
   Reg.RootKey := HKEY_LOCAL_MACHINE;
-
+  
   if Reg.OpenKeyReadOnly('SYSTEM\CurrentControlSet\Control\Session Manager\SubSystems\') then
   begin
     Value := Reg.ReadString('Windows');
@@ -1311,8 +1308,8 @@ begin
   if Assigned(OnDestroyDesktop) then
     OnDestroyDesktop(Self);
 
-  JwFree(fSD);
-  JwFree(fUserSID);
+  FreeAndNil(fSD);
+  FreeAndNil(fUserSID);
 
   if CloseOnDestroy then
     try
@@ -1595,7 +1592,7 @@ begin
       'OpenWindowStation',                   //sWinCall
       ['OpenWindowStation']);                                  //const Args: array of const
 
-  SetLength(Result, len div TJwCharSize - 1);
+  SetLength(Result, len div TJwCharSize - 1);  
   if Result = '' then;
 end;
 
@@ -1606,6 +1603,7 @@ var
 begin
   Result := nil;
   len := 0;
+  apSID := nil;
 {$IFDEF UNICODE}
   GetUserObjectInformationW  (
 {$ELSE}

@@ -1,13 +1,11 @@
 {
-Description
+<B>Abstract</B>Contains constants that are used by the units of JWSCL 
+@author(Christian Wimmer (DelphiSecurityLibrary@teamchris.info))
+<B>Created:</B>03/23/2007 
+<B>Last modification:</B>09/10/2007 
+
 Project JEDI Windows Security Code Library (JWSCL)
 
-This unit contains constants that are used by the units of JWSCL.
-
-Author
-Christian Wimmer
-
-License
 The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy of the
 License at http://www.mozilla.org/MPL/
@@ -16,45 +14,39 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the
-GNU Lesser General Public License (the  "LGPL License"), in which case the
-provisions of the LGPL License are applicable instead of those above.
-If you wish to allow use of your version of this file only under the terms
-of the LGPL License and not to allow others to use your version of this file
-under the MPL, indicate your decision by deleting  the provisions above and
-replace  them with the notice and other provisions required by the LGPL
-License.  If you do not delete the provisions above, a recipient may use
-your version of this file under either the MPL or the LGPL License.
-
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
-
-Note
+Alternatively, the contents of this file may be used under the terms of the  
+GNU Lesser General Public License (the  "LGPL License"), in which case the   
+provisions of the LGPL License are applicable instead of those above.        
+If you wish to allow use of your version of this file only under the terms   
+of the LGPL License and not to allow others to use your version of this file 
+under the MPL, indicate your decision by deleting  the provisions above and  
+replace  them with the notice and other provisions required by the LGPL      
+License.  If you do not delete the provisions above, a recipient may use     
+your version of this file under either the MPL or the LGPL License.          
+                                                                             
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
 
 The Original Code is JwsclConstants.pas.
 
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-Version
-The following values are automatically injected by Subversion on commit.
-<table>
-\Description                                                        Value
-------------------------------------------------------------------  ------------
-Last known date the file has changed in the repository              \$Date: 2010-11-14 13:50:07 +0000 (Sun, 14 Nov 2010) $
-Last known revision number the file has changed in the repository   \$Revision: 1055 $
-Last known author who changed the file in the repository.           \$Author: dezipaitor $
-Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/trunk/source/JwsclConstants.pas $
-</table>
+Description:
+This unit contains constants that are used by the units of JWSCL.
+
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclConstants;
-{$INCLUDE ..\includes\Jwscl.inc}
+{$INCLUDE Jwscl.inc}
+// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
+
 
 interface
 
 uses
   JwsclResource,
   jwaWindows,
+  jwaVista,
   JwsclTypes,
   JwsclStrings;
 
@@ -84,7 +76,6 @@ http://qc.codegear.com/wc/qcmain.aspx?d=57701
 
 
 const
-  {TAceTypeString maps different types of ace types to strings.}
   TAceTypeString : array[TJwAceType] of TJwString =
     (
     RsAceTypeStringAudit,//actAudit,
@@ -112,20 +103,15 @@ const
   IDAPPLY = 33;
   FILE_DELETE = Delete; //{0x00010000L}
 
-  {This constant defines a security mask that contains access rights
-   necessary for reading and writing from/to a security descriptor}
   JwAllSecurityAccess = READ_CONTROL or WRITE_DAC or WRITE_OWNER or SYNCHRONIZE;
 
+    {<B>SM_SERVERR2</B> is used as an additional constant for GetSystemMetrics
+     to detect the second release of Win2003
+    }
+  SM_SERVERR2 = 98;
 
 
-
-  {Operating system (OS)constants defined by JWSCL.
-   The constants are in order of the appearance of Windows, so
-   the greater operator can be used easily.
-   Also make sure that server versions succeed workstations.
-
-   cOsWinXXX  = cOsWin7; //use this to set proper name for this OS!
-  }
+  { operating system (OS)constants }
   cOsUnknown = -1; //The system is unknown
   cOsWin95   = 0;  //The system is a Windows 95
   cOsWin98   = 1;  //The system is a Windows 98
@@ -139,29 +125,10 @@ const
   cOSXP64    = 9;  //The system is a XP 64 bit version
   cOsVista   = 10; //The system is a Vista
   cOsWin2008 = 11; //The system is a 2008 Server (tested with RC)
-  cOsWin7    = 12; //The system is a Win7
-  cOsWin2008R2 = 13; //The system is a 2008 R2 Server (untested)
 
-
-  {This value defines an unknown but new Windows version.
-   It is computed by JWSCL by making sure that the current windows version
-   has a version than the highest supported one.
-  }
-  cOsWinUnknownNew = high(Integer) - 20;
-
-  {<B>sOSVerString</B> contains the windows version as text.
-
-  Remarks
-  Be aware that on newer and thus unknown Windows versions
-  the value could be cOsWinUnknownNew. However, it is out of range
-  so you need to convert it to -2 first.
-
-  Instead of using this constant, use the function JwGetOsVerString.
-  }
-  sOSVerString: array[-2..15] of TJwString =
-    (
-    RsNewUnknownWindows, //'New unknown Windows',
-    RsUnknownWindows, //'Unknown',
+  {<B>sOSVerString</B> contains the windows version as text}
+  sOSVerString: array[-1..15] of TJwString =
+    ('Unknown',
     'Windows 95',
     'Windows 98',
     'Windows 98 Second Edition',
@@ -174,24 +141,18 @@ const
     'Windows XP 64 Edition',
     'Windows Vista',
     'Windows 2008',
-    'Windows 7',
-    'Windows 2008 Release 2',
+    '',
+    '',
     '',
     ''
     );
-{<b>JwGetOsVerString</b> converts a cOSxxxx constant to a human readable string.
 
-Remarks
-  This function supports cOsWinUnknownNew.
-  This function return sOSVerString[-1] ("Unknown") if the index is not supported by sOSVerString.
-}
-function JwGetOsVerString(OSIndex : Integer) : TJwString;
 
-const
+
 
   {<B>ALL_SECURITY_INFORMATION</B> can be used in TJwSecurityDescriptor.getStringSid as the parameter value to
    get all SID information at once.
-   This value is defined as zero and also as an OR combination of the given values.
+   This value is defined as zero and also as a or combination of the given values.
   }
   ALL_SECURITY_INFORMATION = {= 0 =}
     OWNER_SECURITY_INFORMATION or
@@ -214,7 +175,7 @@ const
     (Luid: (LowPart: 0; HighPart: 0); Attributes: 0);
 
 
-
+ 
 const
   JwSecurityInformationAllFlags =
     [siOwnerSecurityInformation,
@@ -252,7 +213,6 @@ const
 
 
 var
-
   FileMapping: array[1..22] of TJwRightsMapping =
     ((Right: STANDARD_RIGHTS_REQUIRED;
     Name: 'STANDARD_RIGHTS_REQUIRED'; Flags: 0),
@@ -300,7 +260,7 @@ var
     Flags: SI_ACCESS_SPECIFIC),
     (Right: SYNCHRONIZE; Name: 'SYNCHRONIZE';
     Flags: SI_ACCESS_SPECIFIC)
-    );
+    );           
 
 
   FileGenericMapping: TGenericMapping =
@@ -431,65 +391,6 @@ var
     Flags: SI_ACCESS_SPECIFIC),
     (Right: READ_CONTROL;
     Name: 'Read Permissions';   //19
-    Flags: SI_ACCESS_SPECIFIC)
-    );
-
-  FileFolderMappingEx: array[1..19] of TJwRightsMapping =
-    (
-
-    (Right: FILE_ALL_ACCESS; Name: 'FILE_ALL_ACCESS';
-    Flags: SI_ACCESS_GENERAL or SI_ACCESS_SPECIFIC),
-    (Right: FILE_GENERIC_READ or FILE_GENERIC_WRITE or FILE_GENERIC_EXECUTE or Delete;
-    Name: 'FILE_GENERIC_READ or FILE_GENERIC_WRITE or FILE_GENERIC_EXECUTE or Delet';
-    Flags: SI_ACCESS_GENERAL or SI_ACCESS_SPECIFIC),
-    (Right: FILE_GENERIC_READ or FILE_GENERIC_EXECUTE;
-    Name: 'SI_ACCESS_GENERAL or SI_ACCESS_SPECIFIC';
-    Flags: SI_ACCESS_GENERAL or SI_ACCESS_SPECIFIC),
-    (Right: FILE_GENERIC_READ or FILE_GENERIC_EXECUTE;
-    Name: 'FILE_GENERIC_READ or FILE_GENERIC_EXECUTE';
-    Flags: SI_ACCESS_GENERAL or SI_ACCESS_SPECIFIC),
-    (Right: FILE_GENERIC_READ;
-    Name: 'FILE_GENERIC_READ';
-    Flags: SI_ACCESS_GENERAL or SI_ACCESS_SPECIFIC),
-    (Right: FILE_GENERIC_WRITE and not READ_CONTROL;
-    Name: 'FILE_GENERIC_WRITE and not READ_CONTROL'; Flags: SI_ACCESS_GENERAL or SI_ACCESS_SPECIFIC),
-    (Right: FILE_TRAVERSE or FILE_EXECUTE;
-    Name: 'FILE_TRAVERSE or FILE_EXECUTE';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: FILE_LIST_DIRECTORY or FILE_READ_DATA;
-    Name: 'FILE_LIST_DIRECTORY or FILE_READ_DATA'; Flags: SI_ACCESS_SPECIFIC),
-    (Right: FILE_READ_ATTRIBUTES;
-    Name: 'FILE_READ_ATTRIBUTES';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: FILE_READ_EA;
-    Name: 'FILE_READ_EA';     //10
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: FILE_ADD_FILE or FILE_WRITE_DATA;
-    Name: 'CheckListBox1.ItemIndex';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: FILE_ADD_SUBDIRECTORY or FILE_APPEND_DATA;
-    Name: 'FILE_ADD_SUBDIRECTORY or FILE_APPEND_DATA'; Flags: SI_ACCESS_SPECIFIC),
-    (Right: FILE_WRITE_ATTRIBUTES;
-    Name: 'FILE_WRITE_ATTRIBUTES';      //13
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: FILE_WRITE_EA;
-    Name: 'FILE_WRITE_EA';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: FILE_DELETE_CHILD;
-    Name: 'FILE_DELETE_CHILD';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: FILE_DELETE;
-    Name: 'FILE_DELETE';                //16
-    Flags: SI_ACCESS_SPECIFIC),
-
-    (Right: WRITE_DAC;
-    Name: 'WRITE_DAC';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: WRITE_OWNER;
-    Name: 'SI_ACCESS_SPECIFIC';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: READ_CONTROL;
-    Name: 'READ_CONTROL';   //19
     Flags: SI_ACCESS_SPECIFIC)
     );
 
@@ -1397,7 +1298,7 @@ var
     GenericAll: TOKEN_ALL_ACCESS;
     );
 
-
+var
   PipeMapping: array[1..16 - 2] of TJwRightsMapping =
     (
     (Right: STANDARD_RIGHTS_ALL; Name: 'STANDARD_RIGHTS_ALL';
@@ -1447,94 +1348,14 @@ var
     GenericAll: FILE_ALL_ACCESS;
     );
 
-
-var
-  WTSMapping: array[1..20 -2] of TJwRightsMapping =
-    (
-    (Right: STANDARD_RIGHTS_ALL; Name: 'STANDARD_RIGHTS_ALL';
-    Flags: 0; StringId : -50008),
-    (Right: STANDARD_RIGHTS_READ; Name: 'STANDARD_RIGHTS_READ';
-    Flags: 0),
-    (Right: STANDARD_RIGHTS_WRITE; Name: 'STANDARD_RIGHTS_WRITE';
-    Flags: 0),
-    (Right: STANDARD_RIGHTS_EXECUTE; Name: 'STANDARD_RIGHTS_EXECUTE';
-    Flags: 0),
-
-    (Right: WTS_SECURITY_QUERY_INFORMATION; Name: 'WTS_SECURITY_QUERY_INFORMATION';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: WTS_SECURITY_SET_INFORMATION; Name: 'WTS_SECURITY_SET_INFORMATION';
-    Flags: SI_ACCESS_SPECIFIC),
-
-    (Right: WTS_SECURITY_RESET; Name: 'WTS_SECURITY_RESET';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: WTS_SECURITY_VIRTUAL_CHANNELS; Name: 'WTS_SECURITY_VIRTUAL_CHANNELS';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: WTS_SECURITY_REMOTE_CONTROL; Name: 'WTS_SECURITY_REMOTE_CONTROL';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: WTS_SECURITY_LOGON or WTS_SECURITY_GUEST_ACCESS; Name: 'WTS_SECURITY_LOGON/WTS_SECURITY_GUEST_ACCESS';
-    Flags: SI_ACCESS_SPECIFIC),
-
-    (Right: WTS_SECURITY_LOGOFF; Name: 'WTS_SECURITY_LOGOFF';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: WTS_SECURITY_MESSAGE; Name: 'WTS_SECURITY_MESSAGE';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: WTS_SECURITY_CONNECT; Name: 'WTS_SECURITY_CONNECT';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: WTS_SECURITY_DISCONNECT; Name: 'WTS_SECURITY_DISCONNECT';
-    Flags: SI_ACCESS_SPECIFIC),
-
-    (Right: WRITE_DAC; Name: 'WRITE_DAC';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: WRITE_OWNER; Name: 'WRITE_OWNER';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: READ_CONTROL; Name: 'READ_CONTROL';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: Delete; Name: 'DELETE';
-    Flags: SI_ACCESS_SPECIFIC)
-  );
-
-  WTSGenericMapping: TGenericMapping =
-    (GenericRead: READ_CONTROL or WTS_SECURITY_QUERY_INFORMATION;
-    GenericWrite: WRITE_DAC or  WRITE_OWNER or Delete;
-    GenericExecute: {STANDARD_RIGHTS_EXECUTE or SYNCHRONIZE}0;
-    GenericAll: WTS_SECURITY_ALL_ACCESS;
-    );
-
-  COMMapping: array[1..5] of TJwRightsMapping =
-    (
-    (Right: COM_RIGHTS_EXECUTE; Name: 'COM_RIGHTS_EXECUTE';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: COM_RIGHTS_EXECUTE_LOCAL; Name: 'COM_RIGHTS_EXECUTE_LOCAL';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: COM_RIGHTS_EXECUTE_REMOTE; Name: 'COM_RIGHTS_EXECUTE_REMOTE';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: COM_RIGHTS_ACTIVATE_LOCAL; Name: 'COM_RIGHTS_ACTIVATE_LOCAL';
-    Flags: SI_ACCESS_SPECIFIC),
-    (Right: COM_RIGHTS_ACTIVATE_REMOTE; Name: 'COM_RIGHTS_ACTIVATE_REMOTE';
-    Flags: SI_ACCESS_SPECIFIC)
-  );
-
-  COMGenericMapping: TGenericMapping =
-    (GenericRead: 0;
-    GenericWrite: COM_RIGHTS_ACTIVATE_LOCAL or COM_RIGHTS_ACTIVATE_REMOTE;
-    GenericExecute: COM_RIGHTS_EXECUTE or COM_RIGHTS_EXECUTE_LOCAL or COM_RIGHTS_EXECUTE_REMOTE;
-    GenericAll: 0;
-    );
-
-
-
   JwNullSecurityAttributes: TSECURITYATTRIBUTES =
    (nLength: 0;
    lpSecurityDescriptor: nil;
    bInheritHandle: False
   );
 
-  {<B>NullGenericMapping</B> defines a mapping record that
-  maps all generic rights to zero.
-  It can be used to reset a dynamic mapping record (may be faster
-  than call ZeroMemory).
-  }
-  NullGenericMapping : TGenericMapping =
+
+  NullGenericMapping: TGenericMapping =
     (GenericRead: 0;
     GenericWrite: 0;
     GenericExecute: 0;
@@ -1549,9 +1370,6 @@ const CRYPTPROTECTMEMORY_SAME_PROCESS = 0;
       CRYPTPROTECTMEMORY_SAME_LOGON = 2;
 
 const
-  {<B>JwSidAttributeStrings</B> converts all
-  enumeration values of TJwSidAttribute into their defined names.
-  }
   JwSidAttributeStrings: TJwSidAttributesStringArray =
     (
     'sidaUnknown',
@@ -1573,10 +1391,6 @@ const
     );
 
 const
-  {<B>JwSidAttributeHumanStrings</B> converts all
-  enumeration values of TJwSidAttribute into human readable strings.
-  This array uses resource strings that can be translated.
-  }
   JwSidAttributeHumanStrings: TJwSidAttributesStringArray =
     (
     RsAttributeHumanString0,//'unknown',
@@ -1595,38 +1409,13 @@ const
     RsAttributeHumanString13,//'pad3',
     RsAttributeHumanString14,//'pad4',
     RsAttributeHumanString15//'pad5'
-    );
-
-
-
-
-const
-  Powers2: array[0..35] of int64 =
-    (0, 1, 2, 4, 8, 16, 32, 64,
-    128, 256, 512, 1024, 2048, 4096, 8192, 16384,
-    32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304,
-    8388608, 16777216, 33554432, 67108864, 134217728,
-    268435456, 536870912, 1073741824,
-    2147483648, 4294967296, 8589934592, 17179869184);
-
-
+    );    
 
 
 const
-  //Maximum size of a resource string
   MaxResourceStringLength = 300;
-
-  {This value is used in LocalizeMapping for parameter UseDefaultOnError.
-  Set to true to ignore invalid jwscl resource strings and use default ones.
-  Otherwise an exception is raised.
-  }
   IgnoreEJwsclResourceNotFound = true;
 
-  {These values defines the first resource string for the given
-  mapping resource strings.
-  }
-
-  //
   FileMappingStartIndex = 50000;
   FolderMappingStartIndex = 50030;
   FileFolderMappingStartIndex = 50060;
@@ -1653,110 +1442,32 @@ const
   //LogonUser undefined constant values (may be moved to JWA)
   ERROR_ILL_FORMED_PASSWORD = 1327;
 
-const
-  NET_FW_SCOPE_ALL = 0;
-  NET_FW_SCOPE_LOCAL_SUBNET = 1;
 
-  NET_FW_IP_VERSION_ANY = 2;
-  NET_FW_IP_PROTOCOL_TCP = 6;
-  NET_FW_IP_PROTOCOL_UDP = 17;
-
-  FW_MGR_CLASS_NAME = 'HNetCfg.FwMgr';
-  FW_AUTHORIZEDAPPLICATION_CLASS_NAME = 'HNetCfg.FwAuthorizedApplication';
-  FW_OPENPORT_CLASS = 'HNetCfg.FWOpenPort';
-
-  //Maximum size of an ACL, officially documented but not defined
-  MAX_ACL_SIZE = $10000; //64k
-
-  //Maximum size of a relative security descriptor unofficial and not defined
-  MAX_SECURITY_DESCRIPTOR_SIZE =
-    SizeOf(SECURITY_DESCRIPTOR_RELATIVE)  //revision, control and such
-      - 4 * sizeof(DWORD) //2*SID + 2*DACL dword entries in the SD_relative structure replaced by actual data
-    + 2 * MAX_ACL_SIZE  //2 * 64k
-    + 2 * MAX_SID_SIZE; //2 * FF
-  //20 - 16 + 2 * 65536 + 2 * 256 = $20204 = 131588 bytes
-
-
-  {Default value of how many times TJwSecurityToken.LookupPrivilegeValue will retry before it fails.
-   This value must be greater than 0.
-  }
-  DEFAULT_LUID_TRY_COUNT = 5;
-  DEFAULT_LUID_NULL : TLUID = (LowPart:0;HighPart:0);
 
 {<B>JwInitLocalizedMappings</B> translate all the rights mapping arrays using the resource.
 
- user language or neutral if not found
- JwInitLocalizedMappings(PRIMARYLANGID(GetUserDefaultUILanguage),
-   SUBLANGID(GetUserDefaultUILanguage));
-   JwInitLocalizedMappings(LANG_SYSTEM_DEFAULT, SUBLANG_SYS_DEFAULT);
+// user language or neutral if not found
+// JwInitLocalizedMappings(PRIMARYLANGID(GetUserDefaultUILanguage),
+//   SUBLANGID(GetUserDefaultUILanguage));
+//   JwInitLocalizedMappings(LANG_SYSTEM_DEFAULT, SUBLANG_SYS_DEFAULT);
 
- english version
-  JwInitLocalizedMappings(LANG_ENGLISH, SUBLANG_ENGLISH_UK);
+// english version
+//  JwInitLocalizedMappings(LANG_ENGLISH, SUBLANG_ENGLISH_UK);
 
- german version
-  JwInitLocalizedMappings(LANG_GERMAN,SUBLANG_GERMAN);
+// german version
+//  JwInitLocalizedMappings(LANG_GERMAN,SUBLANG_GERMAN);
 
- neutral version (using constant names)
-  JwInitLocalizedMappings(LANG_NEUTRAL, SUBLANG_SYS_DEFAULT);
-  JwInitLocalizedMappings(0,0);
+// neutral version (using constant names)
+//  JwInitLocalizedMappings(LANG_NEUTRAL, SUBLANG_SYS_DEFAULT);
+//  JwInitLocalizedMappings(0,0);
 
-@param PrimaryLanguage defines the primary language id
-@param SubLanguage defines the primary language id
-@param Inst defines the resource source
+@param PrimaryLanguage defines the primary language id 
+@param SubLanguage defines the primary language id 
+@param Inst defines the resource source 
 
 }
 procedure JwInitLocalizedMappings(PrimaryLanguage,
   SubLanguage : Word; Inst : HINST = 0);
-
-
-const
-  {
-  <B>ERROR_CANCELLED</B>
-  The user has canceled the UAC prompt.
-  }
-  E_USER_CANCELED_OPERATION = HRESULT($800704C7);//
-
-  {
-  <B>ERROR_CANCELLED</B>
-  The user has canceled the UAC prompt.
-  Integer version. Contains only code part of HRESULT.
-  }
-  E_USER_CANCELED_OPERATIONint = 1223;//
-
-  {
-  <B>E_CLASS_IS_NOT_SETUP</B>
-  The requested COM class has not been setup to be used for elevation.
-  }
-  E_CLASS_IS_NOT_SETUP = HRESULT($80080017);
-
-  {
-  <B>E_CLASS_IS_NOT_SETUPint</B>
-  The requested COM class has not been setup to be used for elevation.
-  Integer version. Contains only code part of HRESULT.
-  }
-  E_CLASS_IS_NOT_SETUPint = 23;
-
-  {JwSafeSearchDLLFlags is used by
-     TJwLibraryUtilities.SecureDLLSearchPath()
-   to be put into the call of SetSearchPathMode.
-  }
-  JwSafeSearchDLLFlags : DWORD = BASE_SEARCH_PATH_ENABLE_SAFE_SEARCHMODE or BASE_SEARCH_PATH_PERMANENT;
-
-  {JwSafeDLLDirectory is used by
-    TJwLibraryUtilities.SecureDLLSearchPath()
-   to be put into the call of SetDllDirectoryW
-
-   Defaults to empty string.
-   }
-  JwSafeDLLDirectory : WideString = '';
-
-
-  JwLowIL = 'S-1-16-4096';
-  JwMediumIL = 'S-1-16-8192';
-  JwHighIL = 'S-1-16-12288';
-  JwSystemIL = 'S-1-16-16384';
-  JwProtectedProcessIL = 'S-1-16-20480';
-  JwIntegrityLevel = 'S-1-16-%u';
 
 
 {$ENDIF SL_IMPLEMENTATION_SECTION}
@@ -1921,17 +1632,12 @@ begin
     IgnoreEJwsclResourceNotFound,//const UseDefaultOnError : Boolean = true;
     Inst//ModuleInstance : HINST = 0
   );
-end;
 
-function JwGetOsVerString(OSIndex : Integer) : TJwString;
-begin
-  if OSIndex = cOsWinUnknownNew then
-    OSIndex := -2
-  else
-  if (OSIndex < Low(sOSVerString)) or (OSIndex > high(sOSVerString)) then
-    OSIndex := -1;
 
-  result := sOSVerString[OSIndex];
+
+
+
+
 end;
 
 initialization
@@ -1939,6 +1645,7 @@ initialization
 // user language or neutral if not found
 // JwInitLocalizedMappings(PRIMARYLANGID(GetUserDefaultUILanguage),
 //   SUBLANGID(GetUserDefaultUILanguage));
+
 
 
 {$IFDEF JWSCL_INCLUDE_RES}

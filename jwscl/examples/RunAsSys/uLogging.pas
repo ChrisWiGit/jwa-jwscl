@@ -27,8 +27,8 @@ procedure LogAndRaiseLastOsError(Log : IJwLogClient;
 
 var //log filename + path
     LogFileNameLocation : WideString = '';
-    LogFilePath : AnsiString = '';
-    FileName : AnsiString = 'RunAsSys';
+    LogFilePath : String = '';
+    FileName : String = 'RunAsSys';
 
     {
     Type of events that are logged.
@@ -156,7 +156,7 @@ begin
 
 
   if (Length(LogFilePath) > 0) and DirectoryExists(LogFilePath) then
-    LogFileNameLocation := LogFilePath
+    LogFileNameLocation := LogFilePath  
   else
     LogFileNameLocation := ExtractFilePath(ParamStr(0));
   LogFileNameLocation := IncludeTrailingBackslash(LogFileNameLocation);

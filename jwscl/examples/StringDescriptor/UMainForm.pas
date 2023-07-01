@@ -3,7 +3,7 @@ unit UMainForm;
 interface
 
 uses
-  Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls,
   jwaWindows, JwsclUtils,
   JwsclTypes, JwsclExceptions, JwsclSid, JwsclAcl, JwsclToken,
@@ -13,7 +13,7 @@ uses
   JwsclStrings; //JwsclStrings, must be at the end of uses list!!!;
 
 
-
+  
 
 type
   TForm1 = class(TForm)
@@ -27,7 +27,7 @@ type
     procedure OnSetSecurity(Sender: TJwSecurityDescriptorDialog;
       SecurityType: TJwSecurityInformationFlagSet;
       SecurityDialogFlags: TJwSecurityDialogFlags;
-      SecurityResetType: TJwSecurityResetTypes;
+      SecurityResetType: TJwSecurityResetType;
       Settings: TJwSecurityDescriptorControlSet;
       NewSecurityDescriptor, MergedSecurityDescriptor
       : TJwSecurityDescriptor;
@@ -55,9 +55,6 @@ begin
 
   ACLEditor.Flags :=  [sdfAdvanced, sdfEditDacl, sdfEditOwner, sdfEditEffective,
                        sdfNoAdditionalPermission, sdfEditSacl];
-  ACLEditor.ObjectName := 'ACL Editor Demo';
-  ACLEditor.ServerName := '';
-
 
   SecurityDescriptor := nil;
   try
@@ -104,7 +101,6 @@ begin
   ComboBoxMapping.Items.AddObject('Registry',Pointer(TJwSecurityRegistryMapping));
   ComboBoxMapping.Items.AddObject('TJwSecurityFileMapping',Pointer(TJwSecurityFileMapping));
   ComboBoxMapping.Items.AddObject('TJwSecurityFileMapMapping',Pointer(TJwSecurityFileMapMapping));
-  ComboBoxMapping.Items.AddObject('FileFolder',Pointer(TJwSecurityFileFolderMapping));
   ComboBoxMapping.Items.AddObject('Token',Pointer(TJwSecurityTokenMapping));
   ComboBoxMapping.Items.AddObject('Semaphore',Pointer(TJwSecuritySemaphoreMapping));
   ComboBoxMapping.Items.AddObject('Event',Pointer(TJwSecurityEventMapping));
@@ -115,12 +111,18 @@ begin
   ComboBoxMapping.Items.AddObject('Service',Pointer(TJwSecurityServiceMapping));
   ComboBoxMapping.Items.AddObject('Printer',Pointer(TJwSecurityPrinterMapping));
   ComboBoxMapping.Items.AddObject('Timer',Pointer(TJwSecurityTimerMapping));
+
+
+
+
+
+
 end;
 
 procedure TForm1.OnSetSecurity(Sender: TJwSecurityDescriptorDialog;
   SecurityType: TJwSecurityInformationFlagSet;
   SecurityDialogFlags: TJwSecurityDialogFlags;
-  SecurityResetType: TJwSecurityResetTypes;
+  SecurityResetType: TJwSecurityResetType;
   Settings: TJwSecurityDescriptorControlSet; NewSecurityDescriptor,
   MergedSecurityDescriptor: TJwSecurityDescriptor; var bSuccess: boolean);
 begin
