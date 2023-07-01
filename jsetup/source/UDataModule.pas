@@ -3,197 +3,113 @@ unit UDataModule;
 interface
 
 uses
-  JwaWindows, Forms,
-  SysUtils, Classes, Dialogs, DelphiVersionTool;
+  Classes;
 
 type
-  TSetupType = (stCheckout, stUpdate, stRemove);
-  TProjectType = (ptJWA, ptJWSCL);
-  TJwaType = (wtSingle, wtDcu);
+  TJWAConfiguration = (
+    jwacDynamicDebug = 0,
+    jwacDynamicRelease,
+    jwacStaticDebug,
+    jwacStaticRelease);
 
-  TProjectTypes = set of TProjectType;
-
-  PJwaTypeRecord = ^TJwaTypeRecord;
-  TJwaTypeRecord = record
-    DelphiIndex : Integer;
-    IsSingle : Boolean;
-  end;
-
-  TJwaTypesList = class(TList)
-  protected
-    function GetSingleJwa(DelphiIndex: Integer) : Boolean;
-    procedure SetSingleJwa(DelphiIndex: Integer; IsSingleJwa :  Boolean); 
-  public
-    procedure Clear; override;
-    procedure Delete(Index: Integer); reintroduce;
-
-    {DelphiIndex = Delphi version}
-    property IsSingleJwa[DelphiIndex : Integer] : Boolean read GetSingleJwa write SetSingleJwa;
-  end;
-
-  TSetupDataModule = class(TDataModule)
-    procedure DataModuleDestroy(Sender: TObject);
-    procedure DataModuleCreate(Sender: TObject);
+  TDelphiInstallation = class
   private
-    { Private-Deklarationen }
-    fSetupType : TSetupType;
-    fProjectTypes : TProjectTypes;
 
-    fTargetPath : String;
-    fJwaTypes : TJwaTypesList;
-    fTargetDelphiJwa,
-    fTargetDelphiJwscl : TList; //contains delphi version as found in KnownDelphiVersions
+  protected
+    fTargetSvnPath,
+    fTargetSvnRelease,
+    fTargetSvnJWARelease,
+    fTargetSvnJWSCLRelease : String;
+    fIsJWASingleUnit : Boolean;
 
-    fJwaRevision,
-    fJwsclRevision : Integer;
+    fJWAConfigs,
+    fJWSCLConfigs : TStringList;
 
-    fJwaReleaseSvnPath,
-    fJwsclReleaseSvnPath : String;
+    fJWAConfiguration : TJWAConfiguration;
+    fTargetDelphiList : TList;
+    function GetIsJwscl : Boolean;
+
+
   public
-    function GetVersions(const ProjectType : TProjectType) : TStringList;
+    constructor Create;
+    destructor Destroy; override;
 
-    function TargetDelphiVerToKnownDelphiIndex(const DelphiVer : Integer) : Integer;
 
-    { Public-Deklarationen }
-    property SetupType : TSetupType read fSetupType write fSetupType;
+    procedure ClearJWAConfigs;
+    procedure ClearJWSCLConfigs;
 
-    property TargetPath : String read fTargetPath write fTargetPath;
+  published
 
-    property JwaRevision   : Integer read fJwaRevision write fJwaRevision;
-    property JwsclRevision : Integer read fJwsclRevision write fJwsclRevision;
+    property TargetSvnPath : String read fTargetSvnPath write fTargetSvnPath;
 
-    property JwaReleaseSvnPath   : String read fJwaReleaseSvnPath write fJwaReleaseSvnPath;
-    property JwsclReleaseSvnPath : String read fJwsclReleaseSvnPath write fJwsclReleaseSvnPath;
+    property TargetSvnJWARelease : String read fTargetSvnJWARelease write fTargetSvnJWARelease;
+    property TargetSvnJWSCLRelease : String read fTargetSvnJWSCLRelease write fTargetSvnJWSCLRelease;
+    property IsJWSCL : Boolean read GetIsJwscl;
+    property IsJWASingleUnit : Boolean  read FIsJWASingleUnit write fIsJWASingleUnit;
 
-    {Contains a list of integers with the Delphi version.}
-    property TargetDelphiJwa   : TList read fTargetDelphiJwa write fTargetDelphiJwa;
-    property TargetDelphiJwscl : TList read fTargetDelphiJwscl write fTargetDelphiJwscl;
+    property JWAConfiguration : TJWAConfiguration read fJWAConfiguration write fJWAConfiguration;
 
-    property JwaTypes : TJwaTypesList read fJwaTypes write fJwaTypes;
+    property JWAConfigs   : TStringList read fJWAConfigs;
+    property JWSCLConfigs : TStringList read fJWSCLConfigs;
 
+    {
+    Contains a list of indexes pointing to items of
+    TJclBorRADToolInstallations.Installations
+    }
+    property TargetDelphiList : TList read fTargetDelphiList write fTargetDelphiList;
   end;
-
-var
-  SetupDataModule: TSetupDataModule;
-
-const
-  WELCOME_FORM        = 0;
-  SETUP_TYPE_FORM     = 1;
-  CHECKOUT_FORM       = 2;
-  DELPHI_FORM         = 3;
-  JWA_TYPE_FORM       = 4;
-  PATH_FORM           = 5;
-  REVIEW_FORM         = 6;
-  INSTALLATION_FORM   = 7;
-  FINISHED_FORM       = 8;
-
-const NextArray : array[WELCOME_FORM..FINISHED_FORM-1] of byte =
-    (
-      {WELCOME_FORM->}SETUP_TYPE_FORM,
-      {SETUP_TYPE_FORM->}CHECKOUT_FORM,
-      {CHECKOUT_FORM->}DELPHI_FORM,
-      {DELPHI_FORM->}JWA_TYPE_FORM,
-      {JWA_TYPE_FORM->}PATH_FORM,
-      {PATH_FORM->}REVIEW_FORM,
-      {REVIEW_FORM->}INSTALLATION_FORM,
-      {INSTALLATION_FORM->}FINISHED_FORM
-    ) ;
 
 implementation
 
-{$R *.dfm}
+uses
+  SysUtils;
 
-{ TSetupDataModule }
+{ TDelphiInstallation }
 
-procedure TSetupDataModule.DataModuleCreate(Sender: TObject);
-begin
-  fJwaTypes := TJwaTypesList.Create;
-end;
-
-procedure TSetupDataModule.DataModuleDestroy(Sender: TObject);
-begin
-  FreeAndNil(fTargetDelphiJwa);
-  FreeAndNil(fTargetDelphiJwscl);
-
-  fJwaTypes.Clear;
-  FreeAndNil(fJwaTypes);
-end;
-
-function TSetupDataModule.GetVersions(
-  const ProjectType: TProjectType): TStringList;
-begin
-
-end;
-
-function TSetupDataModule.TargetDelphiVerToKnownDelphiIndex(
-  const DelphiVer: Integer): Integer;
+procedure TDelphiInstallation.ClearJWAConfigs;
 var i : Integer;
 begin
-  result := -1;
-  for i := low(KnownDelphiVersions) to High(KnownDelphiVersions) do
-    if KnownDelphiVersions[i].Ver = DelphiVer then
-    begin
-      result := i;
-      exit;
-    end;
+  for I := 0 to fJWAConfigs.Count - 1 do
+  begin
+    if fJWAConfigs.Objects[i] <> nil then
+      Dispose(Pointer(fJWAConfigs.Objects[i]));
+  end;
+  fJWAConfigs.Clear;
 end;
 
-
-{ TJwaTypesList }
-
-procedure TJwaTypesList.Clear;
+procedure TDelphiInstallation.ClearJWSCLConfigs;
 var i : Integer;
 begin
-  for i := Count - 1 downto 0 do
-    Delete(i);
-  inherited Clear;
-end;
-
-procedure TJwaTypesList.Delete(Index: Integer);
-var p : PJwaTypeRecord;
-begin
-  p := PJwaTypeRecord(Items[Index]);
-  Dispose(p);
-  Items[Index] := nil;
-  inherited Delete(Index);
-end;
-
-function TJwaTypesList.GetSingleJwa(DelphiIndex: Integer): Boolean;
-var
-  I: Integer;
-
-begin
-  result := false;
-  for I := 0 to Count - 1 do
+  for I := 0 to fJWSCLConfigs.Count - 1 do
   begin
-    if PJwaTypeRecord(Items[i])^.DelphiIndex = DelphiIndex then
-    begin
-      result := PJwaTypeRecord(Items[i])^.IsSingle;
-      exit;
-    end;
+    if fJWSCLConfigs.Objects[i] <> nil then
+      Dispose(Pointer(fJWSCLConfigs.Objects[i]));
   end;
+  fJWSCLConfigs.Clear;
 end;
 
-procedure TJwaTypesList.SetSingleJwa(DelphiIndex: Integer;
-  IsSingleJwa: Boolean);
-var
-  I: Integer;
-  p : PJwaTypeRecord;
+constructor TDelphiInstallation.Create;
 begin
-  for I := 0 to Count - 1 do
-  begin
-    if PJwaTypeRecord(Items[i])^.DelphiIndex = DelphiIndex then
-    begin
-      PJwaTypeRecord(Items[i])^.IsSingle := IsSingleJwa;
-      exit;
-    end;
-  end;
+  inherited;
 
-  New(P);
-  P^.DelphiIndex := DelphiIndex;
-  P^.IsSingle := IsSingleJwa;
-  Add(P);
+  fJWAConfigs := TStringList.Create;
+  fJWSCLConfigs := TStringList.Create;
+  fTargetDelphiList := TList.Create;
 end;
 
+destructor TDelphiInstallation.Destroy;
+begin
+  ClearJWAConfigs;
+  fJWAConfigs.Free;
+
+  ClearJWSCLConfigs;
+  fJWSCLConfigs.Free;
+  fTargetDelphiList.Free;
+end;
+
+function TDelphiInstallation.GetIsJwscl: Boolean;
+begin
+  result := Length(Trim(TargetSvnJWSCLRelease)) <> 0;
+end;
 
 end.
