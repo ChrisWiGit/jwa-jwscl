@@ -29,7 +29,6 @@ package JediApi_StaticRelease;
 {$DEFINE JWA_INCLUDE_SETUP_API}
 {$DEFINE JWA_INCLUDE_JWAADSTLB}
 {$DEFINE RELEASE}
-{$DEFINE JWA_INCLUDE_SHELLAPI}
 {$DEFINE JWA_WINDOWS}
 
 requires
@@ -38,6 +37,6 @@ requires
 
 contains
   JwaVista in '..\..\Win32API\JwaVista.pas',
-  JwaWindows in '..\..\Win32API\JwaWindows\JwaWindows.pas';
+  JwaWindows in '..\..\Win32API\JwaWindows.pas';
 
 end.

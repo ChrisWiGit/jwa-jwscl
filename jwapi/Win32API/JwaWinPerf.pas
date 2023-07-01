@@ -53,7 +53,7 @@ unit JwaWinPerf;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 
 interface
@@ -797,7 +797,7 @@ type
     NameLength: DWORD;                  // Length in bytes of name; 0 = none
                                         // this length includes the characters
                                         // in the string plus the size of the
-                                        // terminating NULL AnsiChar. It does not
+                                        // terminating NULL char. It does not
                                         // include any additional pad bytes to
                                         // correct structure alignment
   end;

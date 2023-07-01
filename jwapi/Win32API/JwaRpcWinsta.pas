@@ -50,12 +50,25 @@ uses
 {$IFDEF JWA_WINDOWS}
   JwaWindows;
 {$ELSE}
-  JwaWinType, JwaBitFields, JwaWinNT;
+  JwaWinType, JwaWinNT;
 {$ENDIF JWA_WINDOWS}
 
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
+
+// Constants used for aligning bitsets
+const
+  al32Bit = 31;
+  al64bit = 63;
+  al96bit = 95;
+  al128bit = 127;
+  al160bit = 159;
+  al192bit = 191;
+  al224bit = 221;
+  al256bit = 255;
+
 
 {/// [MS-TSTS] specific defines }
 const
@@ -65,14 +78,9 @@ const
   DIRECTORY_LENGTH = 256;
   INITIALPROGRAM_LENGTH = 256;
 {$IFNDEF JWA_INCLUDEMODE}
-  AF_INET      = 2; // internetwork: UDP, TCP, etc.
-  {$EXTERNALSYM AF_INET}
-  AF_INET6     = 23; // Internetwork Version 6
-  {$EXTERNALSYM AF_INET6}
-
   USERNAME_LENGTH = 20;
   DOMAIN_LENGTH = 17;
-{$ENDIF JWA_INCLUDEMODE}
+{$ENDIF JWA_INCLUDEMODE}  
   PASSWORD_LENGTH = 14;
   NASISPECIFICNAME_LENGTH = 14;
   NASIUSERNAME_LENGTH = 47;
@@ -97,7 +105,7 @@ const
 
 {$IFNDEF JWA_INCLUDEMODE}
   WINSTATIONNAME_LENGTH = 32;
-{$ENDIF JWA_INCLUDEMODE}
+{$ENDIF JWA_INCLUDEMODE}  
 
 
 
@@ -108,11 +116,11 @@ type
     SdNetwork  );
   SDCLASS = _SDCLASS;
   TSDClass = _SDCLASS;
-
+  
 type
   _FLOWCONTROLCLASS = (
-    FlowControl_None,
-    FlowControl_Hardware,
+    FlowControl_None, 
+    FlowControl_Hardware, 
     FlowControl_Software  );
   FLOWCONTROLCLASS = _FLOWCONTROLCLASS;
   TFlowControlClass = _FLOWCONTROLCLASS;
@@ -130,29 +138,29 @@ type
     State_Down {= 8},
     State_Init {= 9 } );
   WINSTATIONSTATECLASS = _WINSTATIONSTATECLASS;
-  TWinStationStateClass = _WINSTATIONSTATECLASS;
+  TWinStationStateClass = _WINSTATIONSTATECLASS;    
 
 type
   NASISPECIFICNAMEW = Array[0..NASISPECIFICNAME_LENGTH] of WCHAR;
-  NASISPECIFICNAMEA = Array[0..NASISPECIFICNAME_LENGTH] of AnsiChar;
+  NASISPECIFICNAMEA = Array[0..NASISPECIFICNAME_LENGTH] of CHAR;
 
   NASIUSERNAMEW = Array[0..NASIUSERNAME_LENGTH] of WCHAR;
-  NASIUSERNAMEA = Array[0..NASIUSERNAME_LENGTH] of AnsiChar;
+  NASIUSERNAMEA = Array[0..NASIUSERNAME_LENGTH] of CHAR;
 
   NASIPASSWORDW = Array[0..NASIPASSWORD_LENGTH] of WCHAR;
-  NASIPASSWORDA = Array[0..NASIPASSWORD_LENGTH] of AnsiChar;
+  NASIPASSWORDA = Array[0..NASIPASSWORD_LENGTH] of CHAR;
 
   NASISESSIONNAMEW = Array[0..NASISESSIONNAME_LENGTH] of WCHAR;
-  NASISESSIONNAMEA = Array[0..NASISESSIONNAME_LENGTH] of AnsiChar;
+  NASISESSIONNAMEA = Array[0..NASISESSIONNAME_LENGTH] of CHAR;
 
   NASIFILESERVERW = Array[0..NASIFILESERVER_LENGTH] of WCHAR;
-  NASIFILESERVERA = Array[0..NASIFILESERVER_LENGTH] of AnsiChar;
+  NASIFILESERVERA = Array[0..NASIFILESERVER_LENGTH] of CHAR;
 
-  CLIENTDATANAME = Array[0..CLIENTDATANAME_LENGTH] of AnsiChar;
+  CLIENTDATANAME = Array[0..CLIENTDATANAME_LENGTH] of CHAR;
   PCLIENTDATANAME = PAnsiChar;
 
   WINSTATIONNAMEW = Array[0..WINSTATIONNAME_LENGTH] of WCHAR;
-  WINSTATIONNAMEA = Array[0..WINSTATIONNAME_LENGTH] of AnsiChar;
+  WINSTATIONNAMEA = Array[0..WINSTATIONNAME_LENGTH] of CHAR;
 
 type
   _TS_SYSTEMTIME = record
@@ -257,7 +265,7 @@ const
 type
   PDNAMEW = Array[0..PDNAME_LENGTH] of WCHAR;
   PPDNAMEW = PWCHAR;
-  PDNAMEA = Array[0..PDNAME_LENGTH] of AnsiChar;
+  PDNAMEA = Array[0..PDNAME_LENGTH] of CHAR;
   PPDNAMEA = PAnsiChar;
 
 {$IFDEF UNICODE}
@@ -273,7 +281,7 @@ type
 type
   WDNAMEW = Array[0..WDNAME_LENGTH] of WCHAR;
   PWDNAMEW = PWCHAR;
-  WDNAMEA = Array[0..WDNAME_LENGTH] of AnsiChar;
+  WDNAMEA = Array[0..WDNAME_LENGTH] of CHAR;
   PWDNAMEA = PAnsiChar;
 {$IFDEF UNICODE}
   WDNAME = WDNAMEW;
@@ -288,7 +296,7 @@ type
 type
   CDNAMEW = Array[0..CDNAME_LENGTH] of WCHAR;
   PCDNAMEW = PWCHAR;
-  CDNAMEA = Array[0..CDNAME_LENGTH] of AnsiChar;
+  CDNAMEA = Array[0..CDNAME_LENGTH] of CHAR;
   PCDNAMEA = PAnsiChar;
 {$IFDEF UNICODE}
   CDNAME = CDNAMEW;
@@ -303,7 +311,7 @@ type
 type
   DEVICENAMEW = Array[0..DEVICENAME_LENGTH] of WCHAR;
   PDEVICENAMEW = PWCHAR;
-  DEVICENAMEA = Array[0..DEVICENAME_LENGTH] of AnsiChar;
+  DEVICENAMEA = Array[0..DEVICENAME_LENGTH] of CHAR;
   PDEVICENAMEA = PAnsiChar;
 {$IFDEF UNICODE}
   DEVICENAME = DEVICENAMEW;
@@ -318,7 +326,7 @@ type
 type
   MODEMNAMEW = Array[0..MODEMNAME_LENGTH] of WCHAR;
   PMODEMNAMEW = PWCHAR;
-  MODEMNAMEA = Array[0..MODEMNAME_LENGTH] of AnsiChar;
+  MODEMNAMEA = Array[0..MODEMNAME_LENGTH] of CHAR;
   PMODEMNAMEA = PAnsiChar;
 {$IFDEF UNICODE}
 type
@@ -334,7 +342,7 @@ type
 type
   DLLNAMEW = Array[0..DLLNAME_LENGTH] of WCHAR;
   PDLLNAMEW = PWCHAR;
-  DLLNAMEA = Array[0..DLLNAME_LENGTH] of AnsiChar;
+  DLLNAMEA = Array[0..DLLNAME_LENGTH] of CHAR;
   PDLLNAMEA = PAnsiChar;
 {$IFDEF UNICODE}
   DLLNAME = DLLNAMEW;
@@ -349,7 +357,7 @@ type
 type
   WDPREFIXW = Array[0..WDPREFIX_LENGTH] of WCHAR;
   PWDPREFIXW = PWCHAR;
-  WDPREFIXA = Array[0..WDPREFIX_LENGTH] of AnsiChar;
+  WDPREFIXA = Array[0..WDPREFIX_LENGTH] of CHAR;
   PWDPREFIXA = PAnsiChar;
 
 {$IFDEF UNICODE}
@@ -404,7 +412,7 @@ type
 type
   APPLICATIONNAMEW = Array[0..MAX_BR_NAME] of WCHAR;
   PAPPLICATIONNAMEW = PWCHAR;
-  APPLICATIONNAMEA = Array[0..MAX_BR_NAME] of AnsiChar;
+  APPLICATIONNAMEA = Array[0..MAX_BR_NAME] of CHAR;
   PAPPLICATIONNAMEA = PAnsiChar;
 {$IFDEF UNICODE}
   APPLICATIONNAME = APPLICATIONNAMEW;
@@ -420,14 +428,14 @@ type
 
 type
   _SHADOWCLASS = (
-    Shadow_Disable,
-    Shadow_EnableInputNotify,
-    Shadow_EnableInputNoNotify,
-    Shadow_EnableNoInputNotify,
+    Shadow_Disable, 
+    Shadow_EnableInputNotify, 
+    Shadow_EnableInputNoNotify, 
+    Shadow_EnableNoInputNotify, 
     Shadow_EnableNoInputNoNotify );
   SHADOWCLASS = _SHADOWCLASS;
   TShadowClass = _SHADOWCLASS;
-
+  
 {+// }
 {-* Callback options }
 {= }
@@ -443,268 +451,95 @@ type
 type
   _POLICY_TS_MACHINE = record
     PolicyTsMachineFlags1: Set Of (
-      fPolicyDisableClip,
-      fPolicyDisableCam,
-      fPolicyDisableCcm,
-      fPolicyDisableLPT,
-      fPolicyDisableCpm,
-      fPolicyPromptForPassword,
-      fPolicyMaxInstanceCount,
-      fPolicyMinEncryptionLevel,
-      fPolicyFipsEnabled,
-      fPolicyDisableAutoReconnect,
-      fPolicyWFProfilePat,
-      fPolicyWFHomeDir,
-      fPolicyWFHomeDirDriv,
-      fPolicyDenyTSConnections,
-      fPolicyTempFoldersPerSession,
-      fPolicyDeleteTempFoldersOnExit,
-      fPolicyColorDepth,
-      fPolicySessionDirectoryActive,
-      fPolicySessionDirectoryLocation,
-      fPolicySessionDirectoryClusterName,
-      fPolicySessionDirectoryAdditionalParams,
-      fPolicySessionDirectoryExposeServerIP,
-      fPolicyPreventLicenseUpgrade,
-      fPolicySecureLicensing,
-      fPolicyWritableTSCCPermissionsTAB,
-      fPolicyDisableCdm,
-      fPolicyForceClientLptDef,
-      fPolicyShadow,
-      fPolicyResetBroken,
-      fPolicyReconnectSame,
-      fPolicyMaxSessionTime,
-      fPolicyMaxDisconnectionTime,
-      fPolicyMaxIdleTime,
-      fPolicyInitialProgram,
-      fPolicySingleSessionPerUser,
-      fPolicyDisableWallpaper,
-      fPolicyKeepAlive  ,
-      fPolicyEnableTimeZoneRedirection,
-      fPolicyDisableForcibleLogoff,
-      fPolicyLicensingMode,
-      fPolicyExplicitLSDiscover,
-      fPolicyDisableTerminalServerTooltip,
-      fPolicyTsMachineDisableClip,
-      fPolicyTsMachineDisableCam,
-      fPolicyTsMachineDisableCcm,
-      fPolicyTsMachineDisableLPT,
-      fPolicyTsMachineDisableCpm,
-      fPolicyTsMachinePromptForPassword,
-      PolicyTSMachineColorDepth0,    // ULONG ColorDepth: 3;
+  	  fPolicyDisableClip,
+  	  fPolicyDisableCam,
+  	  fPolicyDisableCcm,
+  	  fPolicyDisableLPT,
+  	  fPolicyDisableCpm,
+  	  fPolicyPromptForPassword,
+  	  fPolicyMaxInstanceCount,
+  	  fPolicyMinEncryptionLevel,
+  	  fPolicyFipsEnabled,
+  	  fPolicyDisableAutoReconnect,
+  	  fPolicyWFProfilePat,
+  	  fPolicyWFHomeDir,
+  	  fPolicyWFHomeDirDriv,
+  	  fPolicyDenyTSConnections,
+  	  fPolicyTempFoldersPerSession,
+  	  fPolicyDeleteTempFoldersOnExit,
+  	  fPolicyColorDepth,
+  	  fPolicySessionDirectoryActive,
+  	  fPolicySessionDirectoryLocation,
+  	  fPolicySessionDirectoryClusterName,
+  	  fPolicySessionDirectoryAdditionalParams,
+  	  fPolicySessionDirectoryExposeServerIP,
+  	  fPolicyPreventLicenseUpgrade,
+  	  fPolicySecureLicensing,
+  	  fPolicyWritableTSCCPermissionsTAB,
+  	  fPolicyDisableCdm,
+  	  fPolicyForceClientLptDef,
+  	  fPolicyShadow,
+  	  fPolicyResetBroken,
+  	  fPolicyReconnectSame,
+  	  fPolicyMaxSessionTime,
+  	  fPolicyMaxDisconnectionTime,
+  	  fPolicyMaxIdleTime,
+	    fPolicyInitialProgram,
+  	  fPolicySingleSessionPerUser,
+  	  fPolicyDisableWallpaper,
+  	  fPolicyKeepAlive  ,
+  	  fPolicyEnableTimeZoneRedirection,
+  	  fPolicyDisableForcibleLogoff,
+  	  fPolicyLicensingMode,
+  	  fPolicyExplicitLSDiscover,
+  	  fPolicyDisableTerminalServerTooltip,
+  	  fPolicyTsMachineDisableClip,
+  	  fPolicyTsMachineDisableCam,
+  	  fPolicyTsMachineDisableCcm,
+  	  fPolicyTsMachineDisableLPT,
+  	  fPolicyTsMachineDisableCpm,
+  	  fPolicyTsMachinePromptForPassword,
+      PolicyTSMachineColorDepth0,    //	ULONG ColorDepth: 3;
       PolicyTSMachineColorDepth1,
       PolicyTSMachineColorDepth2,
-      fDenyTSConnections,
-      fTempFoldersPerSession,
-      fDeleteTempFoldersOnExit,
-      fWritableTSCCPermissionsTAB,
-      fDisableCdm,
-      fPolicyTSMachineForceClientLptDef,
-      fPolicyTSMachineResetBroken,
-      fPolicyTSMachineReconnectSame,
-      fSingleSessionPerUser,
-      fDisableWallpaper,
-      fKeepAliveEnable,
-      fPreventLicenseUpgrade,
-      fSecureLicensing,
-      fEnableTimeZoneRedirection,
-      fTSPolicyMachineDisableAutoReconnect,
-      fDisableForcibleLogoff,
-      fPolicyEncryptRPCTraffic,
-      fEncryptRPCTraffic,
-      fPolicyTSMachineErrorInvalidProfile,
+  	  fDenyTSConnections,
+  	  fTempFoldersPerSession,
+  	  fDeleteTempFoldersOnExit,
+  	  fWritableTSCCPermissionsTAB,
+  	  fDisableCdm,
+  	  fPolicyTSMachineForceClientLptDef,
+  	  fPolicyTSMachineResetBroken,
+  	  fPolicyTSMachineReconnectSame,
+  	  fSingleSessionPerUser,
+  	  fDisableWallpaper,
+  	  fKeepAliveEnable,
+  	  fPreventLicenseUpgrade,
+  	  fSecureLicensing,
+  	  fEnableTimeZoneRedirection,
+  	  fTSPolicyMachineDisableAutoReconnect,
+  	  fDisableForcibleLogoff,
+  	  fPolicyEncryptRPCTraffic,
+  	  fEncryptRPCTraffic,
+  	  fPolicyTSMachineErrorInvalidProfile,
       fFallbackPrintDriverType0,  // ULONG   FallbackPrintDriverType: 3;
       fFallbackPrintDriverType1,
-      fFallbackPrintDriverType2,
-      fDisableTerminalServerTooltip,
-{$IFDEF DELPHI6_UP}
+      fFallbackPrintDriverType2,	
+  	  fDisableTerminalServerTooltip,
       _PolicyTsMachineFlags1Align = al96bit // align the bitset on 3 ULONG's
-{$ELSE}
-      Bits_0_1,
-      Bits_0_2,
-      Bits_0_3,
-      Bits_0_4,
-      Bits_0_5,
-      Bits_0_6,
-      Bits_0_7,
-      Bits_0_8,
-      Bits_0_9,
-      Bits_0_10,
-      Bits_0_11,
-      Bits_0_12,
-      Bits_0_13,
-      Bits_0_14,
-      Bits_0_15,
-      Bits_0_16,
-      Bits_0_17,
-      Bits_0_18,
-      Bits_0_19,
-      Bits_0_20,
-      Bits_0_21,
-      Bits_0_22,
-      Bits_0_23,
-      Bits_0_24,
-      Bits_0_25,
-      Bits_0_26,
-      Bits_0_27,
-      Bits_0_28,
-      Bits_0_29,
-      Bits_0_30,
-      Bits_0_31,
-      Bits_0_32,
-      Bits_0_33,
-      Bits_0_34,
-      Bits_0_35,
-      Bits_0_36,
-      Bits_0_37,
-      Bits_0_38,
-      Bits_0_39,
-      Bits_0_40,
-      Bits_0_41,
-      Bits_0_42,
-      Bits_0_43,
-      Bits_0_44,
-      Bits_0_45,
-      Bits_0_46,
-      Bits_0_47,
-      Bits_0_48,
-      Bits_0_49,
-      Bits_0_50,
-      Bits_0_51,
-      Bits_0_52,
-      Bits_0_53,
-      Bits_0_54,
-      Bits_0_55,
-      Bits_0_56,
-      Bits_0_57,
-      Bits_0_58,
-      Bits_0_59,
-      Bits_0_60,
-      Bits_0_61,
-      Bits_0_62,
-      Bits_0_63,
-      Bits_0_64,
-      Bits_0_65,
-      Bits_0_66,
-      Bits_0_67,
-      Bits_0_68,
-      Bits_0_69,
-      Bits_0_70,
-      Bits_0_71,
-      Bits_0_72,
-      Bits_0_73,
-      Bits_0_74,
-      Bits_0_75,
-      Bits_0_76,
-      Bits_0_77,
-      Bits_0_78,
-      Bits_0_79,
-      Bits_0_80,
-      Bits_0_81,
-      Bits_0_82,
-      Bits_0_83,
-      Bits_0_84,
-      Bits_0_85,
-      Bits_0_86,
-      Bits_0_87,
-      Bits_0_88,
-      Bits_0_89,
-      Bits_0_90,
-      Bits_0_91,
-      Bits_0_92,
-      Bits_0_93,
-      Bits_0_94,
-      Bits_0_95,
-      Bits_0_96
-
-
-
-{$ENDIF}
-    );
-    bSecurityLayer: Boolean;
-    PolicyTsMachineFlag2: Set Of (
-      fPolicySecurityLayer,
-{$IFDEF DELPHI6_UP}
+ 	  );
+	  bSecurityLayer: Boolean;
+	  PolicyTsMachineFlag2: Set Of (
+		  fPolicySecurityLayer,
       _PolicyTsMachineFlags2Align = al32bit // align the bitset on ULONG
-{$ELSE}
-      _PolicyTsMachineFlags2Align1,
-      _PolicyTsMachineFlags2Align2,
-      _PolicyTsMachineFlags2Align3,
-      _PolicyTsMachineFlags2Align4,
-      _PolicyTsMachineFlags2Align5,
-      _PolicyTsMachineFlags2Align6,
-      _PolicyTsMachineFlags2Align7,
-      _PolicyTsMachineFlags2Align8,
-      _PolicyTsMachineFlags2Align9,
-      _PolicyTsMachineFlags2Align10,
-      _PolicyTsMachineFlags2Align11,
-      _PolicyTsMachineFlags2Align12,
-      _PolicyTsMachineFlags2Align13,
-      _PolicyTsMachineFlags2Align14,
-      _PolicyTsMachineFlags2Align15,
-      _PolicyTsMachineFlags2Align16,
-      _PolicyTsMachineFlags2Align17,
-      _PolicyTsMachineFlags2Align18,
-      _PolicyTsMachineFlags2Align19,
-      _PolicyTsMachineFlags2Align20,
-      _PolicyTsMachineFlags2Align21,
-      _PolicyTsMachineFlags2Align22,
-      _PolicyTsMachineFlags2Align23,
-      _PolicyTsMachineFlags2Align24,
-      _PolicyTsMachineFlags2Align25,
-      _PolicyTsMachineFlags2Align26,
-      _PolicyTsMachineFlags2Align27,
-      _PolicyTsMachineFlags2Align28,
-      _PolicyTsMachineFlags2Align29,
-      _PolicyTsMachineFlags2Align30,
-      _PolicyTsMachineFlags2Align31,
-      _PolicyTsMachineFlags2Align32
-
-{$ENDIF}
-    );
-    bUserAuthentication: Boolean;
-    PolicyTsMachineFlags3: Set Of (
-      fPolicyUserAuthentication,
-      fPolicyTurnOffSingleAppMode,
-      fTurnOffSingleAppMode,
-      fDisablePNPPolicyIsEnforced,
-      fDisablePNPPolicyValue,
-{$IFDEF DELPHI6_UP}
+	  );
+	  bUserAuthentication: Boolean;
+	  PolicyTsMachineFlags3: Set Of (
+		  fPolicyUserAuthentication,
+  		fPolicyTurnOffSingleAppMode,
+  		fTurnOffSingleAppMode,
+  		fDisablePNPPolicyIsEnforced,
+  		fDisablePNPPolicyValue,
       _PolicyTsMachineFlags3Align = al32bit // align the bitset on ULONG
-{$ELSE}
-    _PolicyTsMachineFlags3Align1,
-    _PolicyTsMachineFlags3Align2,
-    _PolicyTsMachineFlags3Align3,
-    _PolicyTsMachineFlags3Align4,
-    _PolicyTsMachineFlags3Align5,
-    _PolicyTsMachineFlags3Align6,
-    _PolicyTsMachineFlags3Align7,
-    _PolicyTsMachineFlags3Align8,
-    _PolicyTsMachineFlags3Align9,
-    _PolicyTsMachineFlags3Align10,
-    _PolicyTsMachineFlags3Align11,
-    _PolicyTsMachineFlags3Align12,
-    _PolicyTsMachineFlags3Align13,
-    _PolicyTsMachineFlags3Align14,
-    _PolicyTsMachineFlags3Align15,
-    _PolicyTsMachineFlags3Align16,
-    _PolicyTsMachineFlags3Align17,
-    _PolicyTsMachineFlags3Align18,
-    _PolicyTsMachineFlags3Align19,
-    _PolicyTsMachineFlags3Align20,
-    _PolicyTsMachineFlags3Align21,
-    _PolicyTsMachineFlags3Align22,
-    _PolicyTsMachineFlags3Align23,
-    _PolicyTsMachineFlags3Align24,
-    _PolicyTsMachineFlags3Align25,
-    _PolicyTsMachineFlags3Align26,
-    _PolicyTsMachineFlags3Align27,
-    _PolicyTsMachineFlags3Align28,
-    _PolicyTsMachineFlags3Align29,
-    _PolicyTsMachineFlags3Align30,
-    _PolicyTsMachineFlags3Align31,
-    _PolicyTsMachineFlags3Align32
-{$ENDIF}
     );
     MaxInstanceCount: ULONG;
     LicensingMode: ULONG;
@@ -739,117 +574,50 @@ type
 type
   TUserConfigFlags = Set Of(
     fInheritAutoLogon,                                //: 1
-    fInheritResetBroken,                              //: 1
-    fInheritReconnectSame,                            //: 1
-    fInheritInitialProgram,                           //: 1
-    fInheritCallback,                                 //: 1
-    fInheritCallbackNumber,                           //: 1
-    fInheritShadow,                                   //: 1
-    fInheritMaxSessionTime,                           //: 1
-    fInheritMaxDisconnectionTime,                     //: 1
-    fInheritMaxIdleTime,                              //: 1
-    fInheritAutoClient,                               //: 1
-    fInheritSecurity,                                 //: 1
-    fUserConfigPromptForPassword,                     //: 1
-    fUserConfigResetBroken,                           //: 1
-    fUserConfigReconnectSame,                         //: 1
-    fLogonDisabled,                                   //: 1
-    fWallPaperDisabled,                               //: 1
-    fAutoClientDrives,                                //: 1
-    fAutoClientLpts,                                  //: 1
-    fUserConfigForceClientLptDef,                     //: 1
-    fRequireEncryption,                               //: 1
-    fDisableEncryption,                               //: 1
-    fUnused1,                                         //: 1
-    fHomeDirectoryMapRoot,                            //: 1
-    fUseDefaultGina,                                  //: 1
-    fCursorBlinkDisabled,                             //: 1
-    fPublishedApp,                                    //: 1
-    fHideTitleBar,                                    //: 1
-    fMaximize,                                        //: 1
-    fUserConfigDisableCpm,                            //: 1
-    fUserConfigDisableCdm,                            //: 1
-    fUserConfigDisableCcm,                            //: 1
-    fUserConfigDisableLPT,                            //: 1
-    fUserConfigDisableClip,                           //: 1
-    fDisableExe,                                      //: 1
-    fUserConfigfDisableCam,                           //: 1
-    fUserConfigDisableAutoReconnect,                  //: 1
-    UserConfigColorDepth0,                            //: 3
-    UserConfigColorDepth1,
-    UserConfigColorDepth2,
-    fInheritColorDepth,                               //: 1
-    fUserConfigErrorInvalidProfile,                   //: 1
-    fPasswordIsScPin,                                 //: 1
-    fDisablePNPRedir,                                 //: 1
-{$IFDEF DELPHI6_UP}
+  	fInheritResetBroken,                              //: 1
+  	fInheritReconnectSame,                            //: 1
+  	fInheritInitialProgram,                           //: 1
+  	fInheritCallback,                                 //: 1
+  	fInheritCallbackNumber,                           //: 1
+  	fInheritShadow,                                   //: 1
+  	fInheritMaxSessionTime,                           //: 1
+  	fInheritMaxDisconnectionTime,                     //: 1
+  	fInheritMaxIdleTime,                              //: 1
+  	fInheritAutoClient,                               //: 1
+  	fInheritSecurity,                                 //: 1
+  	fUserConfigPromptForPassword,                     //: 1
+  	fUserConfigResetBroken,                           //: 1
+  	fUserConfigReconnectSame,                         //: 1
+  	fLogonDisabled,                                   //: 1
+  	fWallPaperDisabled,                               //: 1
+  	fAutoClientDrives,                                //: 1
+  	fAutoClientLpts,                                  //: 1
+  	fUserConfigForceClientLptDef,                     //: 1
+  	fRequireEncryption,                               //: 1
+  	fDisableEncryption,                               //: 1
+  	fUnused1,                                         //: 1
+  	fHomeDirectoryMapRoot,                            //: 1
+  	fUseDefaultGina,                                  //: 1
+  	fCursorBlinkDisabled,                             //: 1
+  	fPublishedApp,                                    //: 1
+  	fHideTitleBar,                                    //: 1
+  	fMaximize,                                        //: 1
+  	fUserConfigDisableCpm,                            //: 1
+  	fUserConfigDisableCdm,                            //: 1
+  	fUserConfigDisableCcm,                            //: 1
+  	fUserConfigDisableLPT,                            //: 1
+  	fUserConfigDisableClip,                           //: 1
+  	fDisableExe,                                      //: 1
+  	fUserConfigfDisableCam,                           //: 1
+  	fUserConfigDisableAutoReconnect,                  //: 1
+  	UserConfigColorDepth0,                            //: 3
+  	UserConfigColorDepth1,
+  	UserConfigColorDepth2,
+  	fInheritColorDepth,                               //: 1
+  	fUserConfigErrorInvalidProfile,                   //: 1
+  	fPasswordIsScPin,                                 //: 1
+  	fDisablePNPRedir,                                 //: 1
     _TUserConfigFlagsAlign = al64Bit
-{$ELSE}
-    _TUserConfigFlagsAlign1,
-    _TUserConfigFlagsAlign2,
-    _TUserConfigFlagsAlign3,
-    _TUserConfigFlagsAlign4,
-    _TUserConfigFlagsAlign5,
-    _TUserConfigFlagsAlign6,
-    _TUserConfigFlagsAlign7,
-    _TUserConfigFlagsAlign8,
-    _TUserConfigFlagsAlign9,
-    _TUserConfigFlagsAlign10,
-    _TUserConfigFlagsAlign11,
-    _TUserConfigFlagsAlign12,
-    _TUserConfigFlagsAlign13,
-    _TUserConfigFlagsAlign14,
-    _TUserConfigFlagsAlign15,
-    _TUserConfigFlagsAlign16,
-    _TUserConfigFlagsAlign17,
-    _TUserConfigFlagsAlign18,
-    _TUserConfigFlagsAlign19,
-    _TUserConfigFlagsAlign20,
-    _TUserConfigFlagsAlign21,
-    _TUserConfigFlagsAlign22,
-    _TUserConfigFlagsAlign23,
-    _TUserConfigFlagsAlign24,
-    _TUserConfigFlagsAlign25,
-    _TUserConfigFlagsAlign26,
-    _TUserConfigFlagsAlign27,
-    _TUserConfigFlagsAlign28,
-    _TUserConfigFlagsAlign29,
-    _TUserConfigFlagsAlign30,
-    _TUserConfigFlagsAlign31,
-    _TUserConfigFlagsAlign32,
-    _TUserConfigFlagsAlign33,
-    _TUserConfigFlagsAlign34,
-    _TUserConfigFlagsAlign35,
-    _TUserConfigFlagsAlign36,
-    _TUserConfigFlagsAlign37,
-    _TUserConfigFlagsAlign38,
-    _TUserConfigFlagsAlign39,
-    _TUserConfigFlagsAlign40,
-    _TUserConfigFlagsAlign41,
-    _TUserConfigFlagsAlign42,
-    _TUserConfigFlagsAlign43,
-    _TUserConfigFlagsAlign44,
-    _TUserConfigFlagsAlign45,
-    _TUserConfigFlagsAlign46,
-    _TUserConfigFlagsAlign47,
-    _TUserConfigFlagsAlign48,
-    _TUserConfigFlagsAlign49,
-    _TUserConfigFlagsAlign50,
-    _TUserConfigFlagsAlign51,
-    _TUserConfigFlagsAlign52,
-    _TUserConfigFlagsAlign53,
-    _TUserConfigFlagsAlign54,
-    _TUserConfigFlagsAlign55,
-    _TUserConfigFlagsAlign56,
-    _TUserConfigFlagsAlign57,
-    _TUserConfigFlagsAlign58,
-    _TUserConfigFlagsAlign59,
-    _TUserConfigFlagsAlign60,
-    _TUserConfigFlagsAlign61,
-    _TUserConfigFlagsAlign62,
-    _TUserConfigFlagsAlign63,
-    _TUserConfigFlagsAlign64
-{$ENDIF}
   );
 
   _USERCONFIGW = record
@@ -881,12 +649,12 @@ type
 type
   _USERCONFIGA = record
     Flags: TUserConfigFlags;
-    UserName: Array[0..USERNAME_LENGTH] of AnsiChar;
-    Domain: Array[0..DOMAIN_LENGTH] of AnsiChar;
-    Password: Array[0..PASSWORD_LENGTH] of AnsiChar;
-    WorkDirectory: Array[0..DIRECTORY_LENGTH] of AnsiChar;
-    InitialProgram: Array[0..INITIALPROGRAM_LENGTH] of AnsiChar;
-    CallbackNumber: Array[0..CALLBACK_LENGTH] of AnsiChar;
+    UserName: Array[0..USERNAME_LENGTH] of Char;
+    Domain: Array[0..DOMAIN_LENGTH] of Char;
+    Password: Array[0..PASSWORD_LENGTH] of Char;
+    WorkDirectory: Array[0..DIRECTORY_LENGTH] of Char;
+    InitialProgram: Array[0..INITIALPROGRAM_LENGTH] of Char;
+    CallbackNumber: Array[0..CALLBACK_LENGTH] of Char;
     Callback: CALLBACKCLASS;
     Shadow: SHADOWCLASS;
     MaxConnectionTime: ULONG;
@@ -894,11 +662,11 @@ type
     MaxIdleTime: ULONG;
     KeyboardLayout: ULONG;
     MinEncryptionLevel: BYTE;
-    NWLogonServer: Array[0..NASIFILESERVER_LENGTH] of AnsiChar;
+    NWLogonServer: Array[0..NASIFILESERVER_LENGTH] of Char;
     PublishedName: APPLICATIONNAMEA;
-    WFProfilePath: Array[0..DIRECTORY_LENGTH] of AnsiChar;
-    WFHomeDir: Array[0..DIRECTORY_LENGTH] of AnsiChar;
-    WFHomeDirDrive: Array[0..3] of AnsiChar;
+    WFProfilePath: Array[0..DIRECTORY_LENGTH] of Char;
+    WFHomeDir: Array[0..DIRECTORY_LENGTH] of Char;
+    WFHomeDirDrive: Array[0..3] of Char;
   end {_USERCONFIGA};
   USERCONFIGA = _USERCONFIGA;
   PUSERCONFIGA = ^_USERCONFIGA;
@@ -994,49 +762,14 @@ type
 type
   _FLOWCONTROLCONFIG = record
     FlowControlFlags: Set Of (
-      fEnableSoftwareTx,                                 //: 1
-      fEnableSoftwareRx,                                 //: 1
-      fEnableDTR,                                        //: 1
-      fEnableRTS,                                        //: 1
-{$IFDEF DELPHI6_UP}
+  	  fEnableSoftwareTx,                                 //: 1
+  	  fEnableSoftwareRx,                                 //: 1
+  	  fEnableDTR,                                        //: 1
+  	  fEnableRTS,                                        //: 1
       _FlowControlFlagsAlign = al32Bit
-{$ELSE}
-      _FlowControlFlagsAlign1,
-      _FlowControlFlagsAlign2,
-      _FlowControlFlagsAlign3,
-      _FlowControlFlagsAlign4,
-      _FlowControlFlagsAlign5,
-      _FlowControlFlagsAlign6,
-      _FlowControlFlagsAlign7,
-      _FlowControlFlagsAlign8,
-      _FlowControlFlagsAlign9,
-      _FlowControlFlagsAlign10,
-      _FlowControlFlagsAlign11,
-      _FlowControlFlagsAlign12,
-      _FlowControlFlagsAlign13,
-      _FlowControlFlagsAlign14,
-      _FlowControlFlagsAlign15,
-      _FlowControlFlagsAlign16,
-      _FlowControlFlagsAlign17,
-      _FlowControlFlagsAlign18,
-      _FlowControlFlagsAlign19,
-      _FlowControlFlagsAlign20,
-      _FlowControlFlagsAlign21,
-      _FlowControlFlagsAlign22,
-      _FlowControlFlagsAlign23,
-      _FlowControlFlagsAlign24,
-      _FlowControlFlagsAlign25,
-      _FlowControlFlagsAlign26,
-      _FlowControlFlagsAlign27,
-      _FlowControlFlagsAlign28,
-      _FlowControlFlagsAlign29,
-      _FlowControlFlagsAlign30,
-      _FlowControlFlagsAlign31,
-      _FlowControlFlagsAlign32
-{$ENDIF}
     );
-    XonChar: AnsiChar;
-    XoffChar: AnsiChar;
+    XonChar: Char;
+    XoffChar: Char;
     Type_: FLOWCONTROLCLASS;
     HardwareReceive: RECEIVEFLOWCONTROLCLASS;
     HardwareTransmit: TRANSMITFLOWCONTROLCLASS;
@@ -1061,42 +794,7 @@ type
     Type_: ASYNCCONNECTCLASS;
     ConnectConfigFlags: Set Of (
       fEnableBreakDisconnect,
-{$IFDEF DELPHI6}
       _ConnectConfigFlagsAlign = al32Bit
-{$ELSE}
-    _ConnectConfigFlagsAlign1,
-    _ConnectConfigFlagsAlign2,
-    _ConnectConfigFlagsAlign3,
-    _ConnectConfigFlagsAlign4,
-    _ConnectConfigFlagsAlign5,
-    _ConnectConfigFlagsAlign6,
-    _ConnectConfigFlagsAlign7,
-    _ConnectConfigFlagsAlign8,
-    _ConnectConfigFlagsAlign9,
-    _ConnectConfigFlagsAlign10,
-    _ConnectConfigFlagsAlign11,
-    _ConnectConfigFlagsAlign12,
-    _ConnectConfigFlagsAlign13,
-    _ConnectConfigFlagsAlign14,
-    _ConnectConfigFlagsAlign15,
-    _ConnectConfigFlagsAlign16,
-    _ConnectConfigFlagsAlign17,
-    _ConnectConfigFlagsAlign18,
-    _ConnectConfigFlagsAlign19,
-    _ConnectConfigFlagsAlign20,
-    _ConnectConfigFlagsAlign21,
-    _ConnectConfigFlagsAlign22,
-    _ConnectConfigFlagsAlign23,
-    _ConnectConfigFlagsAlign24,
-    _ConnectConfigFlagsAlign25,
-    _ConnectConfigFlagsAlign26,
-    _ConnectConfigFlagsAlign27,
-    _ConnectConfigFlagsAlign28,
-    _ConnectConfigFlagsAlign29,
-    _ConnectConfigFlagsAlign30,
-    _ConnectConfigFlagsAlign31,
-    _ConnectConfigFlagsAlign32
-{$ENDIF}
     );
   end {_CONNECTCONFIG};
   CONNECTCONFIG = _CONNECTCONFIG;
@@ -1108,74 +806,7 @@ type
     TASyncConfigFlags = Set of (
       fEnableDsrSensitivity,
       fConnectionDriver,
-{$IFDEF DELPHI6_UP}
       _TASyncConfigFlagsAlign = al32Bit
-{$ELSE}
-      _TASyncConfigFlagsAlign1,
-      _TASyncConfigFlagsAlign2,
-      _TASyncConfigFlagsAlign3,
-      _TASyncConfigFlagsAlign4,
-      _TASyncConfigFlagsAlign5,
-      _TASyncConfigFlagsAlign6,
-      _TASyncConfigFlagsAlign7,
-      _TASyncConfigFlagsAlign8,
-      _TASyncConfigFlagsAlign9,
-      _TASyncConfigFlagsAlign10,
-      _TASyncConfigFlagsAlign11,
-      _TASyncConfigFlagsAlign12,
-      _TASyncConfigFlagsAlign13,
-      _TASyncConfigFlagsAlign14,
-      _TASyncConfigFlagsAlign15,
-      _TASyncConfigFlagsAlign16,
-      _TASyncConfigFlagsAlign17,
-      _TASyncConfigFlagsAlign18,
-      _TASyncConfigFlagsAlign19,
-      _TASyncConfigFlagsAlign20,
-      _TASyncConfigFlagsAlign21,
-      _TASyncConfigFlagsAlign22,
-      _TASyncConfigFlagsAlign23,
-      _TASyncConfigFlagsAlign24,
-      _TASyncConfigFlagsAlign25,
-      _TASyncConfigFlagsAlign26,
-      _TASyncConfigFlagsAlign27,
-      _TASyncConfigFlagsAlign28,
-      _TASyncConfigFlagsAlign29,
-      _TASyncConfigFlagsAlign30,
-      _TASyncConfigFlagsAlign31,
-      _TASyncConfigFlagsAlign32,
-      _TASyncConfigFlagsAlign33,
-      _TASyncConfigFlagsAlign34,
-      _TASyncConfigFlagsAlign35,
-      _TASyncConfigFlagsAlign36,
-      _TASyncConfigFlagsAlign37,
-      _TASyncConfigFlagsAlign38,
-      _TASyncConfigFlagsAlign39,
-      _TASyncConfigFlagsAlign40,
-      _TASyncConfigFlagsAlign41,
-      _TASyncConfigFlagsAlign42,
-      _TASyncConfigFlagsAlign43,
-      _TASyncConfigFlagsAlign44,
-      _TASyncConfigFlagsAlign45,
-      _TASyncConfigFlagsAlign46,
-      _TASyncConfigFlagsAlign47,
-      _TASyncConfigFlagsAlign48,
-      _TASyncConfigFlagsAlign49,
-      _TASyncConfigFlagsAlign50,
-      _TASyncConfigFlagsAlign51,
-      _TASyncConfigFlagsAlign52,
-      _TASyncConfigFlagsAlign53,
-      _TASyncConfigFlagsAlign54,
-      _TASyncConfigFlagsAlign55,
-      _TASyncConfigFlagsAlign56,
-      _TASyncConfigFlagsAlign57,
-      _TASyncConfigFlagsAlign58,
-      _TASyncConfigFlagsAlign59,
-      _TASyncConfigFlagsAlign60,
-      _TASyncConfigFlagsAlign61,
-      _TASyncConfigFlagsAlign62,
-      _TASyncConfigFlagsAlign63,
-      _TASyncConfigFlagsAlign64
-{$ENDIF}
     );
 
   _ASYNCCONFIGW = record
@@ -1258,7 +889,7 @@ type
     SpecificName: NASISPECIFICNAMEW;
     UserName: NASIUSERNAMEW;
     PassWord: NASIPASSWORDW;
-    SessionName: NASISESSIONNAMEW;   // Error in winsta.h NASISESIONNAMEW
+    SessionName: NASISESSIONNAMEW;   // Error in winsta.h NASISESIONNAMEW 
     FileServer: NASIFILESERVERW;
     GlobalSession: BOOLEAN;
   end {_NASICONFIGW};
@@ -1489,43 +1120,7 @@ type
 type
   TWinStationCreateFlags = Set Of (
     fEnableWinStation,
-{$IFDEF DELPHI6_UP}
     _TWinStationCreateFlagsAlign = al32Bit
-{$ELSE}
-    _TWinStationCreateFlagsAlign1,
-    _TWinStationCreateFlagsAlign2,
-    _TWinStationCreateFlagsAlign3,
-    _TWinStationCreateFlagsAlign4,
-    _TWinStationCreateFlagsAlign5,
-    _TWinStationCreateFlagsAlign6,
-    _TWinStationCreateFlagsAlign7,
-    _TWinStationCreateFlagsAlign8,
-    _TWinStationCreateFlagsAlign9,
-    _TWinStationCreateFlagsAlign10,
-    _TWinStationCreateFlagsAlign11,
-    _TWinStationCreateFlagsAlign12,
-    _TWinStationCreateFlagsAlign13,
-    _TWinStationCreateFlagsAlign14,
-    _TWinStationCreateFlagsAlign15,
-    _TWinStationCreateFlagsAlign16,
-    _TWinStationCreateFlagsAlign17,
-    _TWinStationCreateFlagsAlign18,
-    _TWinStationCreateFlagsAlign19,
-    _TWinStationCreateFlagsAlign20,
-    _TWinStationCreateFlagsAlign21,
-    _TWinStationCreateFlagsAlign22,
-    _TWinStationCreateFlagsAlign23,
-    _TWinStationCreateFlagsAlign24,
-    _TWinStationCreateFlagsAlign25,
-    _TWinStationCreateFlagsAlign26,
-    _TWinStationCreateFlagsAlign27,
-    _TWinStationCreateFlagsAlign28,
-    _TWinStationCreateFlagsAlign29,
-    _TWinStationCreateFlagsAlign30,
-    _TWinStationCreateFlagsAlign31,
-    _TWinStationCreateFlagsAlign32
-
-{$ENDIF}
   );
 
   _WINSTATIONCREATEW = record
@@ -1559,16 +1154,16 @@ type
   _WINSTATIONCONFIGW = record
     Comment: Array[0..WINSTATIONCOMMENT_LENGTH] of WCHAR;
     User: USERCONFIGW;
-    OEMId: Array[0..3] of AnsiChar;
+    OEMId: Array[0..3] of Char;
   end {_WINSTATIONCONFIGW};
   WINSTATIONCONFIGW = _WINSTATIONCONFIGW;
   PWINSTATIONCONFIGW = ^_WINSTATIONCONFIGW;
 
 type
   _WINSTATIONCONFIGA = record
-    Comment: Array[0..WINSTATIONCOMMENT_LENGTH] of AnsiChar;
+    Comment: Array[0..WINSTATIONCOMMENT_LENGTH] of Char;
     User: USERCONFIGA;
-    OEMId: Array[0..3] of AnsiChar;
+    OEMId: Array[0..3] of Char;
   end {_WINSTATIONCONFIGA};
   WINSTATIONCONFIGA = _WINSTATIONCONFIGA;
   PWINSTATIONCONFIGA = ^_WINSTATIONCONFIGA;
@@ -1705,54 +1300,19 @@ type
 {-* WinStation client data structure }
 {= }
   TWinStationClientFlags = Set Of (
-    fTextOnly,                                         //: 1
-    fDisableCtrlAltDel,                                //: 1
-    fMouse,                                            //: 1
-    fDoubleClickDetect,                                //: 1
-    fINetClient,                                       //: 1
-    fWinStationClientPromptForPassword,                //: 1
-    fMaximizeShell,                                    //: 1
-    fEnableWindowsKey,                                 //: 1
-    fRemoteConsoleAudio,                               //: 1
-    fWinStationClientPasswordIsScPin,                  //: 1
-    fNoAudioPlayback,                                  //: 1
-    fUsingSavedCreds,                                  //: 1
-{$IFDEF DELPHI6_UP}
+	  fTextOnly,                                         //: 1
+ 	  fDisableCtrlAltDel,                                //: 1
+ 	  fMouse,                                            //: 1
+ 	  fDoubleClickDetect,                                //: 1
+ 	  fINetClient,                                       //: 1
+ 	  fWinStationClientPromptForPassword,                //: 1
+ 	  fMaximizeShell,                                    //: 1
+ 	  fEnableWindowsKey,                                 //: 1
+ 	  fRemoteConsoleAudio,                               //: 1
+ 	  fWinStationClientPasswordIsScPin,                  //: 1
+ 	  fNoAudioPlayback,                                  //: 1
+ 	  fUsingSavedCreds,                                  //: 1
     _TWinStationClientFlagsAlign = al32Bit
-{$ELSE}
-    _TWinStationClientFlagsAlign1,
-    _TWinStationClientFlagsAlign2,
-    _TWinStationClientFlagsAlign3,
-    _TWinStationClientFlagsAlign4,
-    _TWinStationClientFlagsAlign5,
-    _TWinStationClientFlagsAlign6,
-    _TWinStationClientFlagsAlign7,
-    _TWinStationClientFlagsAlign8,
-    _TWinStationClientFlagsAlign9,
-    _TWinStationClientFlagsAlign10,
-    _TWinStationClientFlagsAlign11,
-    _TWinStationClientFlagsAlign12,
-    _TWinStationClientFlagsAlign13,
-    _TWinStationClientFlagsAlign14,
-    _TWinStationClientFlagsAlign15,
-    _TWinStationClientFlagsAlign16,
-    _TWinStationClientFlagsAlign17,
-    _TWinStationClientFlagsAlign18,
-    _TWinStationClientFlagsAlign19,
-    _TWinStationClientFlagsAlign20,
-    _TWinStationClientFlagsAlign21,
-    _TWinStationClientFlagsAlign22,
-    _TWinStationClientFlagsAlign23,
-    _TWinStationClientFlagsAlign24,
-    _TWinStationClientFlagsAlign25,
-    _TWinStationClientFlagsAlign26,
-    _TWinStationClientFlagsAlign27,
-    _TWinStationClientFlagsAlign28,
-    _TWinStationClientFlagsAlign29,
-    _TWinStationClientFlagsAlign30,
-    _TWinStationClientFlagsAlign31,
-    _TWinStationClientFlagsAlign32
-{$ENDIF}
   );
 
 type
@@ -1803,16 +1363,16 @@ type
 type
   _WINSTATIONCLIENTA = record
     WinStationClientFlags: TWinStationClientFlags;
-    ClientName: Array[0..CLIENTNAME_LENGTH] of AnsiChar;
-    Domain: Array[0..DOMAIN_LENGTH] of AnsiChar;
-    UserName: Array[0..USERNAME_LENGTH] of AnsiChar;
-    Password: Array[0..PASSWORD_LENGTH] of AnsiChar;
-    WorkDirectory: Array[0..DIRECTORY_LENGTH] of AnsiChar;
-    InitialProgram: Array[0..INITIALPROGRAM_LENGTH] of AnsiChar;
+    ClientName: Array[0..CLIENTNAME_LENGTH] of Char;
+    Domain: Array[0..DOMAIN_LENGTH] of Char;
+    UserName: Array[0..USERNAME_LENGTH] of Char;
+    Password: Array[0..PASSWORD_LENGTH] of Char;
+    WorkDirectory: Array[0..DIRECTORY_LENGTH] of Char;
+    InitialProgram: Array[0..INITIALPROGRAM_LENGTH] of Char;
     SerialNumber: ULONG;
     EncryptionLevel: BYTE;
     ClientAddressFamily: ULONG;
-    ClientAddress: Array[0..CLIENTADDRESS_LENGTH] of AnsiChar;
+    ClientAddress: Array[0..CLIENTADDRESS_LENGTH] of Char;
     HRes: USHORT;
     VRes: USHORT;
     ColorDepth: USHORT;
@@ -1821,20 +1381,20 @@ type
     KeyboardType: ULONG;
     KeyboardSubType: ULONG;
     KeyboardFunctionKey: ULONG;
-    imeFileName: Array[0..IMEFILENAME_LENGTH] of AnsiChar;
-    ClientDirectory: Array[0..DIRECTORY_LENGTH] of AnsiChar;
-    ClientLicense: Array[0..CLIENTLICENSE_LENGTH] of AnsiChar;
-    ClientModem: Array[0..CLIENTMODEM_LENGTH] of AnsiChar;
+    imeFileName: Array[0..IMEFILENAME_LENGTH] of Char;
+    ClientDirectory: Array[0..DIRECTORY_LENGTH] of Char;
+    ClientLicense: Array[0..CLIENTLICENSE_LENGTH] of Char;
+    ClientModem: Array[0..CLIENTMODEM_LENGTH] of Char;
     ClientBuildNumber: ULONG;
     ClientHardwareId: ULONG;
     ClientProductId: USHORT;
     OutBufCountHost: USHORT;
     OutBufCountClient: USHORT;
     OutBufLength: USHORT;
-    AudioDriverName: Array[0..8] of AnsiChar;
+    AudioDriverName: Array[0..8] of Char;
     ClientTimeZone: TS_TIME_ZONE_INFORMATION;
     ClientSessionId: ULONG;
-    clientDigProductId: Array[0..CLIENT_PRODUCT_ID_LENGTH-1] of AnsiChar;
+    clientDigProductId: Array[0..CLIENT_PRODUCT_ID_LENGTH-1] of Char;
     PerformanceFlags: ULONG;
     ActiveInputLocale: ULONG;
   end {_WINSTATIONCLIENTA};
@@ -1992,8 +1552,8 @@ type
     LastInputTime: LARGE_INTEGER;
     LogonTime: LARGE_INTEGER;
     Status: PROTOCOLSTATUS;
-    Domain: Array[0..DOMAIN_LENGTH] of AnsiChar;
-    UserName: Array[0..USERNAME_LENGTH] of AnsiChar;
+    Domain: Array[0..DOMAIN_LENGTH] of Char;
+    UserName: Array[0..USERNAME_LENGTH] of Char;
     CurrentTime: LARGE_INTEGER;
   end {_WINSTATIONINFORMATIONA};
   WINSTATIONINFORMATIONA = _WINSTATIONINFORMATIONA;
@@ -2044,7 +1604,7 @@ type
 
 type
   _SHADOWSTATECLASS = (
-    State_NoShadow,
+    State_NoShadow, 
     State_Shadowing,
     State_Shadowed );
   SHADOWSTATECLASS = _SHADOWSTATECLASS;
@@ -2078,9 +1638,9 @@ type
 
 type
   _WINSTATIONPRODIDA = record
-    DigProductId: Array[0..CLIENT_PRODUCT_ID_LENGTH-1] of AnsiChar;
-    ClientDigProductId: Array[0..CLIENT_PRODUCT_ID_LENGTH-1] of AnsiChar;
-    OuterMostDigProductId: Array[0..CLIENT_PRODUCT_ID_LENGTH-1] of AnsiChar;
+    DigProductId: Array[0..CLIENT_PRODUCT_ID_LENGTH-1] of Char;
+    ClientDigProductId: Array[0..CLIENT_PRODUCT_ID_LENGTH-1] of Char;
+    OuterMostDigProductId: Array[0..CLIENT_PRODUCT_ID_LENGTH-1] of Char;
     curentSessionId: ULONG;
     ClientSessionId: ULONG;
     OuterMostSessionId: ULONG;
@@ -2095,12 +1655,6 @@ type
   WINSTATIONPRODID = WINSTATIONPRODIDA;
   PWINSTATIONPRODID = PWINSTATIONPRODIDA;
 {$ENDIF /* UNICODE*/}
-  _WINSTATION_REMOTE_ADDRESS = record
-    AddressFamily: DWORD;
-    Port: WORD;
-    Address: array [0..19] of BYTE;
-    Reserved: array[0..5] of BYTE;
-  end;
 
   Tipv4 = record
     sin_family: Word;
@@ -2115,13 +1669,6 @@ type
     sin6_addr: Array[0..7] of USHORT;
     sin6_scope_id: ULONG;
   end {ipv6};
-
-  type _WINSTATIONREMOTEADDRESS = record
-    case sin_family: USHORT of
-      AF_INET:  (ipv4: TIPv4);
-      AF_INET6: (ipv6: TIPv6);
-  end;
-
 
 {+//------------------------------------------------*/ }
 {+// }
@@ -2182,7 +1729,7 @@ const
 {$IFNDEF JWA_INCLUDEMODE}
   IDTIMEOUT = 32000;
   IDASYNC = 32001;
-{$ENDIF JWA_INCLUDEMODE}
+{$ENDIF JWA_INCLUDEMODE}  
   WSD_LOGOFF = $00000001;
   WSD_SHUTDOWN = $00000002;
   WSD_REBOOT = $00000004;
@@ -2200,7 +1747,7 @@ const
   WTS_SESSION_LOCK = $7;
   WTS_SESSION_UNLOCK = $8;
   WTS_SESSION_REMOTE_CONTROL = $9;
-{$ENDIF JWA_INCLUDEMODE}
+{$ENDIF JWA_INCLUDEMODE}  
 
 
 // We cannot convert the CREATE_MASK macro below to Delphi

@@ -52,12 +52,12 @@ unit JwaIAccess;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 interface
 
 uses
-  JwaAccCtrl, JwaWinType, ActiveX;
+  JwaAccCtrl, JwaWinType;
 {$ENDIF JWA_OMIT_SECTIONS}
 
 
@@ -80,13 +80,8 @@ type
   PActrlAuditWAllocateAllNodes = PACTRL_AUDITW_ALLOCATE_ALL_NODES;
 
 const
-  IID_IAccessControl : TGUID = '{EEDD23E0-8410-11CE-A1C3-08002B2B8D8F}';
+  IID_IAccessControl = '{EEDD23E0-8410-11CE-A1C3-08002B2B8D8F}';
   {$EXTERNALSYM IID_IAccessControl}
-  Class_AccessControl : TGUID     = '{0000031D-0000-0000-C000-000000000046}';
-  CLSID_DCOMAccessControl : TGUID = '{0000031D-0000-0000-C000-000000000046}';
-  {$EXTERNALSYM CLSID_DCOMAccessControl}
-
-
 
 type
   IAccessControl = interface (IUnknown)
@@ -99,11 +94,6 @@ type
     function IsAccessAllowed(pTrustee: PTRUSTEEW; lpProperty: LPWSTR; AccessRights: ACCESS_RIGHTS; var pfAccessAllowed: BOOL): HRESULT; stdcall;
   end;
   {$EXTERNALSYM IAccessControl}
-
-  //This is merely a helper function to return a class pointer to an IAccessControl interface
-  //It is not implemented in the Win32API
-  //Use OleCheck to check result.
-  function HelperCreateAccessControl(out AccessControl : IAccessControl) : HRESULT;
 
 {****************************************************************************
  *  Storage audit control interface
@@ -140,12 +130,6 @@ implementation
 
 {$IFNDEF JWA_INTERFACESECTION}
 //your implementation here
-function HelperCreateAccessControl(out AccessControl : IAccessControl) : HRESULT;
-begin
-  AccessControl := nil;
-  result := CoCreateInstance(CLSID_DCOMAccessControl, nil, CLSCTX_INPROC_SERVER, IID_IAccessControl, AccessControl);
-end;
-
 {$ENDIF JWA_INTERFACESECTION}
 
 
@@ -153,3 +137,4 @@ end;
 {$IFNDEF JWA_OMIT_SECTIONS}
 end.
 {$ENDIF JWA_OMIT_SECTIONS}
+

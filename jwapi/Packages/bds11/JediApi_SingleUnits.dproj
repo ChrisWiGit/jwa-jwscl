@@ -31,10 +31,10 @@
     <DCC_ObjOutput>bin\single</DCC_ObjOutput>
     <DCC_HppOutput>bin\single</DCC_HppOutput>
     <DCC_BplOutput>bin\single</DCC_BplOutput>
-    <DCC_UnitSearchPath>..\..\common;..\..\includes;..\..\win32api</DCC_UnitSearchPath>
-    <DCC_ResourcePath>..\..\common;..\..\includes;..\..\win32api</DCC_ResourcePath>
-    <DCC_ObjPath>..\..\common;..\..\includes;..\..\win32api</DCC_ObjPath>
-    <DCC_IncludePath>..\..\common;..\..\includes;..\..\win32api</DCC_IncludePath>
+    <DCC_UnitSearchPath>.;..\;..\..\common;..\..\Win32Api</DCC_UnitSearchPath>
+    <DCC_ResourcePath>.;..\;..\..\common;..\..\Win32Api</DCC_ResourcePath>
+    <DCC_ObjPath>.;..\;..\..\common;..\..\Win32Api</DCC_ObjPath>
+    <DCC_IncludePath>.;..\;..\..\common;..\..\Win32Api</DCC_IncludePath>
     <DCC_Define>USE_DELPHI_TYPES;DEBUG</DCC_Define>
     <DCC_GARBAGE>False</DCC_GARBAGE>
   </PropertyGroup>
@@ -49,6 +49,9 @@
     <DelphiCompile Include="JediApi_SingleUnits.dpk">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
+    <DCCReference Include="$(SystemRoot)\system32\rtl.dcp" />
+    <DCCReference Include="$(SystemRoot)\system32\vcl.dcp" />
+    <DCCReference Include="$(SystemRoot)\system32\vclie.dcp" />
     <DCCReference Include="..\..\win32Api\JwaAccCtrl.pas" />
     <DCCReference Include="..\..\Win32API\JwaAclApi.pas" />
     <DCCReference Include="..\..\Win32API\JwaAclUI.pas" />
@@ -68,7 +71,6 @@
     <DCCReference Include="..\..\Win32API\JwaAuthz.pas" />
     <DCCReference Include="..\..\Win32API\JwaBatClass.pas" />
     <DCCReference Include="..\..\Win32API\JwaBCrypt.pas" />
-    <DCCReference Include="..\..\Win32API\JwaBitFields.pas" />
     <DCCReference Include="..\..\Win32API\JwaBits.pas" />
     <DCCReference Include="..\..\Win32API\JwaBits1_5.pas" />
     <DCCReference Include="..\..\Win32API\JwaBitscfg.pas" />

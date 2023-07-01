@@ -14,7 +14,7 @@ package JediApi_StaticDebug;
 {$OPTIMIZATION OFF}
 {$OVERFLOWCHECKS OFF}
 {$RANGECHECKS OFF}
-{$REFERENCEINFO OFF}
+{$REFERENCEINFO ON}
 {$SAFEDIVIDE OFF}
 {$STACKFRAMES OFF}
 {$TYPEDADDRESS OFF}
@@ -27,17 +27,15 @@ package JediApi_StaticDebug;
 {$IMPLICITBUILD OFF}
 {$DEFINE PACKAGE_CONDITIONS}
 {$DEFINE JWA_INCLUDE_SETUP_API}
-{$DEFINE DEBUG}
 {$DEFINE JWA_INCLUDE_JWAADSTLB}
-{$DEFINE WINVISTA_UP}
-{$DEFINE JWA_INCLUDE_SHELLAPI}
+{$DEFINE DEBUG}
 
 requires
   rtl,
   vcl;
 
 contains
-  JwaWindows in '..\..\Win32API\JwaWindows\JwaWindows.pas',
+  JwaWindows in '..\..\Win32API\JwaWindows.pas',
   JwaVista in '..\..\Win32API\JwaVista.pas';
 
 end.

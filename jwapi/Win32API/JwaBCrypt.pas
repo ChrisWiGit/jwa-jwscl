@@ -5,15 +5,15 @@
 { Portions created by Microsoft are Copyright (C) 1995-2005 Microsoft          }
 { Corporation. All Rights Reserved.                                            }
 {                                                                              }
-{ The initial developer of the original translation is Rudy Velthuis           }
+{ The initial developer of the original translation is Rudy Velthuis		   }
 {                                                                              }
 { Portions created by Rudy Velthuis are Copyright (C) 2005-2008                }
-{ All Rights Reserved.                                                         }
+{ All Rights Reserved.                                      				   }
 {                                                                              }
 { Adapted for JEDI API Library by Christian Wimmer                             }
 {                                                                              }
 { Obtained through: Joint Endeavour of Delphi Innovators (Project JEDI)        }
-{ The original code is: bcrypt.h, released 1992-1999.                          }
+{ The original code is: bcrypt.h, released 1992-1999.             			   }
 {                                                                              }
 { You may retrieve the latest version of this file at the Project JEDI         }
 { APILIB home page, located at http://jedi-apilib.sourceforge.net              }
@@ -43,19 +43,14 @@
 {$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaBCrypt;
 
-{$IFDEF DELPHI6_UP}
 {$ALIGN 8}
-{$ELSE}
-{$A+}
-//Warning: Record alignment 4
-{$ENDIF DELPHI6_UP}
-{$I ..\Includes\JediAPILib.inc}
+
 interface
 
 uses
   JwaWinType, JwaNtStatus, JwaWinBase, JwaWinCrypt;
 
-
+ 
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
@@ -76,7 +71,7 @@ const
 //
 // For BCRYPT_KDF_HASH and BCRYPT_KDF_HMAC operations, there may be an arbitrary
 // number of KDF_SECRET_PREPEND and KDF_SECRET_APPEND buffertypes in the
-// parameter list.  The BufferTypes are processed in order of appearence
+// parameter list.  The BufferTypes are processed in order of appearence 
 // within the parameter list.
 //
   {$EXTERNALSYM KDF_HASH_ALGORITHM}
@@ -418,7 +413,7 @@ const
   {$EXTERNALSYM BCRYPT_ECDSA_PRIVATE_P521_MAGIC}
   BCRYPT_ECDSA_PRIVATE_P521_MAGIC = $36534345;  // ECS6
 
-type
+type  
   PBCryptECCKeyBlob = ^TBCryptECCKeyBlob;
   {$EXTERNALSYM _BCRYPT_ECCKEY_BLOB}
   _BCRYPT_ECCKEY_BLOB = record
@@ -1233,7 +1228,59 @@ uses JwaWinDLLNames;
 {$IFNDEF JWA_INTERFACESECTION}
 
 
-{$IFDEF DYNAMIC_LINK}
+{$IFNDEF DYNAMIC_LINK}
+
+function BCryptOpenAlgorithmProvider; external bcryptdll name 'BCryptOpenAlgorithmProvider';
+function BCryptEnumAlgorithms; external bcryptdll name 'BCryptEnumAlgorithms';
+function BCryptEnumProviders; external bcryptdll name 'BCryptEnumProviders';
+function BCryptGetProperty; external bcryptdll name 'BCryptGetProperty';
+function BCryptSetProperty; external bcryptdll name 'BCryptSetProperty';
+function BCryptCloseAlgorithmProvider; external bcryptdll name 'BCryptCloseAlgorithmProvider';
+procedure BCryptFreeBuffer; external bcryptdll name 'BCryptFreeBuffer'; 
+function BCryptGenerateSymmetricKey; external bcryptdll name 'BCryptGenerateSymmetricKey';
+function BCryptGenerateKeyPair; external bcryptdll name 'BCryptGenerateKeyPair';
+function BCryptEncrypt; external bcryptdll name 'BCryptEncrypt';
+function BCryptDecrypt; external bcryptdll name 'BCryptDecrypt';
+function BCryptExportKey; external bcryptdll name 'BCryptExportKey';
+function BCryptImportKey; external bcryptdll name 'BCryptImportKey';
+function BCryptImportKeyPair; external bcryptdll name 'BCryptImportKeyPair';
+function BCryptDuplicateKey; external bcryptdll name 'BCryptDuplicateKey';
+function BCryptFinalizeKeyPair; external bcryptdll name 'BCryptFinalizeKeyPair';
+function BCryptDestroyKey; external bcryptdll name 'BCryptDestroyKey';
+function BCryptDestroySecret; external bcryptdll name 'BCryptDestroySecret';
+function BCryptSignHash; external bcryptdll name 'BCryptSignHash';
+function BCryptVerifySignature; external bcryptdll name 'BCryptVerifySignature';
+function BCryptSecretAgreement; external bcryptdll name 'BCryptSecretAgreement';
+function BCryptDeriveKey; external bcryptdll name 'BCryptDeriveKey';
+function BCryptCreateHash; external bcryptdll name 'BCryptCreateHash';
+function BCryptHashData; external bcryptdll name 'BCryptHashData';
+function BCryptFinishHash; external bcryptdll name 'BCryptFinishHash';
+function BCryptDuplicateHash; external bcryptdll name 'BCryptDuplicateHash';
+function BCryptDestroyHash; external bcryptdll name 'BCryptDestroyHash';
+function BCryptGenRandom; external bcryptdll name 'BCryptGenRandom';
+function BCryptRegisterConfigChangeNotify; external bcryptdll name 'BCryptRegisterConfigChangeNotify';
+function BCryptUnregisterConfigChangeNotify; external bcryptdll name 'BCryptUnregisterConfigChangeNotify';
+function BCryptResolveProviders; external bcryptdll name 'BCryptResolveProviders';
+function BCryptGetFipsAlgorithmMode; external bcryptdll name 'BCryptGetFipsAlgorithmMode';
+
+
+function BCryptQueryProviderRegistration; external bcryptdll name 'BCryptQueryProviderRegistration';
+function BCryptEnumRegisteredProviders; external bcryptdll name 'BCryptEnumRegisteredProviders';
+function BCryptCreateContext; external bcryptdll name 'BCryptCreateContext';
+function BCryptDeleteContext; external bcryptdll name 'BCryptDeleteContext';
+function BCryptEnumContexts; external bcryptdll name 'BCryptEnumContexts';
+function BCryptConfigureContext; external bcryptdll name 'BCryptConfigureContext';
+function BCryptQueryContextConfiguration; external bcryptdll name 'BCryptQueryContextConfiguration';
+function BCryptAddContextFunction; external bcryptdll name 'BCryptAddContextFunction';
+function BCryptRemoveContextFunction; external bcryptdll name 'BCryptRemoveContextFunction';
+function BCryptEnumContextFunctions; external bcryptdll name 'BCryptEnumContextFunctions';
+function BCryptConfigureContextFunction; external bcryptdll name 'BCryptConfigureContextFunction';
+function BCryptQueryContextFunctionConfiguration; external bcryptdll name 'BCryptConfigureContextFunction';
+function BCryptEnumContextFunctionProviders; external bcryptdll name 'BCryptEnumContextFunctionProviders';
+function BCryptSetContextFunctionProperty; external bcryptdll name 'BCryptSetContextFunctionProperty';
+function BCryptQueryContextFunctionProperty; external bcryptdll name 'BCryptQueryContextFunctionProperty';
+
+{$ELSE}
 
 var
   _BCryptOpenAlgorithmProvider: Pointer;
@@ -1600,30 +1647,28 @@ begin
 end;
 
 var
-  //_BCryptRegisterConfigChangeNotify: Pointer;
-  _BCryptRegisterConfigCN: Pointer;
+  _BCryptRegisterConfigChangeNotify: Pointer;
 
 function BCryptRegisterConfigChangeNotify;
 begin
-  GetProcedureAddress(_BCryptRegisterConfigCN, bcryptdll, 'BCryptRegisterConfigChangeNotify');
+  GetProcedureAddress(_BCryptRegisterConfigChangeNotify, bcryptdll, 'BCryptRegisterConfigChangeNotify');
   asm
         MOV     ESP, EBP
         POP     EBP
-        JMP     [_BCryptRegisterConfigCN]
+        JMP     [_BCryptRegisterConfigChangeNotify]
   end;
 end;
 
 var
-  //_BCryptUnregisterConfigChangeNotify: Pointer;
-  _BCryptUnregisterConfigCN: Pointer;
+  _BCryptUnregisterConfigChangeNotify: Pointer;
 
 function BCryptUnregisterConfigChangeNotify;
 begin
-  GetProcedureAddress(_BCryptUnregisterConfigCN, bcryptdll, 'BCryptUnregisterConfigChangeNotify');
+  GetProcedureAddress(_BCryptUnregisterConfigChangeNotify, bcryptdll, 'BCryptUnregisterConfigChangeNotify');
   asm
         MOV     ESP, EBP
         POP     EBP
-        JMP     [_BCryptUnregisterConfigCN]
+        JMP     [_BCryptUnregisterConfigChangeNotify]
   end;
 end;
 
@@ -1797,112 +1842,56 @@ begin
 end;
 
 var
-  //_BCryptQueryContextFunctionConfiguration: Pointer;
-  _BCryptQueryContextFC: Pointer;
+  _BCryptQueryContextFunctionConfiguration: Pointer;
 
 function BCryptQueryContextFunctionConfiguration;
 begin
-  GetProcedureAddress(_BCryptQueryContextFC, bcryptdll, 'BCryptQueryContextFunctionConfiguration');
+  GetProcedureAddress(_BCryptQueryContextFunctionConfiguration, bcryptdll, 'BCryptQueryContextFunctionConfiguration');
   asm
         MOV     ESP, EBP
         POP     EBP
-        JMP     [_BCryptQueryContextFC]
+        JMP     [_BCryptQueryContextFunctionConfiguration]
   end;
 end;
 
 var
-  //_BCryptEnumContextFunctionProviders: Pointer;
-  _BCryptEnumContextFP: Pointer;
+  _BCryptEnumContextFunctionProviders: Pointer;
 
 function BCryptEnumContextFunctionProviders;
 begin
-  GetProcedureAddress(_BCryptEnumContextFP, bcryptdll, 'BCryptEnumContextFunctionProviders');
+  GetProcedureAddress(_BCryptEnumContextFunctionProviders, bcryptdll, 'BCryptEnumContextFunctionProviders');
   asm
         MOV     ESP, EBP
         POP     EBP
-        JMP     [_BCryptEnumContextFP]
+        JMP     [_BCryptEnumContextFunctionProviders]
   end;
 end;
 
 var
-  //_BCryptSetContextFunctionProperty: Pointer;
-  _BCryptSetContextFP: Pointer;
+  _BCryptSetContextFunctionProperty: Pointer;
 
 function BCryptSetContextFunctionProperty;
 begin
-  GetProcedureAddress(_BCryptSetContextFP, bcryptdll, 'BCryptSetContextFunctionProperty');
+  GetProcedureAddress(_BCryptSetContextFunctionProperty, bcryptdll, 'BCryptSetContextFunctionProperty');
   asm
         MOV     ESP, EBP
         POP     EBP
-        JMP     [_BCryptSetContextFP]
+        JMP     [_BCryptSetContextFunctionProperty]
   end;
 end;
 
 var
-  //_BCryptQueryContextFunctionProperty: Pointer;
-  _BCryptQueryContextFP: Pointer;
+  _BCryptQueryContextFunctionProperty: Pointer;
 
 function BCryptQueryContextFunctionProperty;
 begin
-  GetProcedureAddress(_BCryptQueryContextFP, bcryptdll, 'BCryptQueryContextFunctionProperty');
+  GetProcedureAddress(_BCryptQueryContextFunctionProperty, bcryptdll, 'BCryptQueryContextFunctionProperty');
   asm
         MOV     ESP, EBP
         POP     EBP
-        JMP     [_BCryptQueryContextFP]
+        JMP     [_BCryptQueryContextFunctionProperty]
   end;
 end;
-
-{$ELSE}
-
-function BCryptOpenAlgorithmProvider; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptOpenAlgorithmProvider';
-function BCryptEnumAlgorithms; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptEnumAlgorithms';
-function BCryptEnumProviders; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptEnumProviders';
-function BCryptGetProperty; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptGetProperty';
-function BCryptSetProperty; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptSetProperty';
-function BCryptCloseAlgorithmProvider; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptCloseAlgorithmProvider';
-procedure BCryptFreeBuffer; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptFreeBuffer';
-function BCryptGenerateSymmetricKey; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptGenerateSymmetricKey';
-function BCryptGenerateKeyPair; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptGenerateKeyPair';
-function BCryptEncrypt; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptEncrypt';
-function BCryptDecrypt; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptDecrypt';
-function BCryptExportKey; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptExportKey';
-function BCryptImportKey; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptImportKey';
-function BCryptImportKeyPair; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptImportKeyPair';
-function BCryptDuplicateKey; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptDuplicateKey';
-function BCryptFinalizeKeyPair; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptFinalizeKeyPair';
-function BCryptDestroyKey; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptDestroyKey';
-function BCryptDestroySecret; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptDestroySecret';
-function BCryptSignHash; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptSignHash';
-function BCryptVerifySignature; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptVerifySignature';
-function BCryptSecretAgreement; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptSecretAgreement';
-function BCryptDeriveKey; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptDeriveKey';
-function BCryptCreateHash; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptCreateHash';
-function BCryptHashData; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptHashData';
-function BCryptFinishHash; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptFinishHash';
-function BCryptDuplicateHash; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptDuplicateHash';
-function BCryptDestroyHash; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptDestroyHash';
-function BCryptGenRandom; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptGenRandom';
-function BCryptRegisterConfigChangeNotify; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptRegisterConfigChangeNotify';
-function BCryptUnregisterConfigChangeNotify; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptUnregisterConfigChangeNotify';
-function BCryptResolveProviders; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptResolveProviders';
-function BCryptGetFipsAlgorithmMode; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptGetFipsAlgorithmMode';
-
-
-function BCryptQueryProviderRegistration; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptQueryProviderRegistration';
-function BCryptEnumRegisteredProviders; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptEnumRegisteredProviders';
-function BCryptCreateContext; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptCreateContext';
-function BCryptDeleteContext; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptDeleteContext';
-function BCryptEnumContexts; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptEnumContexts';
-function BCryptConfigureContext; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptConfigureContext';
-function BCryptQueryContextConfiguration; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptQueryContextConfiguration';
-function BCryptAddContextFunction; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptAddContextFunction';
-function BCryptRemoveContextFunction; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptRemoveContextFunction';
-function BCryptEnumContextFunctions; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptEnumContextFunctions';
-function BCryptConfigureContextFunction; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptConfigureContextFunction';
-function BCryptQueryContextFunctionConfiguration; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptConfigureContextFunction';
-function BCryptEnumContextFunctionProviders; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptEnumContextFunctionProviders';
-function BCryptSetContextFunctionProperty; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptSetContextFunctionProperty';
-function BCryptQueryContextFunctionProperty; external bcryptdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'BCryptQueryContextFunctionProperty';
 
 
 {$ENDIF DYNAMIC_LINK}
@@ -1931,3 +1920,4 @@ end;
 
 end.
 {$ENDIF JWA_OMIT_SECTIONS}
+

@@ -52,7 +52,7 @@ unit JwaSensAPI;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 interface
 
@@ -174,10 +174,10 @@ end;
 
 {$ELSE}
 
-function IsDestinationReachableA; external sensapilib {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'IsDestinationReachableA';
-function IsDestinationReachableW; external sensapilib {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'IsDestinationReachableW';
-function IsDestinationReachable; external sensapilib {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'IsDestinationReachable' + AWSuffix;
-function IsNetworkAlive; external sensapilib {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'IsNetworkAlive';
+function IsDestinationReachableA; external sensapilib name 'IsDestinationReachableA';
+function IsDestinationReachableW; external sensapilib name 'IsDestinationReachableW';
+function IsDestinationReachable; external sensapilib name 'IsDestinationReachable' + AWSuffix;
+function IsNetworkAlive; external sensapilib name 'IsNetworkAlive';
 
 {$ENDIF DYNAMIC_LINK}
 

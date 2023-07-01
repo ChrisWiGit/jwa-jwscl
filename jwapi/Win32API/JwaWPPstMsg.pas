@@ -52,7 +52,7 @@ unit JwaWPPstMsg;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 interface
 
@@ -172,3 +172,4 @@ implementation
 {$IFNDEF JWA_OMIT_SECTIONS}
 end.
 {$ENDIF JWA_OMIT_SECTIONS}
+

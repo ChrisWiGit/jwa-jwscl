@@ -53,7 +53,7 @@ unit JwaLmAudit;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS_LM}
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 interface
 
@@ -65,7 +65,28 @@ uses
 
 {$IFNDEF JWA_INCLUDEMODE}
 
-{$INCLUDE ..\Includes\JediLMHLOG.inc}
+type
+  _HLOG = record
+    time: DWORD;
+    last_flags: DWORD;
+    offset: DWORD;
+    rec_offset: DWORD;
+  end;
+  {$EXTERNALSYM _HLOG}
+  HLOG = _HLOG;
+  {$EXTERNALSYM HLOG}
+  LPHLOG = ^HLOG;
+  {$EXTERNALSYM LPHLOG}
+  PHLOG = ^HLOG;
+  {$EXTERNALSYM PHLOG}
+
+const
+  LOGFLAGS_FORWARD  = 0;
+  {$EXTERNALSYM LOGFLAGS_FORWARD}
+  LOGFLAGS_BACKWARD = $1;
+  {$EXTERNALSYM LOGFLAGS_BACKWARD}
+  LOGFLAGS_SEEK     = $2;
+  {$EXTERNALSYM LOGFLAGS_SEEK}
 
 {$ENDIF JWA_INCLUDEMODE}
 
@@ -708,9 +729,9 @@ end;
 
 {$ELSE}
 
-function NetAuditClear; external netapi32 {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'NetAuditClear';
-function NetAuditRead; external netapi32 {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'NetAuditRead';
-function NetAuditWrite; external netapi32 {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'NetAuditWrite';
+function NetAuditClear; external netapi32 name 'NetAuditClear';
+function NetAuditRead; external netapi32 name 'NetAuditRead';
+function NetAuditWrite; external netapi32 name 'NetAuditWrite';
 
 {$ENDIF DYNAMIC_LINK}
 

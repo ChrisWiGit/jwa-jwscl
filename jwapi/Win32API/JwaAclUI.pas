@@ -54,7 +54,7 @@ unit JwaAclUI;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 interface
 
@@ -386,8 +386,8 @@ end;
 
 {$ELSE}
 
-function CreateSecurityPage; external acluilib {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'CreateSecurityPage';
-function EditSecurity; external acluilib {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'EditSecurity';
+function CreateSecurityPage; external acluilib name 'CreateSecurityPage';
+function EditSecurity; external acluilib name 'EditSecurity';
 
 {$ENDIF DYNAMIC_LINK}
 

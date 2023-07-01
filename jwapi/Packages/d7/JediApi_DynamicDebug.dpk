@@ -25,7 +25,6 @@ package JediApi_DynamicDebug;
 {$DESCRIPTION 'Jedi Windows Api JwaWindows Package Dynamic Debug'}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
-{$DEFINE WINVISTA}
 {$DEFINE PACKAGE_CONDITIONS}
 {$DEFINE JWA_INCLUDE_SETUP_API}
 {$DEFINE JWA_INCLUDE_JWAADSTLB}
@@ -39,7 +38,7 @@ requires
   vcl;
 
 contains
-  JwaWindows in '..\..\Win32API\JwaWindows\JwaWindows.pas',
+  JwaWindows in '..\..\Win32API\JwaWindows.pas',
   JwaVista in '..\..\Win32API\JwaVista.pas';
 
 end.

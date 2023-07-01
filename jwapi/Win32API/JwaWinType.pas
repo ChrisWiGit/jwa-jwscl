@@ -45,7 +45,7 @@
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaWinType;
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 {$WEAKPACKAGEUNIT}
 
@@ -83,34 +83,9 @@ type
   EJwaLoadLibraryError = class(EJwaError);
   EJwaGetProcAddressError = class(EJwaError);
 
-{GetProcedureAddress loads a function using a module name and an function name.
-WARNING: Do not load a function defined by its index like PAnsiChar(123) in ProcName.
- Instead simply use the number and thus the other GetProcedureAddress.
-}
-procedure GetProcedureAddress(var P: Pointer; const ModuleName, ProcName: AnsiString); overload;
-
-{GetProcedureAddress loads a function using a module name and an function index.}
-procedure GetProcedureAddress(var P: Pointer; const ModuleName : AnsiString; ProcNumber : Cardinal); overload;
+procedure GetProcedureAddress(var P: Pointer; const ModuleName, ProcName: AnsiString);
 
 type
-{$IFDEF DELPHI5}
-  PShortInt = ^ShortInt;
-  PSingle = ^Single;
-  PDouble = ^Double;
-  PPAnsiChar = ^PAnsiChar;
-{$IFNDEF JWA_OMIT_SECTIONS}
-  PLongint = ^Longint;
-  PCardinal = ^Cardinal;
-{$ENDIF JWA_OMIT_SECTIONS}
-{$ENDIF}
-
-{$IFNDEF COMPILER7_UP}
-  UInt64 = Int64;
-{$ENDIF}
-
-  SizeInt = {$IFDEF COMPILER16_UP} NativeInt {$ELSE} Longint {$ENDIF};
-  SizeUInt = {$IFDEF COMPILER16_UP} NativeUInt {$ELSE} Longword {$ENDIF};
-
   // (rom) moved from JwaRpc.pas
   RPC_STATUS = Longint;
   {$EXTERNALSYM RPC_STATUS}
@@ -150,12 +125,7 @@ type
 type
   LONGLONG = {$IFDEF USE_DELPHI_TYPES} Windows.LONGLONG {$ELSE} Int64 {$ENDIF};
   {$EXTERNALSYM LONGLONG}
-
-  {$IFDEF USE_DELPHI_TYPES}
-  ULONGLONG = {$IFDEF COMPILER12_UP} Windows.ULONGLONG {$ELSE} UInt64 {$ENDIF};
-  {$ELSE}
-  ULONGLONG = UInt64;
-  {$ENDIF}
+  ULONGLONG = Int64;
   {$EXTERNALSYM ULONGLONG}
 
 const
@@ -168,24 +138,6 @@ type
   PULONGLONG = ^ULONGLONG;
   {$EXTERNALSYM PULONGLONG}
 
-  {
-  WARNING!!!
-  Originally WinDef.h defines BOOL as an int type with 4 bytes.
-  However Delphi treats BOOL, boolean and Integer differently.
-  Here is ASM code how Delphi (7) sets a value to true:
-
-  fDelayedAutostart := true;
-  BOOL/LongBool
-    mov [d],$ffffffff   (infact it is -1)
-  Boolean
-    mov byte ptr [d],$01
-  Integer
-    fDelayedAutostart := Integer(True);
-    mov [d],$00000001
-
-  Some WinAPI functions like ChangeServiceConfig2 refuses -1 as a true value
-   (error 87- invalid parameter).
-  }
   BOOL = {$IFDEF USE_DELPHI_TYPES} Windows.BOOL {$ELSE} LongBool {$ENDIF};
   {$EXTERNALSYM BOOL}
 
@@ -249,11 +201,8 @@ type
   {$EXTERNALSYM LPUWSTR}
   PUWSTR = {$IFDEF USE_DELPHI_TYPES} Windows.LPWSTR {$ELSE} PWideChar {$ENDIF};
   {$EXTERNALSYM PUWSTR}
-{$IFDEF JWA_USE_INCORRECT_IDENTIFIERS}
-  LCPUWSTR = {$IFDEF USE_DELPHI_TYPES} Windows.LPWSTR {$ELSE} PWideChar {$ENDIF}; //This type does not exist in original headers
-{$ENDIF}
-  LPCUWSTR = {$IFDEF USE_DELPHI_TYPES} Windows.LPWSTR {$ELSE} PWideChar {$ENDIF};
-  {$EXTERNALSYM LPCUWSTR}
+  LCPUWSTR = {$IFDEF USE_DELPHI_TYPES} Windows.LPWSTR {$ELSE} PWideChar {$ENDIF};
+  {$EXTERNALSYM LCPUWSTR}
   PCUWSTR = {$IFDEF USE_DELPHI_TYPES} Windows.LPWSTR {$ELSE} PWideChar {$ENDIF};
   {$EXTERNALSYM PCUWSTR}
 
@@ -466,7 +415,7 @@ const
 //
 
 type
-  CCHAR = AnsiChar;
+  CCHAR = Char;
   {$EXTERNALSYM CCHAR}
   CSHORT = Shortint;
   {$EXTERNALSYM CSHORT}
@@ -681,7 +630,7 @@ type
   end;
   {$EXTERNALSYM _LUID}
   LUID = _LUID;
-  {$EXTERNALSYM LUID}
+  {$EXTERNALSYM LUID}  
   TLuid = LUID;
 
   DWORDLONG = ULONGLONG;
@@ -715,14 +664,13 @@ function Int32x32To64(a, b: LONG): LONGLONG;
 function UInt32x32To64(a, b: DWORD): ULONGLONG;
 {$EXTERNALSYM UInt32x32To64}
 
-{$IFDEF CPU386}
 function Int64ShllMod32(Value: ULONGLONG; ShiftCount: DWORD): ULONGLONG;
+
 {$EXTERNALSYM Int64ShllMod32}
 function Int64ShraMod32(Value: LONGLONG; ShiftCount: DWORD): LONGLONG;
 {$EXTERNALSYM Int64ShraMod32}
 function Int64ShrlMod32(Value: ULONGLONG; ShiftCount: DWORD): ULONGLONG;
 {$EXTERNALSYM Int64ShrlMod32}
-{$ENDIF}
 
 //
 // Event type
@@ -757,9 +705,9 @@ type
 // Pointer to an Asciiz string
 //
 
-  PSZ = ^AnsiChar;
+  PSZ = ^CHAR;
   {$EXTERNALSYM PSZ}
-  PCSZ = ^AnsiChar;
+  PCSZ = ^CHAR;
   {$EXTERNALSYM PCSZ}
 
 //
@@ -801,7 +749,7 @@ type
   TCString = CSTRING;
 
 const
-  ANSI_NULL = AnsiChar(0);
+  ANSI_NULL = CHAR(0);
   {$EXTERNALSYM ANSI_NULL}
   UNICODE_NULL = WCHAR(0);
   {$EXTERNALSYM UNICODE_NULL}
@@ -896,7 +844,7 @@ type
 //
 
   PLIST_ENTRY32 = ^LIST_ENTRY32;
-  {$EXTERNALSYM PLIST_ENTRY32}
+  {$EXTERNALSYM PLIST_ENTRY32}  
   {$EXTERNALSYM PLIST_ENTRY32}
   LIST_ENTRY32 = record
     Flink: DWORD;
@@ -1180,50 +1128,26 @@ type
   {$EXTERNALSYM wchar_t}
 
 //
-// The following types are guaranteed to be signed and have pointer width.
+// The following types are guaranteed to be signed and 32 bits wide.
 //
 
-  {$IFDEF USE_DELPHI_TYPES}
-  INT_PTR = {$IFDEF COMPILER12_UP} Windows.INT_PTR {$ELSE} SizeInt {$ENDIF};
-  {$ELSE}
-  INT_PTR = SizeInt;
-  {$ENDIF}
+type
+  INT_PTR = Integer;
   {$EXTERNALSYM INT_PTR}
   PINT_PTR = ^INT_PTR;
   {$EXTERNALSYM PINT_PTR}
-  {$IFDEF USE_DELPHI_TYPES}
-  LONG_PTR = {$IFDEF COMPILER12_UP} Windows.LONG_PTR {$ELSE} SizeInt {$ENDIF};
-  {$ELSE}
-  LONG_PTR = SizeInt;
-  {$ENDIF}
-  {$EXTERNALSYM LONG_PTR}
-  PLONG_PTR = ^LONG_PTR;
-  {$EXTERNALSYM PLONG_PTR}
-
-//
-// The following types are guaranteed to be unsigned and have pointer width.
-//
-
-  {$IFDEF USE_DELPHI_TYPES}
-  UINT_PTR = {$IFDEF COMPILER12_UP} Windows.UINT_PTR {$ELSE} SizeUInt {$ENDIF};
-  {$ELSE}
-  UINT_PTR = SizeUInt;
-  {$ENDIF}
+  UINT_PTR = Longword;
   {$EXTERNALSYM UINT_PTR}
   PUINT_PTR = ^UINT_PTR;
   {$EXTERNALSYM PUINT_PTR}
-  {$IFDEF USE_DELPHI_TYPES}
-  ULONG_PTR = {$IFDEF COMPILER12_UP} Windows.ULONG_PTR {$ELSE} SizeUInt {$ENDIF};
-  {$ELSE}
-  ULONG_PTR = SizeUInt;
-  {$ENDIF}
+  LONG_PTR = Longint;
+  {$EXTERNALSYM LONG_PTR}
+  PLONG_PTR = ^LONG_PTR;
+  {$EXTERNALSYM PLONG_PTR}
+  ULONG_PTR = Longword;
   {$EXTERNALSYM ULONG_PTR}
   PULONG_PTR = ^ULONG_PTR;
   {$EXTERNALSYM PULONG_PTR}
-
-//
-// The following types are guaranteed to be signed and 32 bits wide.
-//
 
   LONG32 = Integer;
   {$EXTERNALSYM LONG32}
@@ -1257,7 +1181,7 @@ const
 
 type
 
-//unsigned AnsiChar       BYTE;
+//unsigned char       BYTE;
 //unsigned short      WORD;
 
   FLOAT = Single;
@@ -1424,7 +1348,7 @@ type
   HWINEVENTHOOK = HANDLE;
   {$EXTERNALSYM HWINEVENTHOOK}
   HUMPD = HANDLE;
-  {$EXTERNALSYM HUMPD}
+  {$EXTERNALSYM HUMPD}  
 
   HFILE = {$IFDEF USE_DELPHI_TYPES} Windows.HFILE {$ELSE} Longword {$ENDIF};
   {$EXTERNALSYM HFILE}
@@ -1488,7 +1412,7 @@ type
   NPPOINT = ^tagPoint;
   {$EXTERNALSYM NPPOINT}
   POINT = tagPOINT;
-  {$EXTERNALSYM POINT}
+  {$EXTERNALSYM tagPOINT}
   TPoint = {$IFDEF USE_DELPHI_TYPES} Windows.TPoint {$ELSE} POINT {$ENDIF};
   PPoint = {$IFDEF USE_DELPHI_TYPES} Windows.PPoint {$ELSE} LPPOINT {$ENDIF};
 
@@ -1627,24 +1551,18 @@ const
   {$EXTERNALSYM ADDRESS_TAG_BIT}
 
 type
-  HALF_PTR = {$IFDEF CPUX64} Longint {$ELSE} Smallint {$ENDIF};
-  {$EXTERNALSYM HALF_PTR}
-  PHALF_PTR = ^HALF_PTR;
-  {$EXTERNALSYM PHALF_PTR}
-  UHALF_PTR = {$IFDEF CPUX64} Longword {$ELSE} Word {$ENDIF};
+  UHALF_PTR = Byte;
   {$EXTERNALSYM UHALF_PTR}
   PUHALF_PTR = ^UHALF_PTR;
   {$EXTERNALSYM PUHALF_PTR}
+  HALF_PTR = Shortint;
+  {$EXTERNALSYM HALF_PTR}
+  PHALF_PTR = ^HALF_PTR;
+  {$EXTERNALSYM PHALF_PTR}
 
-
-  SHANDLE_PTR = SizeInt; // at the momemt Delphi itself has no SHANDLE_PTR
+  SHANDLE_PTR = Longint;
   {$EXTERNALSYM SHANDLE_PTR}
-
-  {$IFDEF USE_DELPHI_TYPES}
-  HANDLE_PTR = {$IFDEF COMPILER16_UP} Windows.HANDLE_PTR {$ELSE} SizeUInt {$ENDIF};
-  {$ELSE}
-  HANDLE_PTR = SizeUInt; // Up to XE2, Windows.HANDLE_PTR doesn't exist
-  {$ENDIF}
+  HANDLE_PTR = Longint;
   {$EXTERNALSYM HANDLE_PTR}
 
 //
@@ -1686,16 +1604,16 @@ type
 // The following types are guaranteed to be unsigned and 64 bits wide.
 //
 
-  ULONG64 = UInt64;
+  ULONG64 = Int64;
   {$EXTERNALSYM ULONG64}
   PULONG64 = ^ULONG64;
   {$EXTERNALSYM PULONG64}
-  DWORD64 = UInt64;
+  DWORD64 = Int64;
   {$EXTERNALSYM DWORD64}
   PDWORD64 = ^DWORD64;
   {$EXTERNALSYM PDWORD64}
-  //UINT64 = Int64;
-  //{$EXTERNALSYM UINT64}
+  UINT64 = Int64;
+  {$EXTERNALSYM UINT64}
   PUINT64 = ^UINT64;
   {$EXTERNALSYM PUINT64}
 
@@ -1788,7 +1706,7 @@ const
 
 function Int32x32To64(a, b: LONG): LONGLONG;
 begin
-  Result := LONGLONG(a) * LONGLONG(b);
+  Result := Int64(a) * Int64(b);
 end;
 
 function UInt32x32To64(a, b: DWORD): ULONGLONG;
@@ -1796,7 +1714,6 @@ begin
   Result := ULONGLONG(a) * ULONGLONG(b);
 end;
 
-{$IFDEF CPU386}
 function Int64ShllMod32(Value: ULONGLONG; ShiftCount: DWORD): ULONGLONG;
 asm
         MOV     ECX, ShiftCount
@@ -1823,7 +1740,6 @@ asm
         SHRD    EAX, EDX, CL
         SHR     EDX, CL
 end;
-{$ENDIF}
 
 procedure ListEntry32To64(l32: PLIST_ENTRY32; l64: PLIST_ENTRY64);
 begin
@@ -1914,9 +1830,8 @@ function GetProcAddress(hModule: HMODULE; lpProcName: LPCSTR): FARPROC; stdcall;
 {$ENDIF JWA_INCLUDEMODE}
 
 const
-  RsELibraryNotFound = 'Library not found: %0:s';
-  RsEFunctionNotFound = 'Function not found: %0:s.%1:s';
-  RsEFunctionNotFound2 = 'Function not found: %0:s.%1:d';
+  RsELibraryNotFound = 'Library not found: %s';
+  RsEFunctionNotFound = 'Function not found: %s.%s';
 
 procedure GetProcedureAddress(var P: Pointer; const ModuleName, ProcName: AnsiString);
 var
@@ -1925,13 +1840,13 @@ begin
   if not Assigned(P) then
   begin
     ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_GetModuleHandle
-                    {$ELSE}GetModuleHandle
+                    {$ELSE}GetModuleHandleA
                     {$ENDIF JWA_INCLUDEMODE}
                     (PAnsiChar(AnsiString(ModuleName)));
     if ModuleHandle = 0 then
     begin
       ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_LoadLibrary
-                    {$ELSE}LoadLibrary
+                    {$ELSE}LoadLibraryA
                     {$ENDIF JWA_INCLUDEMODE}(PAnsiChar(ModuleName));
       if ModuleHandle = 0 then
         raise EJwaLoadLibraryError.CreateFmt(RsELibraryNotFound, [ModuleName]);
@@ -1944,36 +1859,17 @@ begin
   end;
 end;
 
-procedure GetProcedureAddress(var P: Pointer; const ModuleName : AnsiString; ProcNumber : Cardinal);
-var
-  ModuleHandle: HMODULE;
-begin
-  if not Assigned(P) then
-  begin
-    ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_GetModuleHandle
-                    {$ELSE}GetModuleHandle
-                    {$ENDIF JWA_INCLUDEMODE}
-                    (PAnsiChar(AnsiString(ModuleName)));
-    if ModuleHandle = 0 then
-    begin
-      ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_LoadLibrary
-                    {$ELSE}LoadLibrary
-                    {$ENDIF JWA_INCLUDEMODE}(PAnsiChar(ModuleName));
-      if ModuleHandle = 0 then
-        raise EJwaLoadLibraryError.CreateFmt(RsELibraryNotFound, [ModuleName]);
-    end;
-    P := Pointer({$IFDEF JWA_INCLUDEMODE}jwaWinType_GetProcAddress
-                    {$ELSE}GetProcAddress
-                    {$ENDIF JWA_INCLUDEMODE}(ModuleHandle, PAnsiChar(ProcNumber)));
-    if not Assigned(P) then
-      raise EJwaGetProcAddressError.CreateFmt(RsEFunctionNotFound2, [ModuleName, ProcNumber]);
-  end;
-end;
-
 {$ENDIF JWA_INTERFACESECTION}
 
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 end.
 {$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+
+
+
+
 

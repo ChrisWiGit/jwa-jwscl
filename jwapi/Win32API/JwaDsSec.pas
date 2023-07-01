@@ -53,7 +53,7 @@ unit JwaDsSec;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 interface
 
@@ -182,7 +182,7 @@ end;
 
 {$ELSE}
 
-function DSCreateSecurityPage; external dssec {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'DSCreateSecurityPage';
+function DSCreateSecurityPage; external dssec name 'DSCreateSecurityPage';
 
 {$ENDIF DYNAMIC_LINK}
 

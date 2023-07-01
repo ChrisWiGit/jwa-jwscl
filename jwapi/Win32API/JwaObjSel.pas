@@ -52,7 +52,7 @@ unit JwaObjSel;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 interface
 
@@ -634,7 +634,7 @@ type
     pwzADsPath: PWSTR;
     pwzClass: PWSTR;
     pwzUPN: PWSTR;
-    pvarFetchedAttributes: POleVariant;
+    pvarFetchedAttributes: POleVariant; 
     flScopeType: ULONG;
   end;
   {$EXTERNALSYM _DS_SELECTION}

@@ -52,7 +52,7 @@ unit JwaCryptUIApi;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 interface
 
@@ -162,8 +162,8 @@ end;
 
 {$ELSE}
 
-function CryptUIDlgViewContext; external cryptuiapi {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'CryptUIDlgViewContext';
-function CryptUIDlgSelectCertificateFromStore; external cryptuiapi {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'CryptUIDlgSelectCertificateFromStore';
+function CryptUIDlgViewContext; external cryptuiapi name 'CryptUIDlgViewContext';
+function CryptUIDlgSelectCertificateFromStore; external cryptuiapi name 'CryptUIDlgSelectCertificateFromStore';
 
 {$ENDIF DYNAMIC_LINK}
 

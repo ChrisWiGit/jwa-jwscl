@@ -53,7 +53,7 @@ unit JwaWSnetbs;
 
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 interface
 
@@ -84,7 +84,7 @@ type
   SOCKADDR_NB = record
     snb_family: Smallint;
     snb_type: Word;
-    snb_name: array [0..NETBIOS_NAME_LENGTH - 1] of AnsiChar;
+    snb_name: array [0..NETBIOS_NAME_LENGTH - 1] of Char;
   end;
   {$EXTERNALSYM SOCKADDR_NB}
   PSOCKADDR_NB = ^SOCKADDR_NB;
@@ -154,7 +154,7 @@ begin
     SNB.snb_name[I] := SNB.snb_name[I + 1];
     Inc(I);
   end;
-  SNB.snb_name[NETBIOS_NAME_LENGTH - 1] := AnsiChar(Port);
+  SNB.snb_name[NETBIOS_NAME_LENGTH - 1] := Char(Port);
 end;
 
 {$ENDIF JWA_INTERFACESECTION}

@@ -38,7 +38,7 @@ unit JwaWinDLLNames;
 
 {$WEAKPACKAGEUNIT}
 
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 interface
 {$ENDIF JWA_OMIT_SECTIONS}
@@ -51,7 +51,6 @@ const
   AWSuffix = 'A';
   {$ENDIF UNICODE}
 
-  {The list is sorted alphabetically!}
   aclapilib = 'advapi32.dll';
   acluilib = 'aclui.dll';
   advapi32 = 'advapi32.dll';
@@ -59,7 +58,6 @@ const
   adslib = 'activeds.dll';
   bcryptdll = 'bcrypt.dll';
   btapi = 'irprops.cpl';
-  cfgmgrdllname = 'cfgmgr32.dll';
   comctl32 = 'comctl32.dll';
   credapi = 'advapi32.dll';
   credui = 'credui.dll';
@@ -78,14 +76,11 @@ const
   gpeditlib = 'gpedit.dll';
   hhctrl = 'hhctrl.ocx';
   icmplib = 'icmp.dll';
-  imagehlplib = 'imagehlp.dll';
+  ImageHlpLib = 'imagehlp.dll';
   imelib = 'user32.dll';
   iphlpapilib = 'iphlpapi.dll';
   kernel32 = 'kernel32.dll';
-  kernel32dll = kernel32;
-  KtmW32Lib = 'ktmw32.dll';
-  ktmw32 = 'ktmw32.dll';
-  ldaplib = 'wldap32.dll';
+  LDAPLib = 'wldap32.dll';
   loadperflib = 'loadperf.dll';
   lpmlib = 'msidlpm.dll';
   mapi32 = 'mapi32.dll';
@@ -94,7 +89,6 @@ const
   msilib = 'msi.dll';
   msimg32 = 'msimg32.dll';
   mswsocklib = 'mswsock.dll';
-  mydocs = 'mydocs.dll';
   ncryptdll = 'ncrypt.dll';
   netapi32 = 'netapi32.dll';
   netsh = 'netsh.exe';
@@ -102,44 +96,36 @@ const
   ntdll = 'ntdll.dll';
   ntdsapilib = 'ntdsapi.dll';
   ntdsbclilib = 'ntdsbclilib.dll';
-  ole32 = 'Ole32.dll';
   opengl32 = 'opengl32.dll';
   patchapi = 'mspatcha.dll';
-  patchwiz = 'patchwiz.dll';
-  pdhLib = 'pdh.dll';
+  patchwiz = 'patchwiz.dll'; // mvb Installed in Samples\SysMgmt\Msi\Patching
+  PdhLib = 'pdh.dll';
   powrproflib = 'powrprof.dll';
-  psapiLib = 'psapi.dll';
+  PsapiLib = 'psapi.dll';
   querylib = 'query.dll';
   qosname = 'qosname.dll';
-  rpclib = 'rpcrt4.dll';
+  rpclib = 'rpcrt4.dll'; // 19/07/2005 fixed typo reported by primoz
   rpcns4 = 'rpcns4.dll';
   secur32 = 'secur32.dll';
   sensapilib = 'sensapi.dll';
-  setupapimodulename = 'SetupApi.dll';
-  sfclib = 'sfc.dll';
+  Sfclib = 'sfc.dll';
   sisbkuplib = 'sisbkup.dll';
-  shdocvwDll = 'shdocvw.dll';
-  shell32 = 'shell32.dll';
-  shfolderdll = 'shfolder.dll';
-  shlwapidll  = 'shlwapi.dll';
+  ShFolderDll = 'shfolder.dll';
   snmpapilib = 'snmpapi.dll';
   softpub = 'softpub.dll';
   sporderlib = 'sporder.dll';
   srclient = 'srclient.dll';
   themelib = 'uxtheme.dll';
   trafficlib = 'traffic.dll';
-  urlmondll = 'urlmon.dll';
   user32 = 'user32.dll';
   userenvlib = 'userenv.dll';
   utildll = 'utildll.dll';
   versionlib = 'version.dll';
-  VirtDisklib = 'VirtDisk.dll';
   winberapi = 'wldap32.dll';
   winfax = 'winfax.dll';
-  wimgapi = 'wimgapi.dll';
   winetdll = 'wininet.dll';
   winspool32 = 'winspool32.drv';
-  winstadll = 'winsta.dll';
+  winstaDLL = 'winsta.dll';
   winternl_lib = 'ntdll.dll';
   wow16lib = 'kernel32.dll';
   wow32lib = 'wow32.dll';
@@ -147,12 +133,19 @@ const
   ws2_32 = 'ws2_32.dll';
   wsock32 = 'wsock32.dll';
   wtsapi = 'wtsapi32.dll';
-  {The list is sorted alphabetically!}
+  SetupApiModuleName = 'SetupApi.dll';
+  CfgMgrDllName = 'cfgmgr32.dll';
 
-
-
-
-
+//RV
+const
+  shell32 = 'shell32.dll';
+  shdocvwDll = 'shdocvw.dll';
+  mydocs = 'mydocs.dll';
+  shlwapidll  = 'shlwapi.dll';
+  kernel32dll = 'kernel32.dll';  
+  UrlMonDll = 'urlmon.dll';
+  
+  
 
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 

@@ -56,7 +56,7 @@ unit JwaWinNT;
 {$HPPEMIT ''}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 interface
 
@@ -958,7 +958,7 @@ type
   PACCESS_MASK = ^ACCESS_MASK;
   {$EXTERNALSYM PACCESS_MASK}
   TAccessMask = ACCESS_MASK;
-  PAccessMask = PACCESS_MASK;
+  PAccessMask = PACCESS_MASK;  
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
@@ -1437,89 +1437,7 @@ const
   {$EXTERNALSYM DOMAIN_ALIAS_RID_TS_LICENSE_SERVERS}
 
 type
-//TODO: MERGE
   WELL_KNOWN_SID_TYPE = (
-{$IFDEF WINVISTA_UP}
-    WinNullSid {= 0},
-    WinWorldSid {= 1},
-    WinLocalSid {= 2},
-    WinCreatorOwnerSid {= 3},
-    WinCreatorGroupSid {= 4},
-    WinCreatorOwnerServerSid {= 5},
-    WinCreatorGroupServerSid {= 6},
-    WinNtAuthoritySid {= 7},
-    WinDialupSid {= 8},
-    WinNetworkSid {= 9},
-    WinBatchSid {= 10},
-    WinInteractiveSid {= 11},
-    WinServiceSid {= 12},
-    WinAnonymousSid {= 13},
-    WinProxySid {= 14},
-    WinEnterpriseControllersSid {= 15},
-    WinSelfSid {= 16},
-    WinAuthenticatedUserSid {= 17},
-    WinRestrictedCodeSid {= 18},
-    WinTerminalServerSid {= 19},
-    WinRemoteLogonIdSid {= 20},
-    WinLogonIdsSid {= 21},
-    WinLocalSystemSid {= 22},
-    WinLocalServiceSid {= 23},
-    WinNetworkServiceSid {= 24},
-    WinBuiltinDomainSid {= 25},
-    WinBuiltinAdministratorsSid {= 26},
-    WinBuiltinUsersSid {= 27},
-    WinBuiltinGuestsSid {= 28},
-    WinBuiltinPowerUsersSid {= 29},
-    WinBuiltinAccountOperatorsSid {= 30},
-    WinBuiltinSystemOperatorsSid {= 31},
-    WinBuiltinPrintOperatorsSid {= 32},
-    WinBuiltinBackupOperatorsSid {= 33},
-    WinBuiltinReplicatorSid {= 34},
-    WinBuiltinPreWindows2000CompatibleAccessSid {= 35},
-    WinBuiltinRemoteDesktopUsersSid {= 36},
-    WinBuiltinNetworkConfigurationOperatorsSid {= 37},
-    WinAccountAdministratorSid {= 38},
-    WinAccountGuestSid {= 39},
-    WinAccountKrbtgtSid {= 40},
-    WinAccountDomainAdminsSid {= 41},
-    WinAccountDomainUsersSid {= 42},
-    WinAccountDomainGuestsSid {= 43},
-    WinAccountComputersSid {= 44},
-    WinAccountControllersSid {= 45},
-    WinAccountCertAdminsSid {= 46},
-    WinAccountSchemaAdminsSid {= 47},
-    WinAccountEnterpriseAdminsSid {= 48},
-    WinAccountPolicyAdminsSid {= 49},
-    WinAccountRasAndIasServersSid {= 50},
-    WinNTLMAuthenticationSid {= 51},
-    WinDigestAuthenticationSid {= 52},
-    WinSChannelAuthenticationSid {= 53},
-    WinThisOrganizationSid {= 54},
-    WinOtherOrganizationSid {= 55},
-    WinBuiltinIncomingForestTrustBuildersSid {= 56},
-    WinBuiltinPerfMonitoringUsersSid {= 57},
-    WinBuiltinPerfLoggingUsersSid {= 58},
-    WinBuiltinAuthorizationAccessSid {= 59},
-    WinBuiltinTerminalServerLicenseServersSid {= 60},
-    WinBuiltinDCOMUsersSid {= 61},
-    WinBuiltinIUsersSid {= 62},
-    WinIUserSid {= 63},
-    WinBuiltinCryptoOperatorsSid {= 64},
-    WinUntrustedLabelSid {= 65},
-    WinLowLabelSid {= 66},
-    WinMediumLabelSid {= 67},
-    WinHighLabelSid {= 68},
-    WinSystemLabelSid {= 69},
-    WinWriteRestrictedCodeSid {= 70},
-    WinCreatorOwnerRightsSid {= 71},
-    WinCacheablePrincipalsGroupSid {= 72},
-    WinNonCacheablePrincipalsGroupSid {= 73},
-    WinEnterpriseReadonlyControllersSid {= 74},
-    WinAccountReadonlyControllersSid {= 75},
-    WinBuiltinEventLogReadersGroup {= 76},
-    WinNewEnterpriseReadonlyControllersSid {= 77},
-    WinBuiltinCertSvcDComAccessGroup {= 78}
-{$ELSE}
     WinNullSid,
     WinWorldSid,
     WinLocalSid,
@@ -1580,13 +1498,9 @@ type
     WinBuiltinPerfMonitoringUsersSid,
     WinBuiltinPerfLoggingUsersSid,
     WinBuiltinAuthorizationAccessSid,
-    WinBuiltinTerminalServerLicenseServersSid
-{$ENDIF WINVISTA_UP}
-  );
+    WinBuiltinTerminalServerLicenseServersSid);
   {$EXTERNALSYM WELL_KNOWN_SID_TYPE}
   TWellKnownSidType = WELL_KNOWN_SID_TYPE;
-
-
 
 //
 // Allocate the System Luid.  The first 1000 LUIDs are reserved.
@@ -2008,7 +1922,7 @@ type
   PACCESS_ALLOWED_CALLBACK_ACE = ^ACCESS_ALLOWED_CALLBACK_ACE;
   {$EXTERNALSYM PACCESS_ALLOWED_CALLBACK_ACE}
   TAccessAllowedCallBackAce = ACCESS_ALLOWED_CALLBACK_ACE;
-  PAccessAllowedCallBackAce = PACCESS_ALLOWED_CALLBACK_ACE;
+  PAccessAllowedCallBackAce = PACCESS_ALLOWED_CALLBACK_ACE;  
 
   _ACCESS_DENIED_CALLBACK_ACE = record
     Header: ACE_HEADER;
@@ -2683,50 +2597,12 @@ type
 //
 
 type
-//TODO: MERGE
-  _TOKEN_INFORMATION_CLASS =
-{$IFDEF WINVISTA_UP}
-    (TokenPadding0,
-    TokenUser,
-    TokenGroups,
-    TokenPrivileges,
-    TokenOwner,
-    TokenPrimaryGroup,
-    TokenDefaultDacl,
-    TokenSource,
-    TokenType,
-    TokenImpersonationLevel,
-    TokenStatistics,
-    TokenRestrictedSids,
-    TokenSessionId, //12
-    TokenGroupsAndPrivileges,
-    TokenSessionReference,
-    TokenSandBoxInert,
-    TokenAuditPolicy,
-    TokenOrigin,
-    TokenElevationType,
-    TokenLinkedToken,
-    TokenElevation,
-    TokenHasRestrictions,
-    TokenAccessInformation,
-    TokenVirtualizationAllowed,
-    TokenVirtualizationEnabled,
-    TokenIntegrityLevel,
-    TokenUIAccess,
-    TokenMandatoryPolicy,
-    TokenLogonSid,
-    // MaxTokenInfoClass should always be the last enum
-    MaxTokenInfoClass);
-{$ELSE}
-    (TokenInfoClassPad0, TokenUser, TokenGroups,
+  _TOKEN_INFORMATION_CLASS = (TokenInfoClassPad0, TokenUser, TokenGroups,
     TokenPrivileges, TokenOwner, TokenPrimaryGroup, TokenDefaultDacl, TokenSource,
     TokenType, TokenImpersonationLevel, TokenStatistics, TokenRestrictedSids,
     TokenSessionId, TokenGroupsAndPrivileges, TokenSessionReference,
     TokenSandBoxInert, TokenAuditPolicy, TokenOrigin,
     MaxTokenInfoClass); {MaxTokenInfoClass should always be the last enum}
-{$ENDIF WINVISTA_UP}
-
-
   {$EXTERNALSYM _TOKEN_INFORMATION_CLASS}
   TOKEN_INFORMATION_CLASS = _TOKEN_INFORMATION_CLASS;
   {$EXTERNALSYM TOKEN_INFORMATION_CLASS}
@@ -2893,7 +2769,7 @@ type
   PTOKEN_SOURCE = ^TOKEN_SOURCE;
   {$EXTERNALSYM PTOKEN_SOURCE}
   _TOKEN_SOURCE = record
-    SourceName: array [0..TOKEN_SOURCE_LENGTH - 1] of AnsiChar;
+    SourceName: array [0..TOKEN_SOURCE_LENGTH - 1] of CHAR;
     SourceIdentifier: LUID;
   end;
   {$EXTERNALSYM _TOKEN_SOURCE}
@@ -2945,7 +2821,7 @@ type
   PTOKEN_ORIGIN = ^TOKEN_ORIGIN;
   {$EXTERNALSYM PTOKEN_ORIGIN}
   TTokenOrigin = TOKEN_ORIGIN;
-  PTokenOrigin = PTOKEN_ORIGIN;
+  PTokenOrigin = PTOKEN_ORIGIN;  
 
 //
 // Security Tracking Mode
@@ -3011,7 +2887,7 @@ type
   PSECURITY_INFORMATION = ^SECURITY_INFORMATION;
   {$EXTERNALSYM PSECURITY_INFORMATION}
   TSecurityInformation = SECURITY_INFORMATION;
-  PSecurityInformation = PSECURITY_INFORMATION;
+  PSecurityInformation = PSECURITY_INFORMATION;  
 
 const
   OWNER_SECURITY_INFORMATION = $00000001;
@@ -3056,30 +2932,10 @@ const
   {$EXTERNALSYM PROCESS_QUERY_INFORMATION}
   PROCESS_SUSPEND_RESUME    = $0800;
   {$EXTERNALSYM PROCESS_SUSPEND_RESUME}
-  PROCESS_QUERY_LIMITED_INFORMATION = $1000;
-  {$EXTERNALSYM PROCESS_QUERY_LIMITED_INFORMATION}
-
-
   PROCESS_ALL_ACCESS        = STANDARD_RIGHTS_REQUIRED or SYNCHRONIZE or $FFF;
   {$EXTERNALSYM PROCESS_ALL_ACCESS}
-{$IFDEF WINVISTA_UP}
-  //Since Windows Vista (6.0) the all access has been changed.
-  //If you implement solely for Vista and newer you can use THREAD_ALL_ACCESS6
-  //Otherwise you should not use XXX_ALL_ACCESS at all and instead
-  //use the specific access rights necessary.
-  PROCESS_ALL_ACCESS6  = STANDARD_RIGHTS_REQUIRED or SYNCHRONIZE or $FFFF;
-{$ENDIF WINVISTA_UP}
 
-
-{$IFDEF WIN64}
-  MAXIMUM_PROC_PER_GROUP  = 64;
-  {$EXTERNALSYM MAXIMUM_PROC_PER_GROUP}
-{$ELSE}
-  MAXIMUM_PROC_PER_GROUP  = 32;
-  {$EXTERNALSYM MAXIMUM_PROC_PER_GROUP}
-{$ENDIF WIN64}
-
-  MAXIMUM_PROCESSORS    = MAXIMUM_PROC_PER_GROUP;
+  MAXIMUM_PROCESSORS = 32;
   {$EXTERNALSYM MAXIMUM_PROCESSORS}
 
   THREAD_TERMINATE            = $0001;
@@ -3100,20 +2956,9 @@ const
   {$EXTERNALSYM THREAD_IMPERSONATE}
   THREAD_DIRECT_IMPERSONATION = $0200;
   {$EXTERNALSYM THREAD_DIRECT_IMPERSONATION}
-  THREAD_SET_LIMITED_INFORMATION   = $0400;
-  {$EXTERNALSYM THREAD_SET_LIMITED_INFORMATION}
-  THREAD_QUERY_LIMITED_INFORMATION = $0800;
-  {$EXTERNALSYM THREAD_QUERY_LIMITED_INFORMATION}
 
   THREAD_ALL_ACCESS = STANDARD_RIGHTS_REQUIRED or SYNCHRONIZE or $3FF;
   {$EXTERNALSYM THREAD_ALL_ACCESS}
-{$IFDEF WINVISTA_UP}
-  //Since Windows Vista (6.0) the all access has been changed.
-  //If you implement solely for Vista and newer you can use THREAD_ALL_ACCESS6
-  //Otherwise you should not use XXX_ALL_ACCESS at all and instead
-  //use the specific access rights necessary.
-  THREAD_ALL_ACCESS6  = STANDARD_RIGHTS_REQUIRED or SYNCHRONIZE or $FFFF;
-{$ENDIF WINVISTA_UP}
 
   JOB_OBJECT_ASSIGN_PROCESS          = $0001;
   {$EXTERNALSYM JOB_OBJECT_ASSIGN_PROCESS}
@@ -3342,7 +3187,7 @@ type
   PQUOTA_LIMITS_EX = ^QUOTA_LIMITS_EX;
   {$EXTERNALSYM PQUOTA_LIMITS_EX}
   TQuotaLimitsEx = QUOTA_LIMITS_EX;
-  PQuotaLimitsEx = PQUOTA_LIMITS_EX;
+  PQuotaLimitsEx = PQUOTA_LIMITS_EX;  
 
   PIO_COUNTERS = ^IO_COUNTERS;
   {$EXTERNALSYM PIO_COUNTERS}
@@ -3496,7 +3341,7 @@ type
   PJOBOBJECT_JOBSET_INFORMATION = ^JOBOBJECT_JOBSET_INFORMATION;
   {$EXTERNALSYM PJOBOBJECT_JOBSET_INFORMATION}
   TJobObjectSetInformation = JOBOBJECT_JOBSET_INFORMATION;
-  PJobObjectSetInformation = PJOBOBJECT_JOBSET_INFORMATION;
+  PJobObjectSetInformation = PJOBOBJECT_JOBSET_INFORMATION;  
 
 const
   JOB_OBJECT_TERMINATE_AT_END_OF_JOB = 0;
@@ -3684,7 +3529,7 @@ const
   {$EXTERNALSYM TIME_ZONE_ID_DAYLIGHT}
 
 type
-  _LOGICAL_PROCESSOR_RELATIONSHIP = (RelationProcessorCore{ = 0}, RelationNumaNode{ = 1}, RelationCache{ = 2}, RelationProcessorPackage{ = 3});
+  _LOGICAL_PROCESSOR_RELATIONSHIP = (RelationProcessorCore, RelationNumaNode);
   {$EXTERNALSYM _LOGICAL_PROCESSOR_RELATIONSHIP}
   LOGICAL_PROCESSOR_RELATIONSHIP = _LOGICAL_PROCESSOR_RELATIONSHIP;
   {$EXTERNALSYM LOGICAL_PROCESSOR_RELATIONSHIP}
@@ -3708,7 +3553,7 @@ type
   {$EXTERNALSYM SYSTEM_LOGICAL_PROCESSOR_INFORMATION}
   PSYSTEM_LOGICAL_PROCESSOR_INFORMATION = ^SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
   TSystemLogicalProcessorInformation = SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
-  PSystemLogicalProcessorInformation = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION;
+  PSystemLogicalProcessorInformation = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION;  
 
 const
   PROCESSOR_INTEL_386     = 386;
@@ -3806,18 +3651,6 @@ const
   {$EXTERNALSYM PF_PAE_ENABLED}
   PF_XMMI64_INSTRUCTIONS_AVAILABLE   = 10;
   {$EXTERNALSYM PF_XMMI64_INSTRUCTIONS_AVAILABLE}
-  PF_SSE_DAZ_MODE_AVAILABLE         = 11;
-  {$EXTERNALSYM PF_SSE_DAZ_MODE_AVAILABLE}
-  PF_NX_ENABLED                     = 12;
-  {$EXTERNALSYM PF_NX_ENABLED}
-  PF_SSE3_INSTRUCTIONS_AVAILABLE    = 13;
-  {$EXTERNALSYM PF_SSE3_INSTRUCTIONS_AVAILABLE}
-  PF_COMPARE_EXCHANGE128            = 14;
-  {$EXTERNALSYM PF_COMPARE_EXCHANGE128}
-  PF_COMPARE64_EXCHANGE128          = 15;
-  {$EXTERNALSYM PF_COMPARE64_EXCHANGE128}
-  PF_CHANNELS_ENABLED               = 16;
-  {$EXTERNALSYM PF_CHANNELS_ENABLED}
 
 type
   PMEMORY_BASIC_INFORMATION = ^MEMORY_BASIC_INFORMATION;
@@ -4757,8 +4590,8 @@ type
   {$EXTERNALSYM PIMAGE_OS2_HEADER}
   _IMAGE_OS2_HEADER = record
     ne_magic: Word;        // Magic number
-    ne_ver: AnsiChar;          // Version number
-    ne_rev: AnsiChar;          // Revision number
+    ne_ver: CHAR;          // Version number
+    ne_rev: CHAR;          // Revision number
     ne_enttab: Word;       // Offset of Entry Table
     ne_cbenttab: Word;     // Number of bytes in Entry Table
     ne_crc: Longint;       // Checksum of whole file
@@ -5330,7 +5163,7 @@ type
 
 function IMAGE_FIRST_SECTION(NtHeader: PImageNtHeaders): PImageSectionHeader;
 {$EXTERNALSYM IMAGE_FIRST_SECTION}
-
+  
 const
   IMAGE_SIZEOF_SECTION_HEADER = 40;
   {$EXTERNALSYM IMAGE_SIZEOF_SECTION_HEADER}
@@ -6760,7 +6593,7 @@ type
   {$EXTERNALSYM PIMAGE_RESOURCE_DIRECTORY_STRING}
   _IMAGE_RESOURCE_DIRECTORY_STRING = record
     Length: Word;
-    NameString: array [0..0] of AnsiChar;
+    NameString: array [0..0] of CHAR;
   end;
   {$EXTERNALSYM _IMAGE_RESOURCE_DIRECTORY_STRING}
   IMAGE_RESOURCE_DIRECTORY_STRING = _IMAGE_RESOURCE_DIRECTORY_STRING;
@@ -7340,7 +7173,7 @@ type
   PSLIST_ENTRY = PSINGLE_LIST_ENTRY;
   {$EXTERNALSYM PSLIST_ENTRY}
   TSListEntry = SLIST_ENTRY;
-  PSListEntry = PSLIST_ENTRY;
+  PSListEntry = PSLIST_ENTRY;  
 
 type
   _SLIST_HEADER = record
@@ -7358,7 +7191,7 @@ type
   PSLIST_HEADER = ^SLIST_HEADER;
   {$EXTERNALSYM PSLIST_HEADER}
   TSListHeader = SLIST_HEADER;
-  PSListHeader = PSLIST_HEADER;
+  PSListHeader = PSLIST_HEADER;  
 
 procedure RtlInitializeSListHead(ListHead: PSLIST_HEADER); stdcall;
 function RtlFirstEntrySList(ListHead: PSLIST_HEADER): PSLIST_ENTRY; stdcall;
@@ -7370,10 +7203,9 @@ function RtlInterlockedPushEntrySList(ListHead, ListEntry: PSLIST_HEADER): PSLIS
 {$ENDIF JWA_INCLUDEMODE}
 function RtlInterlockedFlushSList(ListHead: PSLIST_HEADER): PSLIST_ENTRY; stdcall;
 {$EXTERNALSYM RtlInterlockedFlushSList}
-{$IFNDEF JWA_INCLUDEMODE}
 function RtlQueryDepthSList(ListHead: PSLIST_HEADER): WORD; stdcall;
 {$EXTERNALSYM RtlQueryDepthSList}
-{$ENDIF JWA_INCLUDEMODE}
+
 const
   HEAP_NO_SERIALIZE             = $00000001;
   {$EXTERNALSYM HEAP_NO_SERIALIZE}
@@ -7515,7 +7347,7 @@ type
     dwMinorVersion: DWORD;
     dwBuildNumber: DWORD;
     dwPlatformId: DWORD;
-    szCSDVersion: array [0..127] of AnsiChar; // Maintenance string for PSS usage
+    szCSDVersion: array [0..127] of CHAR; // Maintenance string for PSS usage
   end;
   {$EXTERNALSYM _OSVERSIONINFOA}
   OSVERSIONINFOA = _OSVERSIONINFOA;
@@ -7566,7 +7398,7 @@ type
     dwMinorVersion: DWORD;
     dwBuildNumber: DWORD;
     dwPlatformId: DWORD;
-    szCSDVersion: array [0..127] of AnsiChar;     // Maintenance string for PSS usage
+    szCSDVersion: array [0..127] of CHAR;     // Maintenance string for PSS usage
     wServicePackMajor: WORD;
     wServicePackMinor: WORD;
     wSuiteMask: WORD;
@@ -7761,38 +7593,6 @@ type
   TRtlCriticalSection = RTL_CRITICAL_SECTION;
   PRtlCriticalSection = PRTL_CRITICAL_SECTION;
 
-  PRTL_SRWLOCK = ^RTL_SRWLOCK;
-  {$EXTERNALSYM PRTL_SRWLOCK}
-  _RTL_SRWLOCK = record
-    Ptr : Pointer;
-  end;
-  {$EXTERNALSYM _RTL_SRWLOCK}
-  RTL_SRWLOCK = _RTL_SRWLOCK;
-  {$EXTERNALSYM RTL_SRWLOCK}
-  TRtlSrwLock = RTL_SRWLOCK;
-  PRtlSrwLock = PRTL_SRWLOCK;
-const
-  RTL_SRWLOCK_INIT : RTL_SRWLOCK = (Ptr : 0);
-  {$EXTERNALSYM RTL_SRWLOCK_INIT}
-
-type
-  PRTL_CONDITION_VARIABLE = ^RTL_CONDITION_VARIABLE;
-  {$EXTERNALSYM PRTL_CONDITION_VARIABLE}
-  _RTL_CONDITION_VARIABLE = record
-    Ptr : Pointer;
-  end;
-  {$EXTERNALSYM _RTL_CONDITION_VARIABLE}
-  RTL_CONDITION_VARIABLE = _RTL_CONDITION_VARIABLE;
-  {$EXTERNALSYM RTL_CONDITION_VARIABLE}
-  TRtlConditionVariable = RTL_CONDITION_VARIABLE;
-  PRtlConditionVariable = PRTL_CONDITION_VARIABLE;
-const
-  RTL_CONDITION_VARIABLE_INIT : RTL_CONDITION_VARIABLE = (Ptr : 0);
-  {$EXTERNALSYM RTL_CONDITION_VARIABLE_INIT}
-  RTL_CONDITION_VARIABLE_LOCKMODE_SHARED = $1;
-  {$EXTERNALSYM RTL_CONDITION_VARIABLE_LOCKMODE_SHARED}
-
-type
   RTL_VERIFIER_DLL_LOAD_CALLBACK = procedure(DllName: PWSTR; DllBase: PVOID; DllSize: SIZE_T;
     Reserved: PVOID); stdcall;
   {$EXTERNALSYM RTL_VERIFIER_DLL_LOAD_CALLBACK}
@@ -7854,8 +7654,8 @@ type
 
     //
     // Filled by verifier provider DLL
-    //
-
+    // 
+    
     ProviderNtdllHeapFreeCallback: RTL_VERIFIER_NTDLLHEAPFREE_CALLBACK;
   end;
   {$EXTERNALSYM _RTL_VERIFIER_PROVIDER_DESCRIPTOR}
@@ -8393,7 +8193,7 @@ type
     // SID   UserSid
     // WCHAR Strings[]
     // BYTE  Data[]
-    // AnsiChar  Pad[]
+    // CHAR  Pad[]
     // DWORD Length;
     //
   end;
@@ -9153,235 +8953,21 @@ const
   ACTIVATION_CONTEXT_SECTION_CLR_SURROGATES               = 9;
   {$EXTERNALSYM ACTIVATION_CONTEXT_SECTION_CLR_SURROGATES}
 
-
-type
-  {Token elevation type.
-   TokenElevationTypePad0 does not belong to this type. It is only a pad.
-
-   Vista only
-  }
-  _TOKEN_ELEVATION_TYPE = (TokenElevationTypePad0,
-    TokenElevationTypeDefault, TokenElevationTypeFull,
-    TokenElevationTypeLimited);
-  {$EXTERNALSYM _TOKEN_ELEVATION_TYPE}
-
-  {see _TOKEN_ELEVATION_TYPE}
-  TTokenElevationType = _TOKEN_ELEVATION_TYPE;
-  {see _TOKEN_ELEVATION_TYPE}
-  PTokenElevationType = ^TTokenElevationType;
-
-  {_TOKEN_ELEVATION contains the elevation status of a token on a vista system.}
-  _TOKEN_ELEVATION = record
-    TokenIsElevated: DWORD;
-  end;
-  {$EXTERNALSYM _TOKEN_ELEVATION}
-
-  {see _TOKEN_ELEVATION}
-  TTokenElevation = _TOKEN_ELEVATION;
-  {see _TOKEN_ELEVATION}
-  PTokenElevation = ^TTokenElevation;
-
-  MANDATORY_LEVEL = (
-    MandatoryLevelUntrusted, {= 0}
-    MandatoryLevelLow,
-    MandatoryLevelMedium,
-    MandatoryLevelHigh,
-    MandatoryLevelSystem,
-    MandatoryLevelSecureProcess,
-    MandatoryLevelCount);
-  {$EXTERNALSYM MANDATORY_LEVEL}
-
-  PMANDATORY_LEVEL = ^MANDATORY_LEVEL;
-
-  TMandatoryLevel = MANDATORY_LEVEL;
-  PMandatoryLevel = ^TMandatoryLevel;
-
-const
-  //A principal with a lower mandatory level than the object cannot write to the object.
-  SYSTEM_MANDATORY_LABEL_NO_WRITE_UP = $1;
-  {$EXTERNALSYM SYSTEM_MANDATORY_LABEL_NO_WRITE_UP}
-  //A principal with a lower mandatory level than the object cannot read the object.
-  SYSTEM_MANDATORY_LABEL_NO_READ_UP = $2;
-  {$EXTERNALSYM SYSTEM_MANDATORY_LABEL_NO_READ_UP}
-  //A principal with a lower mandatory level than the object cannot execute the object.
-  SYSTEM_MANDATORY_LABEL_NO_EXECUTE_UP = $4;
-  {$EXTERNALSYM SYSTEM_MANDATORY_LABEL_NO_EXECUTE_UP}
-
-type
-  //http://msdn2.microsoft.com/en-us/library/aa965848.aspx
-  _SYSTEM_MANDATORY_LABEL_ACE = record
-    Header : ACE_HEADER;
-    Mask : ACCESS_MASK;
-    SidStart : DWORD;
-  end;
-  {$EXTERNALSYM _SYSTEM_MANDATORY_LABEL_ACE}
-
-  SYSTEM_MANDATORY_LABEL_ACE = _SYSTEM_MANDATORY_LABEL_ACE;
-  PSYSTEM_MANDATORY_LABEL_ACE = ^_SYSTEM_MANDATORY_LABEL_ACE;
-
-  TSystemMandatoryLabelAce = _SYSTEM_MANDATORY_LABEL_ACE;
-  PSystemMandatoryLabelAce = ^TSystemMandatoryLabelAce;
-
-const
-  //No mandatory integrity policy is enforced for the token.
-  TOKEN_MANDATORY_POLICY_OFF = $0;
-  {$EXTERNALSYM TOKEN_MANDATORY_POLICY_OFF}
-  //A process associated with the token cannot write to objects that have a greater mandatory integrity level.
-  TOKEN_MANDATORY_POLICY_NO_WRITE_UP = $1;
-  {$EXTERNALSYM TOKEN_MANDATORY_POLICY_NO_WRITE_UP}
-  //A process created with the token has an integrity level that is the lesser of the parent-process integrity level and the executable-file integrity level.
-  TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN = $2;
-  {$EXTERNALSYM TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN}
-  //A combination of TOKEN_MANDATORY_POLICY_NO_WRITE_UP and TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN
-  TOKEN_MANDATORY_POLICY_VALID_MASK = $3;
-  {$EXTERNALSYM TOKEN_MANDATORY_POLICY_VALID_MASK}
-
-type
-  //http://msdn2.microsoft.com/en-us/library/bb394728.aspx
-  _TOKEN_MANDATORY_POLICY = record
-    Policy : DWORD;
-  end;
-  {$EXTERNALSYM _TOKEN_MANDATORY_POLICY}
-
-  TOKEN_MANDATORY_POLICY = _TOKEN_MANDATORY_POLICY;
-  PTOKEN_MANDATORY_POLICY = ^TOKEN_MANDATORY_POLICY;
-
-  TTokenMandatoryPolicy = _TOKEN_MANDATORY_POLICY;
-  PTokenMandatoryPolicy = ^TTokenMandatoryPolicy;
-
-const
-  {
-  The SID_HASH_SIZE array dimension is defined in WinNT.h as 32.
-  http://msdn2.microsoft.com/en-us/library/bb394725.aspx
-  }
-  SID_HASH_SIZE = 32;
-  {$EXTERNALSYM SID_HASH_SIZE}
-
-type
-  SID_HASH_ENTRY = ULONG_PTR;
-  {$EXTERNALSYM SID_HASH_ENTRY}
-
-  TSidHashEntry = SID_HASH_ENTRY;
-
-  //http://msdn2.microsoft.com/en-us/library/bb394725.aspx
-  _SID_AND_ATTRIBUTES_HASH = record
-    SidCount : DWORD;
-    SidAttr : PSID_AND_ATTRIBUTES;
-    Hash : array[0..SID_HASH_SIZE-1] of SID_HASH_ENTRY;
-  end;
-  {$EXTERNALSYM _SID_AND_ATTRIBUTES_HASH}
-
-
-  SID_AND_ATTRIBUTES_HASH = _SID_AND_ATTRIBUTES_HASH;
-  PSID_AND_ATTRIBUTES_HASH = ^SID_AND_ATTRIBUTES_HASH;
-
-  TSidAndAttributesHash = _SID_AND_ATTRIBUTES_HASH;
-  PSidAndAttributesHash = ^TSidAndAttributesHash;
-
-
-
-//http://msdn2.microsoft.com/en-us/library/bb394726.aspx
-  _TOKEN_ACCESS_INFORMATION = record
-    SidHash: PSID_AND_ATTRIBUTES_HASH;
-    RestrictedSidHash : PSID_AND_ATTRIBUTES_HASH;
-    Privileges : PTOKEN_PRIVILEGES;
-    AuthenticationId : LUID;
-    TokenType : TOKEN_TYPE;
-    ImpersonationLevel : SECURITY_IMPERSONATION_LEVEL;
-    MandatoryPolicy : TOKEN_MANDATORY_POLICY;
-    Flags : DWORD;
-  end;
-  {$EXTERNALSYM _TOKEN_ACCESS_INFORMATION}
-
-  TOKEN_ACCESS_INFORMATION = _TOKEN_ACCESS_INFORMATION;
-  PTOKEN_ACCESS_INFORMATION = ^TOKEN_ACCESS_INFORMATION;
-
-  TTokenAccessInformation = _TOKEN_ACCESS_INFORMATION;
-  PTokenAccessInformation = ^TTokenAccessInformation;
-
-  //http://msdn2.microsoft.com/en-us/library/bb530719.aspx
-  _TOKEN_LINKED_TOKEN = record
-    LinkedToken : HANDLE;
-  end;
-  {$EXTERNALSYM _TOKEN_LINKED_TOKEN}
-
-  TOKEN_LINKED_TOKEN = _TOKEN_LINKED_TOKEN;
-  PTOKEN_LINKED_TOKEN = ^TOKEN_LINKED_TOKEN;
-
-  TTokenLinkedToken = _TOKEN_LINKED_TOKEN;
-  PTokenLinkedToken = ^TTokenLinkedToken;
-
-
-  _TOKEN_MANDATORY_LABEL = record
-    Label_ : SID_AND_ATTRIBUTES;
-  end;
-  {$EXTERNALSYM _TOKEN_MANDATORY_LABEL}
-
-  TOKEN_MANDATORY_LABEL = _TOKEN_MANDATORY_LABEL;
-  PTOKEN_MANDATORY_LABEL = ^TOKEN_MANDATORY_LABEL;
-
-  TTokenMandatoryLabel = _TOKEN_MANDATORY_LABEL;
-  PTokenMandatoryLabel = ^TTokenMandatoryLabel;
-
-const
-  SYSTEM_MANDATORY_LABEL_ACE_TYPE = $11;
-  {$EXTERNALSYM SYSTEM_MANDATORY_LABEL_ACE_TYPE}
-
-  //Required to modify the mandatory integrity level of an object.
-  SE_RELABEL_NAME = 'SeRelabelPrivilege';
-  {$EXTERNALSYM SE_RELABEL_NAME}
-
-  {It includes the integrity ACE into the security descriptor string.
-   See http://msdn2.microsoft.com/en-us/library/aa376397.aspx
-   }
-  LABEL_SECURITY_INFORMATION = $0000010;
-  {$EXTERNALSYM LABEL_SECURITY_INFORMATION}
-
-  SECURITY_MANDATORY_UNTRUSTED_RID = $0;
-  {$EXTERNALSYM SECURITY_MANDATORY_UNTRUSTED_RID}
-
-  SECURITY_MANDATORY_LOW_RID = $1000;
-  {$EXTERNALSYM SECURITY_MANDATORY_LOW_RID}
-
-  SECURITY_MANDATORY_MEDIUM_RID = $2000;
-  {$EXTERNALSYM SECURITY_MANDATORY_MEDIUM_RID}
-
-  SECURITY_MANDATORY_HIGH_RID = $3000;
-  {$EXTERNALSYM SECURITY_MANDATORY_HIGH_RID}
-
-  SECURITY_MANDATORY_SYSTEM_RID = $4000;
-  {$EXTERNALSYM SECURITY_MANDATORY_SYSTEM_RID}
-
-  SECURITY_MANDATORY_PROTECTED_PROCESS_RID = $5000;
-  {$EXTERNALSYM SECURITY_MANDATORY_PROTECTED_PROCESS_RID}
-
-  LowIL = 'S-1-16-4096';
-  {$EXTERNALSYM LowIL}
-  MediumIL = 'S-1-16-8192';
-  {$EXTERNALSYM MediumIL}
-  HighIL = 'S-1-16-12288';
-  {$EXTERNALSYM HighIL}
-  SystemIL = 'S-1-16-16384';
-  {$EXTERNALSYM SystemIL}
-  ProtectedProcessIL = 'S-1-16-20480';
-  {$EXTERNALSYM ProtectedProcessIL}
-
-
-{$IFDEF WINVISTA_UP}
-  function AddMandatoryAce(pAcl: PACL; dwAceRevision, AceFlags, MandatoryPolicy: DWORD;
-    pLabelSid: PSID): BOOL; stdcall;
-  {$EXTERNALSYM AddMandatoryAce}
-  {$EXTERNALSYM AddMandatoryAce}
-{$ENDIF WINVISTA_UP}
-
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 implementation
-uses JwaWinDLLNames;
+//uses...
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_INTERFACESECTION}
+
+
+{$IFNDEF JWA_OMIT_SECTIONS}
+const
+  ntdll = 'ntdll.dll';
+  kernel32 = 'kernel32.dll';
+{$ENDIF JWA_OMIT_SECTIONS}
 
 
 function WT_SET_MAX_THREADPOOL_THREADS(var Flags: DWORD; Limit: DWORD): DWORD;
@@ -9427,7 +9013,7 @@ end;
 function NtCurrentTeb: PNT_TIB;
 asm
 {$ifdef cpu386}
-        MOV     EAX, FS:[024]   // was zero
+        MOV     EAX, FS:[024]   // was zero        
 {$endif cpu386}
 {$ifdef cpux86_64}
         movq     RAX, GS:[48]
@@ -9558,16 +9144,14 @@ end;
 
 // IMAGE_FIRST_SECTION by Nico Bendlin - supplied by Markus Fuchs
 
-function FieldOffset(const Struc; const Field): DWORD_PTR;
+function FieldOffset(const Struc; const Field): Cardinal;
 begin
-//64bit Warning: Converting a pointer to Cardinal may conflict with 64bit
-  Result := DWORD_PTR(@Field) - DWORD_PTR(@Struc);
+  Result := Cardinal(@Field) - Cardinal(@Struc);
 end;
 
 function IMAGE_FIRST_SECTION(NtHeader: PImageNtHeaders): PImageSectionHeader;
 begin
-//64bit Warning: Converting a pointer to Cardinal may conflict with 64bit
-  Result := PImageSectionHeader(DWORD_PTR(NtHeader) +
+  Result := PImageSectionHeader(Cardinal(NtHeader) +
       FieldOffset(NtHeader^, NtHeader^.OptionalHeader) +
       NtHeader^.FileHeader.SizeOfOptionalHeader);
 end;
@@ -9640,22 +9224,6 @@ end;
 
 {$IFDEF DYNAMIC_LINK}
 
-{$IFDEF WINVISTA_UP}
-var
-  _AddMandatoryAce: Pointer;
-
-function AddMandatoryAce(pAcl: PACL; dwAceRevision, AceFlags, MandatoryPolicy: DWORD;
-    pLabelSid: PSID): BOOL;
-begin
-  GetProcedureAddress(_AddMandatoryAce, advapi32, 'AddMandatoryAce');
-  asm
-        MOV     ESP, EBP
-        POP     EBP
-        JMP     [_AddMandatoryAce]
-  end;
-end;
-{$ENDIF WINVISTA_UP}
-
 var
   _RtlCaptureContext: Pointer;
 
@@ -9701,7 +9269,7 @@ var
 
 procedure RtlInitializeSListHead;
 begin
-  GetProcedureAddress(_RtlInitializeSListHead, ntdll, 'RtlInitializeSListHead');
+  GetProcedureAddress(_RtlInitializeSListHead, 'ntdll.dll', 'RtlInitializeSListHead');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -9715,7 +9283,7 @@ var
 
 function RtlFirstEntrySList;
 begin
-  GetProcedureAddress(_RtlFirstEntrySList, ntdll, 'RtlFirstEntrySList');
+  GetProcedureAddress(_RtlFirstEntrySList, 'ntdll.dll', 'RtlFirstEntrySList');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -9728,7 +9296,7 @@ var
 
 function RtlInterlockedPopEntrySList;
 begin
-  GetProcedureAddress(_RtlInterlockedPopEntrySList, ntdll, 'RtlInterlockedPopEntrySList');
+  GetProcedureAddress(_RtlInterlockedPopEntrySList, 'ntdll.dll', 'RtlInterlockedPopEntrySList');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -9742,7 +9310,7 @@ var
 
 function RtlInterlockedPushEntrySList;
 begin
-  GetProcedureAddress(_RtlInterlockedPushEntrySList, ntdll, 'RtlInterlockedPushEntrySList');
+  GetProcedureAddress(_RtlInterlockedPushEntrySList, 'ntdll.dll', 'RtlInterlockedPushEntrySList');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -9756,7 +9324,7 @@ var
 
 function RtlInterlockedFlushSList;
 begin
-  GetProcedureAddress(_RtlInterlockedFlushSList, ntdll, 'RtlInterlockedFlushSList');
+  GetProcedureAddress(_RtlInterlockedFlushSList, 'ntdll.dll', 'RtlInterlockedFlushSList');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -9770,7 +9338,7 @@ var
 
 function RtlQueryDepthSList;
 begin
-  GetProcedureAddress(_RtlQueryDepthSList, ntdll, 'RtlQueryDepthSList');
+  GetProcedureAddress(_RtlQueryDepthSList, 'ntdll.dll', 'RtlQueryDepthSList');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -9781,27 +9349,20 @@ end;
 
 {$ELSE}
 
-procedure RtlCaptureContext; external ntdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'RtlCaptureContext';
-function RtlCompareMemory; external ntdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'RtlCompareMemory';
-function VerSetConditionMask; external kernel32 {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'VerSetConditionMask';
+procedure RtlCaptureContext; external ntdll name 'RtlCaptureContext';
+function RtlCompareMemory; external ntdll name 'RtlCompareMemory';
+function VerSetConditionMask; external kernel32 name 'VerSetConditionMask';
 
-procedure RtlInitializeSListHead; external ntdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'RtlInitializeSListHead';
+procedure RtlInitializeSListHead; external 'ntdll.dll' name 'RtlInitializeSListHead';
 
-function RtlFirstEntrySList; external ntdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'RtlFirstEntrySList';
-function RtlInterlockedPopEntrySList; external ntdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'RtlInterlockedPopEntrySList';
+function RtlFirstEntrySList; external 'ntdll.dll' name 'RtlFirstEntrySList';
+function RtlInterlockedPopEntrySList; external 'ntdll.dll' name 'RtlInterlockedPopEntrySList';
 {$IFNDEF JWA_INCLUDEMODE}
-function RtlInterlockedPushEntrySList; external ntdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'RtlInterlockedPushEntrySList';
+function RtlInterlockedPushEntrySList; external 'ntdll.dll' name 'RtlInterlockedPushEntrySList';
 {$ENDIF JWA_INCLUDEMODE}
 
-function RtlInterlockedFlushSList; external ntdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'RtlInterlockedFlushSList';
-{$IFNDEF JWA_INCLUDEMODE}
-function RtlQueryDepthSList; external ntdll {$IFDEF DELAYED_LOADING}delayed{$ENDIF} name 'RtlQueryDepthSList';
-{$ENDIF JWA_INCLUDEMODE}
-
-{$IFDEF WINVISTA_UP}
-function AddMandatoryAce(pAcl: PACL; dwAceRevision, AceFlags, MandatoryPolicy: DWORD;
-    pLabelSid: PSID): BOOL; stdcall; external advapi32 name 'AddMandatoryAce';
-{$ENDIF WINVISTA_UP}
+function RtlInterlockedFlushSList; external 'ntdll.dll' name 'RtlInterlockedFlushSList';
+function RtlQueryDepthSList; external 'ntdll.dll' name 'RtlQueryDepthSList';
 
 {$ENDIF DYNAMIC_LINK}
 

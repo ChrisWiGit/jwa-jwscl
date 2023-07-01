@@ -31,7 +31,6 @@ package JediApi_DynamicRelease;
 {$DEFINE RELEASE}
 {$DEFINE DYNAMIC_LINK}
 {$DEFINE JWA_WINDOWS}
-{$DEFINE JWA_INCLUDE_SHELLAPI}
 
 requires
   rtl,
@@ -39,6 +38,6 @@ requires
 
 contains
   JwaVista in '..\..\Win32API\JwaVista.pas',
-  JwaWindows in '..\..\Win32API\JwaWindows\JwaWindows.pas';
+  JwaWindows in '..\..\Win32API\JwaWindows.pas';
 
 end.

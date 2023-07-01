@@ -43,12 +43,10 @@
 
 // $Id: JwaLM.pas,v 1.11 2007/09/05 11:58:50 dezipaitor Exp $
 
-{$IFDEF JWA_OMIT_SECTIONS}
 {$IFNDEF JWA_INCLUDEMODE}
 This unit must not be included in JwaWindows.pas because the members are
 already declared.
 {$ENDIF JWA_INCLUDEMODE}
-{$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 unit JwaLM;
@@ -61,19 +59,18 @@ unit JwaLM;
 {.$DEFINE JWA_INCLUDEMODE}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
-{$I ..\Includes\JediAPILib.inc}
+{$I jediapilib.inc}
 
 interface
 
 uses
-  JwaWinType, JwaLmErr, JwaWinNT, JwaWinSvc;
+  JwaWindows;
 {$ENDIF JWA_OMIT_SECTIONS}
 
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
 
 {$DEFINE JWA_INTERFACESECTION}
 {$DEFINE JWA_OMIT_SECTIONS_LM}
-{$DEFINE JWA_OMIT_SECTIONS}
 
 
 
@@ -100,7 +97,6 @@ uses
 
 {$UNDEF JWA_INTERFACESECTION}
 {$UNDEF JWA_OMIT_SECTIONS_LM}
-{$UNDEF JWA_OMIT_SECTIONS}
 
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
@@ -113,7 +109,6 @@ uses
 
 {$DEFINE JWA_IMPLEMENTATIONSECTION}
 {$DEFINE JWA_OMIT_SECTIONS_LM}
-{$DEFINE JWA_OMIT_SECTIONS}
 
  {$I JwaLmCons.pas}     // LAN Manager common definitions
  {$I JwaLmErr.pas}      // LAN Manager network error definitions
@@ -134,10 +129,24 @@ uses
 {$I JwaLmAudit.pas}    // NetAudit class
 {$I JwaLmJoin.pas}     // NetJoinDomain class
 
-{$UNDEF JWA_OMIT_SECTIONS}
 {$UNDEF JWA_OMIT_SECTIONS_LM}
 {$UNDEF JWA_IMPLEMENTATIONSECTION}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 end.
 {$ENDIF JWA_OMIT_SECTIONS}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
