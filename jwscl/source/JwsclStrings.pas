@@ -37,7 +37,7 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclStrings;
-{$INCLUDE Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
@@ -48,9 +48,24 @@ uses JwaWindows;
 
 {$IFNDEF SL_IMPLEMENTATION_SECTION}
 type
+  {
+  Warning: don't use type on the right side and in front of
+   a type like
+    XY = type Z;
+   It creates a new type. But we need just renamed types.
+  }
+
   {$IFDEF UNICODE}
-  //<B>TJwString</B> defines an unicode string type if compiler directive UNICODE is defined; otherwise ansicode
-  TJwString = WideString;
+  {<B>TJwString</B> defines an unicode string type if compiler directive UNICODE is defined; otherwise ansicod
+  Delphi 2009 uses the more efficient UnicodeString type.
+
+  However this type must not be used for COM Methods! A cast to WideString is necessary before!
+  
+  If you get an error here for <= Delphi2007 you must make sure that
+  you're using an updated version of jedi.inc (included by jwscl.inc)
+  that supports the DELPHI2009_UP switch!
+  }
+  TJwString = {$IFDEF DELPHI2009_UP}UnicodeString;{$ELSE}WideString;{$ENDIF DELPHI2009_UP} 
   //<B>TJwPChar</B> defines an unicode pointer to wide char type if compiler directive UNICODE is defined; otherwise ansicode
   TJwPChar  = PWideChar;
   //<B>TJwChar</B> defines an unicode wide char type if compiler directive UNICODE is defined; otherwise ansicode
@@ -64,13 +79,54 @@ type
   TJwChar   = AnsiChar;
   {$ENDIF UNICODE}
 
+  {<B>TJwTJwStringArray</B> defines an dynamic array of TJwString.
+   It can be either ansi or unicode strings}
   TJwTJwStringArray = array of TJwString;
+
+  TJwWideStringArray = array of WideString;
+
+  TJwWideString = WideString;
+  TJwAnsiString = AnsiString;
 
 
 const
   {<B>TJwCharSize</B> defines the size of an char in an ansi- or unicode compilation. }
   TJwCharSize = SizeOf(TJwChar);
 
+{ JwCompareString compare two TJwString values using ANSICODE or UNICODE settings
+  depending on the UNICODE compiler directive. The comparison is done using the
+  locale user setting.
+  
+  
+  
+  
+  Parameters
+  S1 :          Receives the first string.
+  S2 :          Receives the second string.
+  IgnoreCase :  If set to to true the strings will be compared ignoring case
+                sensitivity.
+  
+  
+  
+  Returns
+  The function has the following results:
+  
+  <table 15c%>
+  Value   \Description
+  ------  -------------------------------------------------------------------------
+  \-1     S1 is less in lexical value than S2.
+  0       S1 is equal in lexical value to S2. That does not mean that both strings
+           are identical.
+  1       S2 is less in lexical value than S1.
+  </table>
+  
+  
+  
+  
+  
+  See Also
+  <extlink http://msdn.microsoft.com/en-us/library/ms647476.aspx>CompareString
+  Function (MSDN)</extlink>                                                         }
 function JwCompareString(const S1, S2: TJwString;
   const IgnoreCase: boolean = False): integer;
 
@@ -110,17 +166,35 @@ function LoadLocalizedStringArray(const Index : TResourceIndexArray; LanguageId 
  Instance : HInst) : TResourceTStringArray;}
 
 
+{<B>JwCreateUnicodeString</B>Returns a pointer to an Initialized counted
+Unicode string}
 function JwCreateUnicodeString(const NewString: WideString): PUnicodeString;
+{<B>JwCreateUnicodeString</B>Initializes a counted Unicode string}
 function JwCreateTUnicodeString(const NewString: WideString): TUnicodeString;
+
+{<B>JwUnicodeStringToJwString</B> converts a UNICODE_STRING into a TJwString}
 function JwUnicodeStringToJwString(const AUnicodeString: TUnicodeString):
   TJwString;
 
-  
+{<B>JwTSUnicodeStringToJwString</B> converts a TS_UNICODE_STRING into a TJwString}
+function JwTSUnicodeStringToJwString(const AUnicodeString: TTSUnicodeString):
+  TJwString;
+
+
 function JwCreateLSAString(const aString: AnsiString): LSA_STRING;
 procedure JwFreeLSAString(var aString: LSA_STRING);
 
-function PWideCharToJwString(const APWideChar: PWideChar): TJwString;
+{<b>JwPWideCharToJwString</b> converts pointer to an widechar array to
+WideString or AnsiString depending on the Unicode directive.
+This routine does the same like:
+<code>
+aJwString := TJWString(TJwPChar(aPWideChar));
+</code>
+}
+function JwPWideCharToJwString(const APWideChar: PWideChar): TJwString;
 
+{<B>JwOutputDebugString</B> calls API OutputDebugString but works with TJwString}
+procedure JwOutputDebugString(const Value : TJwString; const Args : array of const);
 
 {$ENDIF SL_IMPLEMENTATION_SECTION}
 
@@ -137,6 +211,17 @@ uses
 
 
 {$IFNDEF SL_INTERFACE_SECTION}
+
+procedure JwOutputDebugString(const Value : TJwString; const Args : array of const);
+begin
+{$IFDEF DEBUG}
+{$IFDEF UNICODE}
+  OutputDebugStringW(PWideChar(WideFormat('%s. Security id: %s ',Args)));
+{$ELSE}
+  OutputDebugStringA(PAnsiChar(Format('%s. Security id: %s ',Args)));
+{$ENDIF UNICODE}
+{$ENDIF DEBUG}
+end;
 
 function JwCreateUnicodeString(const NewString: WideString): PUnicodeString;
 begin
@@ -158,6 +243,18 @@ begin
   // Convert to TJwString
   Result := WideCharLenToString(AUniCodeString.Buffer, Len);
 end;
+
+function JwTSUnicodeStringToJwString(const AUnicodeString: TS_UNICODE_STRING):
+  TJwString;
+var Len: DWORD;
+begin
+  // Determine UnicodeStringLength (-1 because string has no #0 terminator)
+//  Len := RtlUnicodeStringToAnsiSize(@AUnicodeString)-1;
+  Len := AUnicodeString.Length div 2;
+  // Convert to TJwString
+  Result := String(PChar(WideCharLenToString(AUniCodeString.Buffer, Len)));
+end;
+
 
 procedure JwReplaceBreaks(var Str : TJwString);
 var
@@ -279,7 +376,7 @@ begin
   FillChar(aString, sizeof(aString), 0);
 end;
 
-function PWideCharToJwString(const APWideChar: PWideChar): TJwString;
+function JwPWideCharToJwString(const APWideChar: PWideChar): TJwString;
 begin
   Result := APWideChar;
 end;
@@ -317,7 +414,7 @@ begin
           Inc(pS, Len); //skip string
           Inc(i);
         end;
-        UnlockResource(Cardinal(pS));
+        UnlockResource(HGLOBAL(pS));
       end;
       FreeResource(res);
     end;
@@ -402,7 +499,7 @@ begin
           Inc(pS, Len); //skip string
           Inc(i);
         end;
-        UnlockResource(Cardinal(pS));
+        UnlockResource(HGLOBAL(pS));
       end;
       FreeResource(res);
     end;
@@ -416,5 +513,7 @@ end;
 {$ENDIF SL_INTERFACE_SECTION}
 
 {$IFNDEF SL_OMIT_SECTIONS}
+
 end.
+
 {$ENDIF SL_OMIT_SECTIONS}

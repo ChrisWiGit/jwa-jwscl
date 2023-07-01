@@ -38,7 +38,7 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclMapping;
-{$INCLUDE Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 
@@ -164,6 +164,10 @@ type
       override;
   end;
 
+  { TJwSecurityWinStationMapping provides methods that map generic access rights to
+    specific access rights for a WindowStation, converts single access rights to a
+    string or create a SI_ACCESS structure for usage in a security descriptor editor
+    (TJwSecurityDescriptorDialog in JwsclSecurityDialogs.pas)                        }
   TJwSecurityWinStationMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for registry objects.}
@@ -380,7 +384,14 @@ uses Math;
 
 {$IFNDEF SL_INTERFACE_SECTION}
 
-
+const
+  Powers2: array[0..35] of int64 =
+    (0, 1, 2, 4, 8, 16, 32, 64,
+    128, 256, 512, 1024, 2048, 4096, 8192, 16384,
+    32768, 65536, 131072, 262144, 524288, 1048576, 2097152, 4194304,
+    8388608, 16777216, 33554432, 67108864, 134217728,
+    268435456, 536870912, 1073741824,
+    2147483648, 4294967296, 8589934592, 17179869184);
 
 
 
@@ -771,6 +782,8 @@ class function TJwSecurityFileFolderMapping.GetAccessNames(
   out iCount: Cardinal): PSI_ACCESS;
 begin
   Result := GetAccessNamesEx(iCount, FileFolderMapping);
+//  The Ex version contains constant names instead of human readable name constants
+//  Result := GetAccessNamesEx(iCount, FileFolderMappingEx);
 end;
 
 class function TJwSecurityFileFolderMapping.GetMapping: TGenericMapping;

@@ -39,7 +39,7 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclLsa;
-{$INCLUDE Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
@@ -73,7 +73,7 @@ type
 	    if the call to LsaRegisterLogonProcess failed.
 	}
     constructor Create(const LogonProcessName: AnsiString);
-	               
+
     {<B>CreateUntrusted</B> creates a new instance of TJwSecurityLsa and
 	 creates an untrusted connection to LSA 
 	 
@@ -92,9 +92,10 @@ type
 		interactive logondata)
 
 	}
-    procedure LsaLogonUser(anOriginName: AnsiString;
+    procedure LsaLogonUser(
+      const anOriginName: AnsiString;
       aLogonType: SECURITY_LOGON_TYPE;
-      anAuthenticationPackageName: AnsiString;
+      const anAuthenticationPackageName: AnsiString;
       anAuthenticationInformation: Pointer;
       anAuthenticationInformationLength: Cardinal;
       aLocalGroups: TJwSecurityIdList;
@@ -111,7 +112,7 @@ type
 
   end;
 
-  TJwWideStringArray = array of WideString;
+
   TJwAccountRightStringW = TJwWideStringArray;
   TJwEnumerationInformation = array of TJwSecurityId;
 
@@ -350,64 +351,45 @@ begin
   fLsaHandle := 0;
 end;
 
-procedure _initUnicodeString(target: PUNICODE_STRING;
-  Source: PWideChar; cbMax: USHORT);
-begin
-  target.Length := cbMax;//-2;//- sizeof(source^);
-  target.MaximumLength := cbMax;
-  target.Buffer := Source;
-end;
-
 
 function JwCreate_MSV1_0_INTERACTIVE_LOGON(
-  MessageType: MSV1_0_LOGON_SUBMIT_TYPE;
+        MessageType: MSV1_0_LOGON_SUBMIT_TYPE;
   const LogonDomainName,
         UserName,
         Password: WideString;
-  out authLen: Cardinal): PMSV1_0_INTERACTIVE_LOGON;
-var
-  iSize: integer;
-  p: PWCHAR;
+    out authLen: Cardinal)
+     : PMSV1_0_INTERACTIVE_LOGON;
+type
+  PAuthInfo = ^TAuthInfo;
+  TAuthInfo = record
+    Header: MSV1_0_INTERACTIVE_LOGON;
+    Domain: array[0..DNLEN] of WideChar;
+    User: array[0..UNLEN] of WideChar;
+    Password: array[0..UNLEN] of WideChar;
+  end;
 
-  cbHeader, cbDom, cbUser, cbPass: integer;
-
-  pDom, pUser, pPass: PWChar;
-
-const
-  iUSHORT = sizeof(USHORT);
-  iWCHAR  = sizeof(widechar);
+var AuthInfo : PAuthInfo absolute result;
 begin
-  cbHeader := sizeof(MSV1_0_INTERACTIVE_LOGON);
-  cbDom  := Length(LogonDomainName) * iWCHAR;
-  cbUser := Length(UserName) * iWCHAR;
-  cbPass := Length(Password) * iWCHAR;
+  AuthInfo := PAuthInfo(LocalAlloc(LPTR, sizeof(TAuthInfo)));
+  authLen := sizeof(TAuthInfo);
 
-  iSize := cbHeader + cbDom + cbUser + cbPass;
+  AuthInfo.Header.MessageType := MessageType;
 
-  authLen := iSize;
+  StringCbCopyW(@AuthInfo.Domain, sizeof(AuthInfo.Domain), @LogonDomainName[1]);
+  StringCbCopyW(@AuthInfo.User, sizeof(AuthInfo.User), @UserName[1]);
+  StringCbCopyW(@AuthInfo.Password, sizeof(AuthInfo.Password), @Password[1]);
 
-  Result := PMSV1_0_INTERACTIVE_LOGON(LocalAlloc(LMEM_ZEROINIT or
-    LMEM_FIXED, iSize));
 
-  Result.MessageType := MessageType;
-  p := PWCHAR(Result);
-  Inc(integer(p), cbHeader);
-
-  pDom  := p;
-  pUser := PWChar(integer(p) + cbDom);
-  pPass := PWChar(integer(p) + cbDom + cbUser);
-
-  CopyMemory(pDom, @LogonDomainName[1], cbDom);
-  CopyMemory(pUser, @UserName[1], cbUser);
-  CopyMemory(pPass, @Password[1], cbPass);
-
-  _initUnicodeString(@Result.LogonDomainName, pDom, cbDom);
-  _initUnicodeString(@Result.UserName, pUser, cbUser);
-  _initUnicodeString(@Result.Password, pPass, cbPass);
+  RtlInitUnicodeString(@AuthInfo.Header.LogonDomainName, AuthInfo.Domain);
+  RtlInitUnicodeString(@AuthInfo.Header.UserName, AuthInfo.User);
+  RtlInitUnicodeString(@AuthInfo.Header.Password, AuthInfo.Password);
 end;
 
-procedure TJwSecurityLsa.LsaLogonUser(anOriginName: AnsiString;
-  aLogonType: SECURITY_LOGON_TYPE; anAuthenticationPackageName: AnsiString;
+
+procedure TJwSecurityLsa.LsaLogonUser(
+  const anOriginName: AnsiString;
+  aLogonType: SECURITY_LOGON_TYPE;
+  const anAuthenticationPackageName: AnsiString;
   anAuthenticationInformation: Pointer;
   anAuthenticationInformationLength: Cardinal;
   aLocalGroups: TJwSecurityIdList; aSourceContext: TTokenSource;

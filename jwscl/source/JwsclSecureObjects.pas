@@ -37,12 +37,12 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclSecureObjects;
-{$INCLUDE Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 interface
 
-uses SysUtils, Classes, Registry, dialogs,
+uses SysUtils, Classes, Registry, Dialogs,
   Contnrs {used for TQueue},
   jwaWindows, JwsclResource,
   JwsclTypes, JwsclExceptions, JwsclSid, JwsclAcl, JwsclToken,
@@ -83,7 +83,7 @@ type
      {<B>TJwFnProgressMethod</B> is a callback method that is used by TreeFileObjectSetNamedSecurityInfo.
        It is called on errors or every object which security information is set.
 
-      @param pObjectName contains the object name 
+      @param pObjectName contains the object name
       @param cStatus constains the status of the last operation (GetLastError) 
       @param pInvokeSetting defines the current operation and can be changed to set the next step.
              The following values are recognized :
@@ -150,7 +150,7 @@ type
 
      {<B>TJwTagThread</B> is used by
        
-        # TreeFileObjectSetNamedSecurityInfo 
+        # TreeFileObjectSetNamedSecurityInfo
         
 
      }
@@ -179,6 +179,44 @@ type
     fAutoResetACL: boolean;
 
 
+    {<b>PrepareAccessCheckTokenAssignment</b> is a utility function for
+      any AccessCheck method. It makes sure that the given ClientToken
+      is a thread token, or - if it is nil - returns the current thread or process
+      as a thread token.
+
+      Warning: Don't close hToken! Instead Free parameter Token.
+
+    }
+    class procedure PrepareAccessCheckTokenAssignment(
+      const ClientToken: TJwSecurityToken;
+      out Token : TJwSecurityToken;
+      out hToken : TJwTokenHandle);
+
+    {<b>PrepareAccessCheckSecurityDescriptor</b> is a utility function for
+      any AccessCheck method. It checks the given parameter SecurityDescriptor
+      for validity.
+
+      raises
+        EJwsclNILParameterException If parameter SecurityDescriptor is nil.
+        EJwsclInvalidGroupSIDException If primary group of the SD is not set.
+        EJwsclInvalidOwnerSIDException If owner of the SD is not set.
+    }
+    class procedure PrepareAccessCheckSecurityDescriptor(
+      const SecurityDescriptor: TJwSecurityDescriptor;
+      const aClassName : TJwString;
+      const Method : TJwString);
+
+    {<b>PrepareAccessCheckGenericACE</b> is a utility function for
+      any AccessCheck method. It converts generic access rights in
+      the DACL of SecurityDescriptor to specific access rights.
+
+      TempSD: New SD with converted rights. Call Free when no more necessary.
+    }
+    class procedure PrepareAccessCheckGenericACE(
+      const SecurityDescriptor: TJwSecurityDescriptor;
+      const GenericMapping : TJwSecurityGenericMappingClass;
+      out bTempSD : Boolean;
+      out TempSD  : TJwSecurityDescriptor);
 
      {<B>SetSecurityInfo</B> sets the security information of a object given by a handle.
 
@@ -325,12 +363,14 @@ type
 
     {
     The following values are ignored in SD_entries:
-       
-        # siprotectedDaclSecurityInformation 
-        # siUnprotectedDaclSecurityInformation 
-        # siprotectedSaclSecurityInformation 
-        # siUnprotectedSaclSecurityInformation 
-       
+
+        # siprotectedDaclSecurityInformation
+        # siUnprotectedDaclSecurityInformation
+        # siprotectedSaclSecurityInformation
+        # siUnprotectedSaclSecurityInformation
+        # siLabelSecurityInformation. The integrity label is a simple ACE in then
+          system ACL (SACL). Use SetMandatoryLabel instead
+
        Instead use TJwSecurityDescriptor.InheritanceDACLProtection or
          TJwSecurityDescriptor.InheritanceSACLProtection to control inheritance.
     }
@@ -390,7 +430,7 @@ type
 
        @param Handle Defines a handle to the file or folder which owner is to be changed
        @param aObjectType Defines the type of object
-       @param SID defines the new owner. If nil the current user is used. 
+       @param SID defines the new owner. If nil the current user is used.
 
        raises
  EJwsclSecurityException:  See SetNamedSecurityInfo for more exception
@@ -406,7 +446,7 @@ type
 
        @param PathName Defines the file or folder which owner is to be changed
        @param aObjectType Defines the type of object
-       @param SID defines the new owner. If nil the current user is used. 
+       @param SID defines the new owner. If nil the current user is used.
 
        raises
  EJwsclSecurityException:  See SetNamedSecurityInfo for more exception
@@ -426,10 +466,10 @@ type
        @return Returns a list of sids. The list must be freed by the caller. 
        raises
  EJwsclSecurityException:  An exception can be raised if a call to one of the following items failed:
-                
-                 # CreateTokenEffective 
-                 # GetTokenGroups 
-                 # GetTokenOwner 
+
+                 # CreateTokenEffective
+                 # GetTokenGroups
+                 # GetTokenOwner
                  # TJwSecurityId.Create 
                  
       }
@@ -515,8 +555,6 @@ type
    Do not make instance of this class but use instead the static methods.
    }
   TJwSecureGeneralObject = class(TJwSecureBaseClass)
-  protected
-    procedure Dummy; virtual; abstract;
   public
       {<B>SetSecurityInfo</B> sets security information of a named object
        <B>SetSecurityInfo</B> cannot change inheritance protection flow. Instead use SetSecurityInfo
@@ -723,10 +761,11 @@ type
                 parameter Owner...SACL is not nil, it is also set. 
         @param FNProgressMethod defines a object method to be called if a file or folder is changed. Can be nil. See TJwFnProgressMethod  
         @param FNProgressProcedure defines a procedure to be called if a file or folder is changed. Can be nil. See TJwFnProgressProcedure  
-        @param ProgressUserData defines user data to be used as parameter ProgressUserData in the callback methods. 
+        @param ProgressUserData defines user data to be used as parameter ProgressUserData in the callback methods.
 
         raises
- EJwsclWinCallFailedException:  is raised if the winapi call failed.
+           EJwsclWinCallFailedException:  is raised if the winapi call failed.
+           EJwsclUnsupportedWindowsVersionException: This is exception is raised if the Windows system does not support this call.
         }
     class procedure TreeResetNamedSecurityInfo(pObjectName: TJwString;
       const aObjectType:
@@ -782,73 +821,75 @@ type
       nil): TJwInheritedFromArray;
     {PINHERITED_FROM pInheritArray} override;
 
-      {<B>AccessCheck</B> checks whether the user has access to the the file of the instance or not.
-       @param DesiredAccess defines which access rights are to be checked. If set to High(Cardinal)
-          the access rights given in the constructor are used.
-      }
-(*    function AccessCheck(DesiredAccess: TJwAccessMask = Cardinal(-1);
-      const ClientToken: TJwSecurityToken = nil)
-      : boolean;
-      overload; override;*)
-
-      {<B>AccessCheck</B> checks the access to a security descriptor of a secure object. See AccessCheck in MSDN for more information
-       @param SecurityDescriptor contains the security descriptor that is used to check for access. 
-       @param ClientToken A token that is used to get the SID and privileges which are used to check
-                against the security descriptor. The parameter can be nil to use
-                the current thread or process token.
-                If ClientToken is not nil, the token must be converted into a impersonated token
-                and the current thread must be impersonated.
-                Example:
-
-                Token.ConvertToImpersonatedToken(jwaWindows.TSecurityImpersonationLevel(SecurityImpersonation), TOKEN_ALL_ACCESS);
-                Token.ImpersonateLoggedOnUser;
-
-       @param DesiredAccess define the desired access to the object.
-              New:
-                Although the MSDN AccessCheck forbids generic rights (like GENERIC_ALL) in this Parameter.
-                The method AccessCheck will replace all generic rights with specific rights
-                using the mapping defined by parameter GenericMapping.
-                However the original SecurityDescriptor will remain the same.
-              Warning:
-              Some generic access rights may overlap. This can lead to access denied.
-              Example:
-               DACL contains a positive ACE with GENERIC_WRITE
-                          and a negative ACE with GENERIC_READ
-               A call to AccessCheck with DesiredAccess set to GENERIC_WRITE and
-                GenericMapping set to TJwSecurityFileMapping (using FileGenericMapping) will
-               fail because GENERIC_WRITE and GENERIC_READ are resolve to FILE_GENERIC_WRITE
-                and FILE_GENERIC_READ which both contain SYNCHRONIZE ($100000) and READ_CONTROL ($2000).
-               
-       @param GenericMapping Receives a class type of the class TJwSecurityGenericMapping or one of her derived classes.
-                If the generic class TJwSecurityGenericMapping is used, all generic access rights are mapped to
-                standard access rights (STANDARD_RIGHTS_READ...STANDARD_RIGHTS_ALL).
-                Use only access rights in parameter DesiredAccess that are mapped by the given TJwSecurityGenericMappingClass class;
-                 otherwise AccessChec will fail with EJwsclWinCallFailedException.
-                E.g. TJwSecurityGenericMappingClass can be used with DesiredAccess set to STANDARD_RIGHTS_ALL.
-
-                New:
-                  All access entriey (ACEs) in the security descriptor DACL are scanned for GENERIC access rights (like
-                  GENERIC_ALL) and automatically converted to specific rights using parameter GenericMapping.
-                  However the original SecurityDescriptor will remain the same.
-                  This will not happen, if nil is supplied to this parameter. Make sure there are no generic rights
-                  in the ACL or DesiredAccess parameter.
-                
-       @param PrivilegeSet receives the privileges that are used for access check. If none are used, this output will be nil.
-                The caller is responsible for destroying the object! 
-       @param GrantedAccess receives an access mask that indicates which rights were granted. 
-       @param AccessStatus receives the result of the access check. True if access is granted, otherwise false. 
-
-       raises
- EJwsclInvalidParameterException:  will be raised if
-                parameter SecurityDescriptor is nil; 
-
-        EJwsclWinCallFailedException: will be raised if the call to AccessCheck failed. 
-        EJwsclInvalidOwnerSIDException: will be raised if the owner of the security descriptor is nil.
-          Use JwNullSID to remove influence of owner to AccessCheck call. 
-        EJwsclInvalidGroupSIDException: will be raised if the group of the security descriptor is nil.
-          Use JwNullSID to remove influence of group to AccessCheck call. 
-
-       }
+      { <b>AccessCheck</b> checks the access to a security descriptor of a secure
+        object. See AccessCheck in MSDN for more information
+        Parameters
+        SecurityDescriptor :  Contains the security descriptor that is used to check for
+                              access.
+        ClientToken :         A token that is used to get the SID and privileges which
+                              are used to check against the security descriptor. The
+                              parameter can be nil to use the current thread or process
+                              token.<p /><p />In contrast to the original AccessCheck API
+                              function, this method automatically adjusts the token type
+                              to "impersonation" if the given token is a primary one.
+                              This prevents the error ERROR_NO_IMPERSONATION_TOKEN
+                              (1309). If ClientToken is not nil the method makes a copy
+                              of ClientToken and converts it to a thread token. If
+                              ClientToken is nil, it retrieves the current thread or
+                              primary token (if no thread token is available) and, in the
+                              latter case, converts it to a thread token. Furthermore
+                              this method does not impersonate any token and thus leaves
+                              an already existing thread token intact.<p />
+        DesiredAccess :       Defines the desired access to the object.<p /><b>New</b><p />Although
+                              the MSDN AccessCheck forbids generic rights (like
+                              GENERIC_ALL) in this Parameter. The method AccessCheck will
+                              replace all generic rights with specific rights using the
+                              mapping defined by parameter GenericMapping. However the
+                              original SecurityDescriptor will remain the same. <b>Warning</b>
+                              Some generic access rights may overlap. This can lead to
+                              access denied.<p /><b>Example</b><p />DACL contains a
+                              positive ACE with GENERIC_WRITE and a negative ACE with
+                              GENERIC_READ A call to AccessCheck with DesiredAccess set
+                              to GENERIC_WRITE and GenericMapping set to
+                              TJwSecurityFileMapping (using FileGenericMapping) will fail
+                              because GENERIC_WRITE and GENERIC_READ are resolve to
+                              FILE_GENERIC_WRITE and FILE_GENERIC_READ which both contain
+                              SYNCHRONIZE ($100000) and READ_CONTROL ($2000).<p />
+        GenericMapping :      Receives a class type of the class
+                              TJwSecurityGenericMapping or one of her derived classes. If
+                              the generic class TJwSecurityGenericMapping is used, all
+                              generic access rights are mapped to standard access rights
+                              (STANDARD_RIGHTS_READ...STANDARD_RIGHTS_ALL). Use only
+                              access rights in parameter DesiredAccess that are mapped by
+                              the given TJwSecurityGenericMappingClass class; otherwise
+                              AccessChec will fail with EJwsclWinCallFailedException.
+                              E.g. TJwSecurityGenericMappingClass can be used with
+                              DesiredAccess set to STANDARD_RIGHTS_ALL.<p /><p /><b>New</b><p />All
+                              access entriey (ACEs) in the security descriptor DACL are
+                              scanned for GENERIC access rights (like GENERIC_ALL) and
+                              automatically converted to specific rights using parameter
+                              GenericMapping. However the original SecurityDescriptor
+                              will remain the same. This will not happen, if nil is
+                              supplied to this parameter. Make sure there are no generic
+                              rights in the ACL or DesiredAccess parameter.<p />
+        PrivilegeSet :        Receives the privileges that are used for access check. If
+                              none are used, this output will be nil. The caller is
+                              responsible for destroying the object!
+        GrantedAccess :       Receives an access mask that indicates which rights were
+                              granted.
+        AccessStatus :        Receives the result of the access check. True if access is
+                              granted, otherwise false.
+        Exceptions
+        EJwsclInvalidParameterException :  will be raised if parameter SecurityDescriptor
+                                           is nil;
+        EJwsclWinCallFailedException :     will be raised if the call to AccessCheck
+                                           failed.
+        EJwsclInvalidOwnerSIDException :   will be raised if the owner of the security
+                                           descriptor is nil. Use JwNullSID to remove
+                                           influence of owner to AccessCheck call.
+        EJwsclInvalidGroupSIDException :   will be raised if the group of the security
+                                           descriptor is nil. Use JwNullSID to remove
+                                           influence of group to AccessCheck call.                  }
     class procedure AccessCheck(
       const SecurityDescriptor: TJwSecurityDescriptor;
       const ClientToken: TJwSecurityToken;
@@ -861,60 +902,68 @@ type
       overload; override;
 
 
-    {<B>AccessCheck</B> checks the access to a security descriptor of a secure object. See AccessCheck in MSDN for more information
-       @param SecurityDescriptor contains the security descriptor that is used to check for access. 
-       @param ClientToken A token that is used to get the SID and privileges which are used to check
-                against the security descriptor. The parameter can be nil to use
-                the current thread or process token.
-                If ClientToken is not nil, the token must be converted into a impersonated token
-                and the current thread must be impersonated.
-                Example:
-
-                Token.ConvertToImpersonatedToken(jwaWindows.TSecurityImpersonationLevel(SecurityImpersonation), TOKEN_ALL_ACCESS);
-                Token.ImpersonateLoggedOnUser;
-              
-       @param DesiredAccess define the desired access to the object.
-              New:
-                Although the MSDN AccessCheck forbids generic rights (like GENERIC_ALL) in this Parameter.
-                The method AccessCheck will replace all generic rights with specific rights
-                using the mapping defined by parameter GenericMapping.
-                However the original SecurityDescriptor will remain the same.
-              Warning:
-              Some generic access rights may overlap. This can lead to access denied.
-              Example:
-               DACL contains a positive ACE with GENERIC_WRITE
-                          and a negative ACE with GENERIC_READ
-               A call to AccessCheck with DesiredAccess set to GENERIC_WRITE and
-                GenericMapping set to TJwSecurityFileMapping (using FileGenericMapping) will
-               fail because GENERIC_WRITE and GENERIC_READ are resolve to FILE_GENERIC_WRITE
-                and FILE_GENERIC_READ which both contain SYNCHRONIZE ($100000) and READ_CONTROL ($2000).
-               
-       @param GenericMapping Receives a class type of the class TJwSecurityGenericMapping or one of her derived classes.
-                If the generic class TJwSecurityGenericMapping is used, all generic access rights are mapped to
-                standard access rights (STANDARD_RIGHTS_READ...STANDARD_RIGHTS_ALL).
-                Use only access rights in parameter DesiredAccess that are mapped by the given TJwSecurityGenericMappingClass class;
-                 otherwise AccessChec will fail with EJwsclWinCallFailedException.
-                E.g. TJwSecurityGenericMappingClass can be used with DesiredAccess set to STANDARD_RIGHTS_ALL.
-
-                New:
-                  All access entriey (ACEs) in the security descriptor DACL are scanned for GENERIC access rights (like
-                  GENERIC_ALL) and automatically converted to specific rights using parameter GenericMapping.
-                  However the original SecurityDescriptor will remain the same.
-                  This will not happen, if nil is supplied to this parameter. Make sure there are no generic rights
-                  in the ACL or DesiredAccess parameter.
-                
-       @return Returns true if the access is allowed; otherwise false. 
-       raises
- EJwsclInvalidParameterException:  will be raised if
-                parameter SecurityDescriptor is nil; 
-
-        EJwsclWinCallFailedException: will be raised if the call to AccessCheck failed. 
-        EJwsclInvalidOwnerSIDException: will be raised if the owner of the security descriptor is nil.
-          Use JwNullSID to remove influence of owner to AccessCheck call. 
-        EJwsclInvalidGroupSIDException: will be raised if the group of the security descriptor is nil.
-          Use JwNullSID to remove influence of group to AccessCheck call. 
-
-       }
+        { <b>AccessCheck</b> checks the access to a security descriptor of a secure
+          object. See AccessCheck in MSDN for more information
+          Parameters
+          SecurityDescriptor :  Contains the security descriptor that is used to check for
+                                access.
+          ClientToken :         A token that is used to get the SID and privileges which
+                                are used to check against the security descriptor. The
+                                parameter can be nil to use the current thread or process
+                                token.<p /><p />In contrast to the original AccessCheck API
+                                function, this method automatically adjusts the token type
+                                to "impersonation" if the given token is a primary one.
+                                This prevents the error ERROR_NO_IMPERSONATION_TOKEN
+                                (1309). If ClientToken is not nil the method makes a copy
+                                of ClientToken and converts it to a thread token. If
+                                ClientToken is nil, it retrieves the current thread or
+                                primary token (if no thread token is available) and, in the
+                                latter case, converts it to a thread token. Furthermore
+                                this method does not impersonate any token and thus leaves
+                                an already existing thread token intact.<p />
+          DesiredAccess :       Defines the desired access to the object.<p /><b>New</b><p />Although
+                                the MSDN AccessCheck forbids generic rights (like
+                                GENERIC_ALL) in this Parameter. The method AccessCheck will
+                                replace all generic rights with specific rights using the
+                                mapping defined by parameter GenericMapping. However the
+                                original SecurityDescriptor will remain the same. <b>Warning</b>
+                                Some generic access rights may overlap. This can lead to
+                                access denied.<p /><b>Example</b><p />DACL contains a
+                                positive ACE with GENERIC_WRITE and a negative ACE with
+                                GENERIC_READ A call to AccessCheck with DesiredAccess set
+                                to GENERIC_WRITE and GenericMapping set to
+                                TJwSecurityFileMapping (using FileGenericMapping) will fail
+                                because GENERIC_WRITE and GENERIC_READ are resolve to
+                                FILE_GENERIC_WRITE and FILE_GENERIC_READ which both contain
+                                SYNCHRONIZE ($100000) and READ_CONTROL ($2000).<p />
+          GenericMapping :      Receives a class type of the class
+                                TJwSecurityGenericMapping or one of her derived classes. If
+                                the generic class TJwSecurityGenericMapping is used, all
+                                generic access rights are mapped to standard access rights
+                                (STANDARD_RIGHTS_READ...STANDARD_RIGHTS_ALL). Use only
+                                access rights in parameter DesiredAccess that are mapped by
+                                the given TJwSecurityGenericMappingClass class; otherwise
+                                AccessChec will fail with EJwsclWinCallFailedException.
+                                E.g. TJwSecurityGenericMappingClass can be used with
+                                DesiredAccess set to STANDARD_RIGHTS_ALL.<p /><p /><b>New</b><p />All
+                                access entriey (ACEs) in the security descriptor DACL are
+                                scanned for GENERIC access rights (like GENERIC_ALL) and
+                                automatically converted to specific rights using parameter
+                                GenericMapping. However the original SecurityDescriptor
+                                will remain the same. This will not happen, if nil is
+                                supplied to this parameter. Make sure there are no generic
+                                rights in the ACL or DesiredAccess parameter.<p />
+          Exceptions
+          EJwsclInvalidParameterException :  will be raised if parameter SecurityDescriptor
+                                             is nil;
+          EJwsclWinCallFailedException :     will be raised if the call to AccessCheck
+                                             failed.
+          EJwsclInvalidOwnerSIDException :   will be raised if the owner of the security
+                                             descriptor is nil. Use JwNullSID to remove
+                                             influence of owner to AccessCheck call.
+          EJwsclInvalidGroupSIDException :   will be raised if the group of the security
+                                             descriptor is nil. Use JwNullSID to remove
+                                             influence of group to AccessCheck call.                  }
     class function AccessCheck(
       const SecurityDescriptor: TJwSecurityDescriptor;
       const ClientToken: TJwSecurityToken;
@@ -942,88 +991,98 @@ type
 
 
 
-    {<B>AccessCheckByType</B> does an access check of an object with properties.
-     @param SecurityDescriptor defines the primary SD which is used to perfom
-       access checking. The owner and group must not be nil; otherwise the
-       call will fail 
-
-     @param PrincipalSelfSid defines a SID that is used to replace a principle self sid
-     found in an inherited ACE. A principle self SID (S-1-5-10)
-     in a ACE will be replaced by this property SID. Can be nil if not used. 
-     @param ClientToken A token that is used to get the SID and privileges which are used to check
-                against the security descriptor. The parameter can be nil to use
-                the current thread or process token.
-                If ClientToken is not nil, the token must be converted into a impersonated token
-                and the current thread must be impersonated.
-                Example:
-
-                Token.ConvertToImpersonatedToken(jwaWindows.TSecurityImpersonationLevel(SecurityImpersonation), TOKEN_ALL_ACCESS);
-                Token.ImpersonateLoggedOnUser;
-              
-       @param DesiredAccess define the desired access to the object.
-              New:
-                Although the MSDN AccessCheck forbids generic rights (like GENERIC_ALL) in this Parameter.
-                The method AccessCheck will replace all generic rights with specific rights
-                using the mapping defined by parameter GenericMapping.
-                However the original SecurityDescriptor will remain the same.
-              Warning:
-              Some generic access rights may overlap. This can lead to access denied.
-              Example:
-               DACL contains a positive ACE with GENERIC_WRITE
-                          and a negative ACE with GENERIC_READ
-               A call to AccessCheck with DesiredAccess set to GENERIC_WRITE and
-                GenericMapping set to TJwSecurityFileMapping (using FileGenericMapping) will
-               fail because GENERIC_WRITE and GENERIC_READ are resolve to FILE_GENERIC_WRITE
-                and FILE_GENERIC_READ which both contain SYNCHRONIZE ($100000) and READ_CONTROL ($2000).
-               
-       @param ObjectTypeArray defines an array of object properties.
-            The Level of the objects must comply to some rules.
-            <code lang="Delphi">
-            Array[i].Level = a_i
-                    { a_i +1        | a_i - a_(i-1) = 1 AND a_i < 4
-            a_i+1 = { a_i - t       | a_i - t AND t >= 0
-                    { ERROR_INVALID_PARAMETER | else
-
-            sequence start: a_0 = 0
-            </code>
-            See also http://msdn2.microsoft.com/en-us/library/aa374917(VS.85).aspx
-
-       @param GenericMapping Receives a class type of the class TJwSecurityGenericMapping or one of her derived classes.
-                If the generic class TJwSecurityGenericMapping is used, all generic access rights are mapped to
-                standard access rights (STANDARD_RIGHTS_READ...STANDARD_RIGHTS_ALL).
-                Use only access rights in parameter DesiredAccess that are mapped by the given TJwSecurityGenericMappingClass class;
-                 otherwise AccessChec will fail with EJwsclWinCallFailedException.
-                E.g. TJwSecurityGenericMappingClass can be used with DesiredAccess set to STANDARD_RIGHTS_ALL.
-
-                New:
-                  All access entriey (ACEs) in the security descriptor DACL are scanned for GENERIC access rights (like
-                  GENERIC_ALL) and automatically converted to specific rights using parameter GenericMapping.
-                  However the original SecurityDescriptor will remain the same.
-                  This will not happen, if nil is supplied to this parameter. Make sure there are no generic rights
-                  in the ACL or DesiredAccess parameter.
-                
-       @param PrivilegeSet receives the privileges that are used for access check. If none are used, this output will be nil.
-                The caller is responsible for destroying the object! 
-       @param GrantedAccess receives an access mask that indicates which rights were granted. 
-       @param AccessStatus receives the result of the access check. True if access is granted, otherwise false. 
-
-       raises
- EJwsclInvalidParameterException:  will be raised if
-                parameter SecurityDescriptor is nil; 
-
-        EJwsclWinCallFailedException: will be raised if the call to AccessCheck failed. 
-        EJwsclWinCallFailedException: will be raised if parameter ObjectTypeArray is nil. 
-        EJwsclInvalidObjectArrayException: will be raised if parameter ObjectTypeArray contains
-                invalid members. See this parameter for more information. 
-        EJwsclInvalidOwnerSIDException: will be raised if the owner of the security descriptor is nil.
-          Use JwNullSID to remove influence of owner to AccessCheck call. 
-        EJwsclInvalidGroupSIDException: will be raised if the group of the security descriptor is nil.
-          Use JwNullSID to remove influence of group to AccessCheck call. 
-
-      EJwsclWinCallFailedException: if a call to AccessCheckByType failed. 
-      EJwsclNILParameterException: will be raised if parameter Request,
-      SecurityDescriptor or Request.PrincipalSelfSid is nil 
-    }
+    { <b>AccessCheckByType</b> does an access check of an object with properties.
+      Parameters
+      SecurityDescriptor :  defines the primary SD which is used to perfom access
+                            checking. The owner and group must not be nil; otherwise
+                            the call will fail<p />
+      PrincipalSelfSid :    defines a SID that is used to replace a principle self sid
+                            found in an inherited ACE. A principle self SID (S\-1\-5\-10)
+                            in a ACE will be replaced by this property SID. Can be nil
+                            if not used.
+      ClientToken :         A token that is used to get the SID and privileges which
+                            are used to check against the security descriptor. The
+                            parameter can be nil to use the current thread or process
+                            token.<p />In contrast to the original AccessCheck API
+                            function, this method automatically adjusts the token type
+                            to "impersonation" if the given token is a primary one.
+                            This prevents the error ERROR_NO_IMPERSONATION_TOKEN
+                            (1309). If ClientToken is not nil it makes a copy of
+                            ClientToken and converts it to a thread token. If
+                            ClientToken is nil, it retrieves the current thread or
+                            primary token (if no thread token is available) and, in the
+                            latter case, converts it to a thread token. Furthermore
+                            this method does not impersonate any token and thus leaves
+                            an already existing thread token intact.<p />
+      DesiredAccess :       define the desired access to the object.<p /><b>New</b><p />Although
+                            the MSDN AccessCheck forbids generic rights (like
+                            GENERIC_ALL) in this Parameter. The method AccessCheck will
+                            replace all generic rights with specific rights using the
+                            mapping defined by parameter GenericMapping. However the
+                            original SecurityDescriptor will remain the same.<p /><b>Warning</b><p />Some
+                            generic access rights may overlap. This can lead to access
+                            denied.<p /><b>Example</b><p />DACL contains a positive ACE
+                            with GENERIC_WRITE and a negative ACE with GENERIC_READ<p />A
+                            call to AccessCheck with DesiredAccess set to GENERIC_WRITE
+                            and GenericMapping set to TJwSecurityFileMapping (using
+                            FileGenericMapping) will fail because GENERIC_WRITE and
+                            GENERIC_READ are resolve to FILE_GENERIC_WRITE and
+                            FILE_GENERIC_READ which both contain SYNCHRONIZE ($100000)
+                            and READ_CONTROL ($2000).<p />
+      ObjectTypeArray :     defines an array of object properties. The Level of the
+                            objects must comply to some rules\:
+                            <code lang="delphi">
+                                                         Array[i].Level = a_i
+                                           { a_i +1        | a_i \- a_(i\-1) = 1 AND a_i \< 4
+                                   a_i+1 = { a_i \- t       | a_i \- t AND t \>= 0
+                                           { ERROR_INVALID_PARAMETER | else
+                            
+                                   sequence start\: a_0 = 0
+                            </code>
+                            \See also <link http://msdn2.microsoft.com/en-us/library/aa374917(VS.85).aspx, MSDN>.<p />
+      GenericMapping :      Receives a class type of the class
+                            TJwSecurityGenericMapping or one of her derived classes. If
+                            the generic class TJwSecurityGenericMapping is used, all
+                            generic access rights are mapped to standard access rights
+                            (STANDARD_RIGHTS_READ...STANDARD_RIGHTS_ALL). Use only
+                            access rights in parameter DesiredAccess that are mapped by
+                            the given TJwSecurityGenericMappingClass class; otherwise
+                            AccessChec will fail with EJwsclWinCallFailedException.
+                            E.g. TJwSecurityGenericMappingClass can be used with
+                            DesiredAccess set to STANDARD_RIGHTS_ALL. <b>New\:</b> All
+                            access entriey (ACEs) in the security descriptor DACL are
+                            scanned for GENERIC access rights (like GENERIC_ALL) and
+                            automatically converted to specific rights using parameter
+                            GenericMapping. However the original SecurityDescriptor
+                            will remain the same. This will not happen, if nil is
+                            supplied to this parameter. Make sure there are no generic
+                            rights in the ACL or DesiredAccess parameter.<p />
+      PrivilegeSet :        receives the privileges that are used for access check. If
+                            none are used, this output will be nil. The caller is
+                            responsible for destroying the object!
+      GrantedAccess :       receives an access mask that indicates which rights were
+                            granted.
+      AccessStatus :        receives the result of the access check. True if access is
+                            granted, otherwise false.
+      Exceptions
+      EJwsclInvalidParameterException :    will be raised if parameter
+                                           SecurityDescriptor is nil;
+      EJwsclWinCallFailedException :       will be raised if the call to AccessCheck
+                                           failed. will be raised if parameter
+                                           ObjectTypeArray is nil. if a call to
+                                           AccessCheckByType failed.
+      EJwsclInvalidObjectArrayException :  will be raised if parameter ObjectTypeArray
+                                           contains invalid members. See this parameter
+                                           for more information.
+      EJwsclInvalidOwnerSIDException :     will be raised if the owner of the security
+                                           descriptor is nil. Use JwNullSID to remove
+                                           influence of owner to AccessCheck call.
+      EJwsclInvalidGroupSIDException :     will be raised if the group of the security
+                                           descriptor is nil. Use JwNullSID to remove
+                                           influence of group to AccessCheck call.
+      EJwsclNILParameterException :        will be raised if parameter Request,
+                                           SecurityDescriptor or
+                                           Request.PrincipalSelfSid is nil                                             }
 
     class procedure AccessCheckByType(
       const SecurityDescriptor : TJwSecurityDescriptor;
@@ -1037,91 +1096,101 @@ type
       out AccessStatus: boolean
     );  override;
 
-    {<B>AccessCheckByTypeResultList</B> does an access check of an object with properties.
-     @param SecurityDescriptor defines the primary SD which is used to perfom
-       access checking. The owner and group must not be nil; otherwise the
-       call will fail 
-
-     @param PrincipalSelfSid defines a SID that is used to replace a principle self sid
-     found in an inherited ACE. A principle self SID (S-1-5-10)
-     in a ACE will be replaced by this property SID. Can be nil if not used. 
-     @param ClientToken A token that is used to get the SID and privileges which are used to check
-                against the security descriptor. The parameter can be nil to use
-                the current thread or process token.
-                If ClientToken is not nil, the token must be converted into a impersonated token
-                and the current thread must be impersonated.
-                Example:
-
-                Token.ConvertToImpersonatedToken(jwaWindows.TSecurityImpersonationLevel(SecurityImpersonation), TOKEN_ALL_ACCESS);
-                Token.ImpersonateLoggedOnUser;
-              
-       @param DesiredAccess define the desired access to the object.
-              New:
-                Although the MSDN AccessCheck forbids generic rights (like GENERIC_ALL) in this Parameter.
-                The method AccessCheck will replace all generic rights with specific rights
-                using the mapping defined by parameter GenericMapping.
-                However the original SecurityDescriptor will remain the same.
-              Warning:
-              Some generic access rights may overlap. This can lead to access denied.
-              Example:
-               DACL contains a positive ACE with GENERIC_WRITE
-                          and a negative ACE with GENERIC_READ
-               A call to AccessCheck with DesiredAccess set to GENERIC_WRITE and
-                GenericMapping set to TJwSecurityFileMapping (using FileGenericMapping) will
-               fail because GENERIC_WRITE and GENERIC_READ are resolve to FILE_GENERIC_WRITE
-                and FILE_GENERIC_READ which both contain SYNCHRONIZE ($100000) and READ_CONTROL ($2000).
-               
-       @param ObjectTypeArray defines an array of object properties.
-            The Level of the objects must comply to some rules.
-            <code lang="Delphi">
-            Array[i].Level = a_i
-                    { a_i +1        | a_i - a_(i-1) = 1 AND a_i < 4
-            a_i+1 = { a_i - t       | a_i - t AND t >= 0
-                    { ERROR_INVALID_PARAMETER | else
-
-            sequence start: a_0 = 0
-            </code>
-            See also http://msdn2.microsoft.com/en-us/library/aa374917(VS.85).aspx
-
-       @param GenericMapping Receives a class type of the class TJwSecurityGenericMapping or one of her derived classes.
-                If the generic class TJwSecurityGenericMapping is used, all generic access rights are mapped to
-                standard access rights (STANDARD_RIGHTS_READ...STANDARD_RIGHTS_ALL).
-                Use only access rights in parameter DesiredAccess that are mapped by the given TJwSecurityGenericMappingClass class;
-                 otherwise AccessChec will fail with EJwsclWinCallFailedException.
-                E.g. TJwSecurityGenericMappingClass can be used with DesiredAccess set to STANDARD_RIGHTS_ALL.
-
-                New:
-                  All access entriey (ACEs) in the security descriptor DACL are scanned for GENERIC access rights (like
-                  GENERIC_ALL) and automatically converted to specific rights using parameter GenericMapping.
-                  However the original SecurityDescriptor will remain the same.
-                  This will not happen, if nil is supplied to this parameter. Make sure there are no generic rights
-                  in the ACL or DesiredAccess parameter.
-                
-       @param PrivilegeSet receives the privileges that are used for access check. If none are used, this output will be nil.
-                The caller is responsible for destroying the object!
-       @param GrantedAccess receives an array of access mask that indicates which rights were granted.
-            The count of elements is the same as length of ObjectTypeArray. 
-       @param AccessStatus receives an array of return codes which defines why a check failed.
-              The count of elements is the same as length of ObjectTypeArray. 
-
-
-       raises
- EJwsclInvalidParameterException:  will be raised if
-                parameter SecurityDescriptor is nil. 
-
-        EJwsclWinCallFailedException: will be raised if the call to AccessCheck failed. 
-        EJwsclWinCallFailedException: will be raised if parameter ObjectTypeArray is nil. 
-        EJwsclInvalidObjectArrayException: will be raised if parameter ObjectTypeArray contains
-                invalid members. See this parameter for more information. 
-        EJwsclInvalidOwnerSIDException: will be raised if the owner of the security descriptor is nil.
-          Use JwNullSID to remove influence of owner to AccessCheck call. 
-        EJwsclInvalidGroupSIDException: will be raised if the group of the security descriptor is nil.
-          Use JwNullSID to remove influence of group to AccessCheck call. 
-
-      EJwsclWinCallFailedException: if a call to AccessCheckByTypeResultList failed. 
-      EJwsclNILParameterException: will be raised if parameter Request,
-      SecurityDescriptor or Request.PrincipalSelfSid is nil 
-    }
+    { <b>AccessCheckByTypeResultList</b> does an access check of an object with
+      properties.
+      Parameters
+      SecurityDescriptor :  defines the primary SD which is used to perfom access
+                            checking. The owner and group must not be nil; otherwise
+                            the call will fail.<p />
+      PrincipalSelfSid :    defines a SID that is used to replace a principle self sid
+                            found in an inherited ACE. A principle self SID (S\-1\-5\-10)
+                            in a ACE will be replaced by this property SID. Can be nil
+                            if not used.
+      ClientToken :         A token that is used to get the SID and privileges which
+                            are used to check against the security descriptor. The
+                            parameter can be nil to use the current thread or process
+                            token.<p /><p />In contrast to the original AccessCheck API
+                            function, this method automatically adjusts the token type
+                            to "impersonation" if the given token is a primary one.
+                            This prevents the error ERROR_NO_IMPERSONATION_TOKEN
+                            (1309). If ClientToken is not nil it makes a copy of
+                            ClientToken and converts it to a thread token. If
+                            ClientToken is nil, it retrieves the current thread or
+                            primary token (if no thread token is available) and, in the
+                            latter case, converts it to a thread token. Furthermore
+                            this method does not impersonate any token and thus leaves
+                            an already existing thread token intact.<p />
+      DesiredAccess :       Defines the desired access to the object.<p /><b>New</b><p />Although
+                            the MSDN AccessCheck forbids generic rights (like
+                            GENERIC_ALL) in this Parameter. The method AccessCheck will
+                            replace all generic rights with specific rights using the
+                            mapping defined by parameter GenericMapping. However the
+                            original SecurityDescriptor will remain the same. <b>Warning</b>
+                            Some generic access rights may overlap. This can lead to
+                            access denied.<p /><b>Example</b><p />DACL contains a
+                            positive ACE with GENERIC_WRITE and a negative ACE with
+                            GENERIC_READ<p />A call to AccessCheck with DesiredAccess
+                            set to GENERIC_WRITE and GenericMapping set to
+                            TJwSecurityFileMapping (using FileGenericMapping) will fail
+                            because GENERIC_WRITE and GENERIC_READ are resolve to
+                            FILE_GENERIC_WRITE and FILE_GENERIC_READ which both contain
+                            SYNCHRONIZE ($100000) and READ_CONTROL ($2000).<p />
+      ObjectTypeArray :     defines an array of object properties. The Level of the
+                            objects must comply to some rules.
+                            <code lang="delphi">
+                                                                         Array[i].Level = a_i
+                                    { a_i +1        | a_i \- a_(i\-1) = 1 AND a_i \< 4
+                            a_i+1 = { a_i \- t       | a_i \- t AND t \>= 0
+                                    { ERROR_INVALID_PARAMETER | else
+                            
+                            sequence start\: a_0 = 0
+                            </code>
+                            \See also <link http://msdn2.microsoft.com/en-us/library/aa374917(VS.85).aspx, MSDN>.<p />
+      GenericMapping :      Receives a class type of the class
+                            TJwSecurityGenericMapping or one of her derived classes. If
+                            the generic class TJwSecurityGenericMapping is used, all
+                            generic access rights are mapped to standard access rights
+                            (STANDARD_RIGHTS_READ...STANDARD_RIGHTS_ALL). Use only
+                            access rights in parameter DesiredAccess that are mapped by
+                            the given TJwSecurityGenericMappingClass class; otherwise
+                            AccessChec will fail with EJwsclWinCallFailedException.
+                            E.g. TJwSecurityGenericMappingClass can be used with
+                            DesiredAccess set to STANDARD_RIGHTS_ALL.<p /><b>New</b><p />All
+                            access entriey (ACEs) in the security descriptor DACL are
+                            scanned for GENERIC access rights (like GENERIC_ALL) and
+                            automatically converted to specific rights using parameter
+                            GenericMapping. However the original SecurityDescriptor
+                            will remain the same. This will not happen, if nil is
+                            supplied to this parameter. Make sure there are no generic
+                            rights in the ACL or DesiredAccess parameter.<p />
+      PrivilegeSet :        receives the privileges that are used for access check. If
+                            none are used, this output will be nil. The caller is
+                            responsible for destroying the object!
+      GrantedAccess :       receives an array of access mask that indicates which
+                            rights were granted. The count of elements is the same as
+                            length of ObjectTypeArray.
+      AccessStatus :        receives an array of return codes which defines why a check
+                            failed. The count of elements is the same as length of
+                            ObjectTypeArray.
+      Exceptions
+      EJwsclInvalidParameterException :    will be raised if parameter
+                                           SecurityDescriptor is nil.<p />
+      EJwsclWinCallFailedException :       will be raised if the call to AccessCheck
+                                           failed. will be raised if parameter
+                                           ObjectTypeArray is nil. if a call to
+                                           AccessCheckByTypeResultList failed.
+      EJwsclInvalidObjectArrayException :  will be raised if parameter ObjectTypeArray
+                                           contains invalid members. See this parameter
+                                           for more information.
+      EJwsclInvalidOwnerSIDException :     will be raised if the owner of the security
+                                           descriptor is nil. Use JwNullSID to remove
+                                           influence of owner to AccessCheck call.
+      EJwsclInvalidGroupSIDException :     will be raised if the group of the security
+                                           descriptor is nil. Use JwNullSID to remove
+                                           influence of group to AccessCheck call.<p />
+      EJwsclNILParameterException :        will be raised if parameter Request,
+                                           SecurityDescriptor or
+                                           Request.PrincipalSelfSid is nil                                             }
     class procedure AccessCheckByTypeResultList(
       const SecurityDescriptor : TJwSecurityDescriptor;
       const PrincipalSelfSid : TJwSecurityID;
@@ -1188,20 +1257,21 @@ type
 
     class function GetOwnerShipMembers: TJwSecurityIdList; override;
 
-    {<B>ConvertMaximumAllowed</B> converts the meta access right MAXIMUM_ALLOWED to basic
-     access rights that can be granted to the given client token.
-     The access rights are read from the given security descritptor.
-     The mapping parameter defines a map between generic and specific
-     access rights.
-     @param SecurityDescriptor defines a security descriptor which is not nil
-          and has an owner and a group defined; otherwise the call fails. 
-     @param ClientToken defines a token which is used to enforce the access rights 
-     @param GenericMapping defines a mapping between generic rights and specific rights 
-     @return Returns an combination of access rights which are granted 
-     raises
- EJwsclSecurityException:  This function does not raise exception.
-            However the called function AccessCheck can raise an exception.  
-    }
+    { <b>ConvertMaximumAllowed</b> converts the meta access right MAXIMUM_ALLOWED to
+      basic access rights that can be granted to the given client token. The access
+      rights are read from the given security descriptor. The mapping parameter
+      defines a map between generic and specific access rights.
+      Parameters
+      SecurityDescriptor :  defines a security descriptor which is not nil and has an
+                            owner and a group defined; otherwise the call fails. 
+      ClientToken :         defines a token which is used to enforce the access rights 
+      GenericMapping :      defines a mapping between generic rights and specific
+                            rights 
+      Returns
+      \Returns an combination of access rights which are granted
+      Exceptions
+      EJwsclSecurityException :  This function does not raise exception. However the
+                                 called function AccessCheck can raise an exception.    }
     class function ConvertMaximumAllowed(
        const SecurityDescriptor: TJwSecurityDescriptor;
        const ClientToken: TJwSecurityToken;
@@ -1225,7 +1295,6 @@ type
   protected
     fDuplicateHandle: boolean;
     fFileName:        TJwString;
-
 
     {<B>TreeFileObjectSetNamedSecurityInfo_Execute</B> is used as a thread function by TreeFileObjectSetNamedSecurityInfo}
     class function TreeFileObjectSetNamedSecurityInfo_Execute(
@@ -1261,7 +1330,7 @@ type
           the handle will be duplicated with same access.
           A duplicated file handle is automatically closed if the instace is destroyed. 
       @param AccessMask gets the desired access mask to the new file handle. If set to 0 the same access mask of the old handle is used. 
-      @param bDuplicateHandle defines whether the file handle should be duplicated or directly be used 
+      @param bDuplicateHandle defines whether the file handle should be duplicated or directly be used
       raises
  EJwsclSecurityObjectException:  will be raised if the file handle could not be copied. 
       }
@@ -1395,7 +1464,8 @@ type
         # siprotectedDaclSecurityInformation 
         # siUnprotectedDaclSecurityInformation 
         # siprotectedSaclSecurityInformation 
-        # siUnprotectedSaclSecurityInformation 
+        # siUnprotectedSaclSecurityInformation
+        # siLabelSecurityInformation : Use SetMandatoryLabel instead
        
        Instead use TJwSecurityDescriptor.InheritanceDACLProtection or
          TJwSecurityDescriptor.InheritanceSACLProtection to control inheritance.
@@ -1490,6 +1560,11 @@ type
       {<B>AccessCheck</B> checks whether the user has access to the the file of the instance or not.
        @param DesiredAccess defines which access rights are to be checked. If set to High(Cardinal)
           the access rights given in the constructor are used.
+
+       Exceptions
+        EJwsclInvalidParameterException: This exception will be raised if DesiredAccess contains the
+            MAXIMUM_ALLOWED access right. If you want to check for granted access rights call
+            the other method and read parameter GrantedAccess.
       }
     function AccessCheck(DesiredAccess: TJwAccessMask = Cardinal(-1);
       const ClientToken: TJwSecurityToken = nil)
@@ -1505,62 +1580,75 @@ type
       const ClientToken: TJwSecurityToken = nil);
       overload; virtual;
 
-      {<B>AccessCheck</B> checks the access to a security descriptor of a secure object. See AccessCheck in MSDN for more information
-       @param SecurityDescriptor contains the security descriptor that is used to check for access. 
-       @param ClientToken A token that is used to get the SID and privileges which are used to check
-                against the security descriptor. The parameter can be nil to use
-                the current thread or process token.
-                If ClientToken is not nil, the token must be converted into a impersonated token
-                and the current thread must be impersonated.
-                Example:
-
-                Token.ConvertToImpersonatedToken(jwaWindows.TSecurityImpersonationLevel(SecurityImpersonation), TOKEN_ALL_ACCESS);
-                Token.ImpersonateLoggedOnUser;
-              
-       @param DesiredAccess define the desired access to the object.
-              New:
-                Although the MSDN AccessCheck forbids generic rights (like GENERIC_ALL) in this Parameter.
-                The method AccessCheck will replace all generic rights with specific rights
-                using the mapping defined by parameter GenericMapping.
-                However the original SecurityDescriptor will remain the same.
-              Warning:
-              Some generic access rights may overlap. This can lead to access denied.
-              Example:
-               DACL contains a positive ACE with GENERIC_WRITE
-                          and a negative ACE with GENERIC_READ
-               A call to AccessCheck with DesiredAccess set to GENERIC_WRITE and
-                GenericMapping set to TJwSecurityFileMapping (using FileGenericMapping) will
-               fail because GENERIC_WRITE and GENERIC_READ are resolve to FILE_GENERIC_WRITE
-                and FILE_GENERIC_READ which both contain SYNCHRONIZE ($100000) and READ_CONTROL ($2000).
-               
-       @param GenericMapping Receives a class type of the class TJwSecurityGenericMapping or one of her derived classes.
-                If the generic class TJwSecurityGenericMapping is used, all generic access rights are mapped to
-                standard access rights (STANDARD_RIGHTS_READ...STANDARD_RIGHTS_ALL).
-                Use only access rights in parameter DesiredAccess that are mapped by the given TJwSecurityGenericMappingClass class;
-                 otherwise AccessChec will fail with EJwsclWinCallFailedException.
-                E.g. TJwSecurityGenericMappingClass can be used with DesiredAccess set to STANDARD_RIGHTS_ALL.
-
-                New:
-                  All access entriey (ACEs) in the security descriptor DACL are scanned for GENERIC access rights (like
-                  GENERIC_ALL) and automatically converted to specific rights using parameter GenericMapping.
-                  However the original SecurityDescriptor will remain the same.
-                
-       @param PrivilegeSet receives the privileges that are used for access check. If none are used, this output will be nil.
-                The caller is responsible for destroying the object! 
-       @param GrantedAccess receives an access mask that indicates which rights were granted. 
-       @param AccessStatus receives the result of the access check. True if access is granted, otherwise false. 
-
-       raises
- EJwsclInvalidParameterException:  will be raised if
-                parameter SecurityDescriptor is nil; 
-
-        EJwsclWinCallFailedException: will be raised if the call to AccessCheck failed. 
-        EJwsclInvalidOwnerSIDException: will be raised if the owner of the security descriptor is nil.
-          Use JwNullSID to remove influence of owner to AccessCheck call. 
-        EJwsclInvalidGroupSIDException: will be raised if the group of the security descriptor is nil.
-          Use JwNullSID to remove influence of group to AccessCheck call. 
-
-       }
+    { <b>AccessCheck</b> checks the access to a security descriptor of a secure
+        object. See AccessCheck in MSDN for more information
+        Parameters
+        SecurityDescriptor :  Contains the security descriptor that is used to check for
+                              access.
+        ClientToken :         A token that is used to get the SID and privileges which
+                              are used to check against the security descriptor. The
+                              parameter can be nil to use the current thread or process
+                              token.<p /><p />In contrast to the original AccessCheck API
+                              function, this method automatically adjusts the token type
+                              to "impersonation" if the given token is a primary one.
+                              This prevents the error ERROR_NO_IMPERSONATION_TOKEN
+                              (1309). If ClientToken is not nil the method makes a copy
+                              of ClientToken and converts it to a thread token. If
+                              ClientToken is nil, it retrieves the current thread or
+                              primary token (if no thread token is available) and, in the
+                              latter case, converts it to a thread token. Furthermore
+                              this method does not impersonate any token and thus leaves
+                              an already existing thread token intact.<p />
+        DesiredAccess :       Defines the desired access to the object.<p /><b>New</b><p />Although
+                              the MSDN AccessCheck forbids generic rights (like
+                              GENERIC_ALL) in this Parameter. The method AccessCheck will
+                              replace all generic rights with specific rights using the
+                              mapping defined by parameter GenericMapping. However the
+                              original SecurityDescriptor will remain the same. <b>Warning</b>
+                              Some generic access rights may overlap. This can lead to
+                              access denied.<p /><b>Example</b><p />DACL contains a
+                              positive ACE with GENERIC_WRITE and a negative ACE with
+                              GENERIC_READ A call to AccessCheck with DesiredAccess set
+                              to GENERIC_WRITE and GenericMapping set to
+                              TJwSecurityFileMapping (using FileGenericMapping) will fail
+                              because GENERIC_WRITE and GENERIC_READ are resolve to
+                              FILE_GENERIC_WRITE and FILE_GENERIC_READ which both contain
+                              SYNCHRONIZE ($100000) and READ_CONTROL ($2000).<p />
+        GenericMapping :      Receives a class type of the class
+                              TJwSecurityGenericMapping or one of her derived classes. If
+                              the generic class TJwSecurityGenericMapping is used, all
+                              generic access rights are mapped to standard access rights
+                              (STANDARD_RIGHTS_READ...STANDARD_RIGHTS_ALL). Use only
+                              access rights in parameter DesiredAccess that are mapped by
+                              the given TJwSecurityGenericMappingClass class; otherwise
+                              AccessChec will fail with EJwsclWinCallFailedException.
+                              E.g. TJwSecurityGenericMappingClass can be used with
+                              DesiredAccess set to STANDARD_RIGHTS_ALL.<p /><p /><b>New</b><p />All
+                              access entriey (ACEs) in the security descriptor DACL are
+                              scanned for GENERIC access rights (like GENERIC_ALL) and
+                              automatically converted to specific rights using parameter
+                              GenericMapping. However the original SecurityDescriptor
+                              will remain the same. This will not happen, if nil is
+                              supplied to this parameter. Make sure there are no generic
+                              rights in the ACL or DesiredAccess parameter.<p />
+        PrivilegeSet :        Receives the privileges that are used for access check. If
+                              none are used, this output will be nil. The caller is
+                              responsible for destroying the object!
+        GrantedAccess :       Receives an access mask that indicates which rights were
+                              granted.
+        AccessStatus :        Receives the result of the access check. True if access is
+                              granted, otherwise false.
+        Exceptions
+        EJwsclInvalidParameterException :  will be raised if parameter SecurityDescriptor
+                                           is nil;
+        EJwsclWinCallFailedException :     will be raised if the call to AccessCheck
+                                           failed.
+        EJwsclInvalidOwnerSIDException :   will be raised if the owner of the security
+                                           descriptor is nil. Use JwNullSID to remove
+                                           influence of owner to AccessCheck call.
+        EJwsclInvalidGroupSIDException :   will be raised if the group of the security
+                                           descriptor is nil. Use JwNullSID to remove
+                                           influence of group to AccessCheck call.                  }
     class procedure AccessCheck(
       const SecurityDescriptor: TJwSecurityDescriptor;
       const ClientToken: TJwSecurityToken;
@@ -1604,11 +1692,12 @@ type
         @param aSecurityInfo defines which security information to be set. (Owner...SACL). If a flag is not set, but the
                 parameter Owner...SACL is not nil, it is also set. 
         @param FNProgressMethod defines a object method to be called if a file or folder is changed. Can be nil. See TJwFnProgressMethod  
-        @param FNProgressProcedure defines a procedure to be called if a file or folder is changed. Can be nil. See TJwFnProgressProcedure  
+        @param FNProgressProcedure defines a procedure to be called if a file or folder is changed. Can be nil. See TJwFnProgressProcedure
         @param ProgressUserData defines user data to be used as parameter ProgressUserData in the callback methods. 
 
         raises
- EJwsclWinCallFailedException:  is raised if the winapi call failed.
+           EJwsclWinCallFailedException:  is raised if the winapi call failed.
+           EJwsclUnsupportedWindowsVersionException: This is exception is raised if the Windows system does not support this call.
         }
     class procedure TreeResetNamedSecurityInfo(pObjectName: TJwString;
       const aSecurityInfo:
@@ -1642,7 +1731,7 @@ type
                    
                     # pis_ProgressInvokeNever  The callback method should not be called 
                     # pis_ProgressInvokeEveryObject The callback method is called for all objects. Including the finished callback. 
-                    # pis_ProgressInvokeOnError The callback method is called for all errors. Including the finished callback. 
+                    # pis_ProgressInvokeOnError The callback method is called for all errors. Including the finished callback.
                     
                   The finish callback is called after the security of the last file/folder was changed. The last callback
                   uses the parameter pObjectName and the constant pis_ProgressFinished in parameter pInvokeSetting. 
@@ -1744,7 +1833,7 @@ type
         EJwsclInvalidObjectException: will be raised if the object could not be accessed or found.
         EJwsclInvalidParameterException: will be raised if aSecurityInfo is not [siDaclSecurityInformation] or [siSaclSecurityInformation]
         EJwsclPrivilegeNotFoundException: will be raised if aSecurityInfo is [siSaclSecurityInformation] and the current thread does cannot access audit information, because the privilege could not be activated.
-
+        EJwsclInvalidPathException: will be raised if the path does not have the pattern: X:[\folder]* or is a relative path. UNC paths are not supported.
        Remarks
          This functions emulates the GetInheritanceSource function available in
          Windows XP and newer. Since the inheritance functionality of NTFS
@@ -1755,8 +1844,10 @@ type
          through the OnGetNamedSecurityInfo event.
        }
     class function GetFileInheritanceSource(const PathName: TJwString;
+      const Container : Boolean;
       const aSecurityInfo: TJwSecurityInformationFlagSet =
       [siDaclSecurityInformation];
+
       const OnGetNamedSecurityInfo : TJwOnGetNamedSecurityInfo = nil;
       const Data : Pointer = nil
       ): TJwInheritedFromArray; overload; virtual;
@@ -1780,6 +1871,7 @@ type
         EJwsclPrivilegeNotFoundException: will be raised if aSecurityInfo is [siSaclSecurityInformation] and the current thread does cannot access audit information, because the privilege could not be activated.
       }
     function GetFileInheritanceSource(
+      const Container : Boolean;
       const aSecurityInfo: TJwSecurityInformationFlagSet =
       [siDaclSecurityInformation]): TJwInheritedFromArray; overload; virtual;
 
@@ -1881,8 +1973,8 @@ type
 
        @return Returns true if ACL is supported; otherwise false.
        raises
- EJwsclWinCallFailedException:  will be raised if GetVolumeInformation returned an error
-        EJwsclInvalidParameterException: will be raised if RootPathName contains no drive letter
+         EJwsclWinCallFailedException:  will be raised if GetVolumeInformation returned an error
+         EJwsclInvalidParameterException: will be raised if RootPathName contains no drive letter
              or does not contain a valid UNC path.
       }
     class function SupportACL(RootPathName: TJwString): boolean;
@@ -1894,10 +1986,10 @@ type
        To set the owner to an arbitrary one the caller must enable SE_RESTORE_PRIVILEGE. The function doesnt do it.
 
        @param PathName Defines the file or folder which owner is to be changed
-       @param SID defines the new owner. If nil the current user is used. 
+       @param SID defines the new owner. If nil the current user is used.
 
        raises
- EJwsclSecurityException:  See SetNamedSecurityInfo for more exception
+         EJwsclSecurityException:  See SetNamedSecurityInfo for more exception
        }
     class procedure TakeOwnerShip(const PathName: TJwString;
       SID: TJwSecurityId = nil); overload; virtual;
@@ -1908,10 +2000,10 @@ type
        To set the owner to an arbitrary one the caller must enable SE_RESTORE_PRIVILEGE. The function doesnt do it.
 
        @param Handle Defines a handle to the file or folder which owner is to be changed
-       @param SID defines the new owner. If nil the current user is used. 
+       @param SID defines the new owner. If nil the current user is used.
 
        raises
- EJwsclSecurityException:  See SetNamedSecurityInfo for more exception
+         EJwsclSecurityException:  See SetNamedSecurityInfo for more exception
        }
     class procedure TakeOwnerShip(const Handle: THandle;
       SID: TJwSecurityId = nil); overload; virtual;
@@ -1921,10 +2013,10 @@ type
        The owner is set to to current owner or given SID.
        To set the owner to an arbitrary one the caller must enable SE_RESTORE_PRIVILEGE. The function doesnt do it.
 
-       @param SID defines the new owner. If nil the current user is used. 
+       @param SID defines the new owner. If nil the current user is used.
 
        raises
- EJwsclSecurityException:  See SetNamedSecurityInfo for more exception
+         EJwsclSecurityException:  See SetNamedSecurityInfo for more exception
        }
     procedure TakeOwnerShip(SID: TJwSecurityId = nil); overload; virtual;
 
@@ -1941,8 +2033,7 @@ type
 
     fReg: TRegistry;
 
-    procedure Dummy; virtual; abstract;
-
+    
     function GetKey(out bUsesName: boolean): HKEY; virtual;
     class function TreeRegKeySetNamedSecurityInfo_Execute(pData: Pointer)
       : integer; virtual;
@@ -1961,7 +2052,7 @@ type
       @param AccessMask gets the desired access mask to the new handle. If set to 0 the same access mask of the old handle is used. 
       @param bDuplicateHandle defines whether the handle should be duplicated or directly be used 
       raises
- EJwsclSecurityObjectException:  will be raised if file handle could not be copied. 
+        EJwsclSecurityObjectException:  will be raised if file handle could not be copied.
       }
     constructor Create(const RegKey: HKEY; AccessMask: TJwAccessMask = 0;
       bDuplicateHandle: boolean = False); overload;
@@ -1969,16 +2060,22 @@ type
     {<B>Create</B> creates an instance using a VCL TRegistry to obtain key handle information.
      @param RegistryInstance receives a VCL registry instance that is used to get
        key handle information. The handle will not be duplicated so that changes in the registry
-       instance will lead to problems when calling methods of TJwSecureRegistryKey. 
-     @param bUseName is not used 
+       instance will lead to problems when calling methods of TJwSecureRegistryKey.
+     @param bUseName is not used
      raises
- EJwsclNILParameterException:  will be raised if parameter RegistryInstance is nil 
+       EJwsclNILParameterException:  will be raised if parameter RegistryInstance is nil
     }
     constructor Create(const RegistryInstance: TRegistry; bUseName: boolean = False);
       overload;
 
       {<B>Create</B> creates a registry instance using a path to the registry key.
        The property Handle will not be used.
+
+       @param RegPath This parameter receives the absolute path to the registry key to be accessed.
+        Be aware that "HKEY_xxx" constants must be string mapped to "xxx" (without "HKEY_")
+        The constructor does not check validity. This check is done when you call any of the
+        security methods which actually access the key. In most cases an exception
+        with GetLastError "invalid parameter" is raised.
 
        }
     constructor Create(const RegPath: TJwString); overload;
@@ -2012,7 +2109,7 @@ type
 
     {<B>SetMandatoryLabel</B> sets the mandatory level of the object.
     raises
- EJwsclInvalidObjectException:  will be raised if the handle and name are invalid 
+      EJwsclInvalidObjectException:  will be raised if the handle and name are invalid
     }
     procedure SetMandatoryLabel(const MandatoryLabel :
       TJwSystemMandatoryAccessControlEntry); override;
@@ -2035,17 +2132,18 @@ type
        Afterwards you can set a new DACL to the file.
        So nobody can hijack the file you should also open the file exclusively and do not use the SetNamedXXX methods.
 
-       New: You can also use apProtected to remove inherited ACEs (replace an existing DACL completly).
+       <b>New</b><br/>
+         You can also use apProtected to remove inherited ACEs (replace an existing DACL completly).
 
        The list is copied into the file object.
 
        @param Protection defines which TJwSecurityInformationFlag Flag is used:
-        
-          # apNone uses simply siDaclSecurityInformation to set DACL 
-          # apProtected uses siProtectedDaclSecurityInformation to set a protected DACL 
+
+          # apNone uses simply siDaclSecurityInformation to set DACL
+          # apProtected uses siProtectedDaclSecurityInformation to set a protected DACL
           # apUnprotected uses siUnprotectedDaclSecurityInformation to set
-              an unprotected DACL and let flow the inheritance stream 
-          
+              an unprotected DACL and let flow the inheritance stream
+
 
        }
     procedure SetDACL(const list: TJwDAccessControlList;
@@ -2053,18 +2151,19 @@ type
       {<B>SetSACL</B> sets the SACL of the file object.
        You need to have SE_SECURITY_NAME privilege be enabled otherwise the call fails.
 
-       New: You can also use apProtected to remove inherited ACEs (replace an existing SACL completly).
+       <b>New</b><br/>
+         You can also use apProtected to remove inherited ACEs (replace an existing SACL completly).
 
        The list is copied into the file object.
 
        @param Protection defines which TJwSecurityInformationFlag Flag is used:
-        
-          # apNone uses simply siDaclSecurityInformation to set DACL 
-          # apProtected uses siProtectedDaclSecurityInformation to set a protected DACL 
+
+          # apNone uses simply siDaclSecurityInformation to set DACL
+          # apProtected uses siProtectedDaclSecurityInformation to set a protected DACL
           # apUnprotected uses siUnprotectedDaclSecurityInformation to set
-              an unprotected DACL and let flow the inheritance stream 
-          
-       
+              an unprotected DACL and let flow the inheritance stream
+
+
        }
 
     procedure SetSACL(const list: TJwSAccessControlList;
@@ -2212,9 +2311,9 @@ type
                 Set it to true to use it; otherwise false. 
 
        raises
- EJwsclInvalidSecurityDescriptor:  will be raised if the parameter aSecurityDescriptor is nil 
-        EJwsclInvalidParameterException: will be raised if parameter KeyName is invalid. Validity is only checked for a correct root item. 
-        EJwsclWinCallFailedException: will be raised if a call to a winapi function failed. To get the name of the function that failed,
+         EJwsclInvalidSecurityDescriptor:  will be raised if the parameter aSecurityDescriptor is nil
+         EJwsclInvalidParameterException: will be raised if parameter KeyName is invalid. Validity is only checked for a correct root item.
+         EJwsclWinCallFailedException: will be raised if a call to a winapi function failed. To get the name of the function that failed,
                 use the property WinCallName of the exception. It contains the name of the function that failed. 
 
       }
@@ -2234,7 +2333,7 @@ type
         # siUnprotectedDaclSecurityInformation 
         # siprotectedSaclSecurityInformation 
         # siUnprotectedSaclSecurityInformation 
-       
+
        Instead use TJwSecurityDescriptor.InheritanceDACLProtection or
          TJwSecurityDescriptor.InheritanceSACLProtection to control inheritance.
 
@@ -2260,68 +2359,86 @@ type
        {<B>AccessCheck</B> checks whether the user has access to the the file of the instance or not.
        @param DesiredAccess defines which access rights are to be checked. If set to High(Cardinal)
           the access rights given in the constructor are used.
+
+       Exceptions
+        EJwsclInvalidParameterException: This exception will be raised if DesiredAccess contains the
+            MAXIMUM_ALLOWED access right. If you want to check for granted access rights call
+            the other method and read parameter GrantedAccess.
       }
     function AccessCheck(DesiredAccess: TJwAccessMask = Cardinal(-1);
       const ClientToken: TJwSecurityToken = nil)
       : boolean;
       overload; override;
 
-      {<B>AccessCheck</B> checks the access to a security descriptor of a secure object. See AccessCheck in MSDN for more information
-       @param SecurityDescriptor contains the security descriptor that is used to check for access. 
-       @param ClientToken A token that is used to get the SID and privileges which are used to check
-                against the security descriptor. The parameter can be nil to use
-                the current thread or process token.
-                If ClientToken is not nil, the token must be converted into a impersonated token
-                and the current thread must be impersonated.
-                Example:
-
-                Token.ConvertToImpersonatedToken(jwaWindows.TSecurityImpersonationLevel(SecurityImpersonation), TOKEN_ALL_ACCESS);
-                Token.ImpersonateLoggedOnUser;
-              
-       @param DesiredAccess define the desired access to the object.
-              New:
-                Although the MSDN AccessCheck forbids generic rights (like GENERIC_ALL) in this Parameter.
-                The method AccessCheck will replace all generic rights with specific rights
-                using the mapping defined by parameter GenericMapping.
-                However the original SecurityDescriptor will remain the same.
-              Warning:
-              Some generic access rights may overlap. This can lead to access denied.
-              Example:
-               DACL contains a positive ACE with GENERIC_WRITE
-                          and a negative ACE with GENERIC_READ
-               A call to AccessCheck with DesiredAccess set to GENERIC_WRITE and
-                GenericMapping set to TJwSecurityFileMapping (using FileGenericMapping) will
-               fail because GENERIC_WRITE and GENERIC_READ are resolve to FILE_GENERIC_WRITE
-                and FILE_GENERIC_READ which both contain SYNCHRONIZE ($100000) and READ_CONTROL ($2000).
-               
-       @param GenericMapping Receives a class type of the class TJwSecurityGenericMapping or one of her derived classes.
-                If the generic class TJwSecurityGenericMapping is used, all generic access rights are mapped to
-                standard access rights (STANDARD_RIGHTS_READ...STANDARD_RIGHTS_ALL).
-                Use only access rights in parameter DesiredAccess that are mapped by the given TJwSecurityGenericMappingClass class;
-                 otherwise AccessChec will fail with EJwsclWinCallFailedException.
-                E.g. TJwSecurityGenericMappingClass can be used with DesiredAccess set to STANDARD_RIGHTS_ALL.
-
-                New:
-                  All access entriey (ACEs) in the security descriptor DACL are scanned for GENERIC access rights (like
-                  GENERIC_ALL) and automatically converted to specific rights using parameter GenericMapping.
-                  However the original SecurityDescriptor will remain the same.
-                
-       @param PrivilegeSet receives the privileges that are used for access check. If none are used, this output will be nil.
-                The caller is responsible for destroying the object! 
-       @param GrantedAccess receives an access mask that indicates which rights were granted. 
-       @param AccessStatus receives the result of the access check. True if access is granted, otherwise false. 
-
-       raises
- EJwsclInvalidParameterException:  will be raised if
-                parameter SecurityDescriptor is nil; 
-
-        EJwsclWinCallFailedException: will be raised if the call to AccessCheck failed. 
-        EJwsclInvalidOwnerSIDException: will be raised if the owner of the security descriptor is nil.
-          Use JwNullSID to remove influence of owner to AccessCheck call. 
-        EJwsclInvalidGroupSIDException: will be raised if the group of the security descriptor is nil.
-          Use JwNullSID to remove influence of group to AccessCheck call. 
-
-       }
+    { <b>AccessCheck</b> checks the access to a security descriptor of a secure
+      object. See AccessCheck in MSDN for more information
+      Parameters
+      SecurityDescriptor :  Contains the security descriptor that is used to check for
+                            access.
+      ClientToken :         A token that is used to get the SID and privileges which
+                            are used to check against the security descriptor. The
+                            parameter can be nil to use the current thread or process
+                            token.<p /><p />In contrast to the original AccessCheck API
+                            function, this method automatically adjusts the token type
+                            to "impersonation" if the given token is a primary one.
+                            This prevents the error ERROR_NO_IMPERSONATION_TOKEN
+                            (1309). If ClientToken is not nil the method makes a copy
+                            of ClientToken and converts it to a thread token. If
+                            ClientToken is nil, it retrieves the current thread or
+                            primary token (if no thread token is available) and, in the
+                            latter case, converts it to a thread token. Furthermore
+                            this method does not impersonate any token and thus leaves
+                            an already existing thread token intact.<p />
+      DesiredAccess :       Defines the desired access to the object.<p /><b>New</b><p />Although
+                            the MSDN AccessCheck forbids generic rights (like
+                            GENERIC_ALL) in this Parameter. The method AccessCheck will
+                            replace all generic rights with specific rights using the
+                            mapping defined by parameter GenericMapping. However the
+                            original SecurityDescriptor will remain the same.<p /><b>Warning</b><p />Some
+                            generic access rights may overlap. This can lead to access
+                            denied.<p /><b>Example</b><p />DACL contains a positive ACE
+                            with GENERIC_WRITE and a negative ACE with GENERIC_READ A
+                            call to AccessCheck with DesiredAccess set to GENERIC_WRITE
+                            and GenericMapping set to TJwSecurityFileMapping (using
+                            FileGenericMapping) will fail because GENERIC_WRITE and
+                            GENERIC_READ are resolve to FILE_GENERIC_WRITE and
+                            FILE_GENERIC_READ which both contain SYNCHRONIZE ($100000)
+                            and READ_CONTROL ($2000).<p />
+      GenericMapping :      Receives a class type of the class
+                            TJwSecurityGenericMapping or one of her derived classes. If
+                            the generic class TJwSecurityGenericMapping is used, all
+                            generic access rights are mapped to standard access rights
+                            (STANDARD_RIGHTS_READ...STANDARD_RIGHTS_ALL). Use only
+                            access rights in parameter DesiredAccess that are mapped by
+                            the given TJwSecurityGenericMappingClass class; otherwise
+                            AccessChec will fail with EJwsclWinCallFailedException.
+                            E.g. TJwSecurityGenericMappingClass can be used with
+                            DesiredAccess set to STANDARD_RIGHTS_ALL.<p /><p /><b>New</b><p />All
+                            access entriey (ACEs) in the security descriptor DACL are
+                            scanned for GENERIC access rights (like GENERIC_ALL) and
+                            automatically converted to specific rights using parameter
+                            GenericMapping. However the original SecurityDescriptor
+                            will remain the same. This will not happen, if nil is
+                            supplied to this parameter. Make sure there are no generic
+                            rights in the ACL or DesiredAccess parameter.<p />
+      PrivilegeSet :        Receives the privileges that are used for access check. If
+                            none are used, this output will be nil. The caller is
+                            responsible for destroying the object!
+      GrantedAccess :       Receives an access mask that indicates which rights were
+                            granted.
+      AccessStatus :        Receives the result of the access check. True if access is
+                            granted, otherwise false.
+      Exceptions
+      EJwsclInvalidParameterException :  will be raised if parameter SecurityDescriptor
+                                         is nil;
+      EJwsclWinCallFailedException :     will be raised if the call to AccessCheck
+                                         failed.
+      EJwsclInvalidOwnerSIDException :   will be raised if the owner of the security
+                                         descriptor is nil. Use JwNullSID to remove
+                                         influence of owner to AccessCheck call.
+      EJwsclInvalidGroupSIDException :   will be raised if the group of the security
+                                         descriptor is nil. Use JwNullSID to remove
+                                         influence of group to AccessCheck call.                          }
     class procedure AccessCheck(
       const SecurityDescriptor: TJwSecurityDescriptor;
       const ClientToken: TJwSecurityToken;
@@ -2370,7 +2487,8 @@ type
         @param ProgressUserData defines user data to be used as parameter ProgressUserData in the callback methods. 
 
         raises
- EJwsclWinCallFailedException:  is raised if the winapi call failed.
+          EJwsclWinCallFailedException:  is raised if the winapi call failed.
+          EJwsclUnsupportedWindowsVersionException: This is exception is raised if the Windows system does not support this call.
         }
     class procedure TreeResetNamedSecurityInfo(
       const RootKey: TJwRootRegKey;
@@ -2410,38 +2528,38 @@ type
                     
                   The finish callback is called after the security of the last key was changed. The last callback
                   uses the parameter pObjectName and the constant pis_ProgressFinished in parameter pInvokeSetting. 
-                 
+
         @param SetType defines the behaviour of this function.
-                
-                 # tstSet Simply sets the security setting defined in DACL, SACL, owner or group based on the inheritance flags of the given ACEs. 
+
+                 # tstSet Simply sets the security setting defined in DACL, SACL, owner or group based on the inheritance flags of the given ACEs.
                  # tstReset Removes all inheritance protection and ACEs from DACL and SACL of the given tree and sets the security settings like tstSet.
                        The explicit ACEs are preserved if parameter bKeepExplicit is set to true.
-                        
-                
-                 
 
-        @param bKeepExplicit Only applies to tstReset in parameter SetType. It preserves the explicit ACEs of DACL and SACL of root key and all children from deletion. 
+
+
+
+        @param bKeepExplicit Only applies to tstReset in parameter SetType. It preserves the explicit ACEs of DACL and SACL of root key and all children from deletion.
         @param Owner Defines the Owner SID to be set. Can be nil. This parameter is used if aSecurityInfo contains siOwnerSecurityInformation.
-                        The instance is copied into a new object. 
+                        The instance is copied into a new object.
         @param Group Defines the Group SID to be set. Can be nil. This parameter is used if aSecurityInfo contains siGroupSecurityInformation.
-                        The instance is copied into a new object. 
+                        The instance is copied into a new object.
         @param DACL Defines the DACL SID to be set. Can be nil. This parameter is used if aSecurityInfo contains siDaclSecurityInformation.
                 Do not set DACL to nil and include it into aSecurityInfo. A nil DACL cannot be inherited to children. Use instead a GENERIC_ALL with a JwWorldSID.
                 The instance is copied into a new object.
-                 
+
         @param SACL Defines the SACL SID to be set. Can be nil. This parameter is used if aSecurityInfo contains siSaclSecurityInformation.
-                The instance is copied into a new object. 
-        @param FNProgressMethod defines a callback method. It can be nil. This callback function is called before FNProgressProcedure. 
-        @param FNProgressProcedure defines a callback procedure. It can be nil. This callback function is called after FNProgressMethod. 
-        @param ProgressUserData defines user data that is directed to the callback method 
+                The instance is copied into a new object.
+        @param FNProgressMethod defines a callback method. It can be nil. This callback function is called before FNProgressProcedure.
+        @param FNProgressProcedure defines a callback procedure. It can be nil. This callback function is called after FNProgressMethod.
+        @param ProgressUserData defines user data that is directed to the callback method
 
         @param aThread defines a thread instance that is used to call this function in a seperate thread. To use <B>TreeKeySetNamedSecurityInfo</B> in a thread
                  simply create the thread (aThread := TJwTagThread.Create) and assign it to the parameter aThread.
                  Do not call Create with a parameter.
-               
+
         @param Disable64Redirection defines whether the 64bit redirection of keys for 32bit application is deactivated (TRUE) or activated (FALSE).
                         This parameter only works on 64bit windows plattforms. If the plattform is not a 64bit and
-                        Disable64Redirection is true, nothing will happen! 
+                        Disable64Redirection is true, nothing will happen!
 
 
        }
@@ -2509,8 +2627,8 @@ type
                  # rrkLocalMachine 
                  # rrkCurrentUser 
                  # rrkUsers 
-                 # rrkCurrentConfig 
-                 # rrkClassesRoot 
+                 # rrkCurrentConfig
+                 # rrkClassesRoot
                  
             rrkString defines that the root key is located in the parameter KeyName as a string. 
 
@@ -2524,10 +2642,10 @@ type
                   # SID The SID that is inherited. The string has the type <pre><SID account name>@<S-X-X...></pre> 
                  
        raises
- EJwsclInvalidPathException:  will be raised if the instance is created with a handle instead of a file or key name.
-        EJwsclInvalidObjectException: will be raised if the object could not be accessed or found.
-        EJwsclInvalidParameterException: will be raised if aSecurityInfo is not [siDaclSecurityInformation] or [siSaclSecurityInformation]
-        EJwsclPrivilegeNotFoundException: will be raised if aSecurityInfo is [siSaclSecurityInformation] and the current thread does cannot access audit information, because the privilege could not be activated.
+         EJwsclInvalidPathException:  will be raised if the instance is created with a handle instead of a file or key name.
+         EJwsclInvalidObjectException: will be raised if the object could not be accessed or found.
+         EJwsclInvalidParameterException: will be raised if aSecurityInfo is not [siDaclSecurityInformation] or [siSaclSecurityInformation]
+         EJwsclPrivilegeNotFoundException: will be raised if aSecurityInfo is [siSaclSecurityInformation] and the current thread does cannot access audit information, because the privilege could not be activated.
 
        }
     class function GetKeyInheritanceSource(const RootKey: TJwRootRegKey;
@@ -2546,8 +2664,8 @@ type
                   # SID The SID that is inherited. The string has the type <pre><SID account name>@<S-X-X...> </pre>
                  
        raises
- EJwsclInvalidPathException:  will be raised if the instance is created with a handle instead of a file or folder name.
-        EJwsclInvalidObjectException: will be raised if the object could not be accessed or found.
+         EJwsclInvalidPathException:  will be raised if the instance is created with a handle instead of a file or folder name.
+         EJwsclInvalidObjectException: will be raised if the object could not be accessed or found.
       }
     function GetKeyInheritanceSource(const bUseWOW64: boolean = False;
       const aSecurityInfo: TJwSecurityInformationFlagSet =
@@ -2566,7 +2684,7 @@ type
 
       {<B>RemoveInheritanceFlow</B> removes the inheritance flow of a file or folder pathname;
        @param bCopyInheritedACEs defines whether the inherited ACEs shall be copied (true) or removed (false). If the DACL
-                contains no explicit ACEs and the inherited ACEs are removed (false) the remaining DACL is a deny everybody DACL 
+                contains no explicit ACEs and the inherited ACEs are removed (false) the remaining DACL is a deny everybody DACL
 
        See SetNamedSecurityInfo for exceptions.
       }
@@ -2575,7 +2693,7 @@ type
 
       {<B>RemoveInheritanceFlow</B> removes the inheritance flow of a file or folder pathname;
        @param bCopyInheritedACEs defines whether the inherited ACEs shall be copied (true) or removed (false). If the DACL
-                contains no explicit ACEs and the inherited ACEs are removed (false) the remaining DACL is a deny everybody DACL 
+                contains no explicit ACEs and the inherited ACEs are removed (false) the remaining DACL is a deny everybody DACL
 
       raises
         EJwsclInvalidObjectException:  will be raised if the handle and filename is invalid.
@@ -2592,11 +2710,12 @@ type
 
        @param bTakeOwnerShip Defines whether the function should try to restore inheritance by taking the ownership and
                 get so enough rights to restore the DACL.If false and the right to change DACL is denied the exception
-                 EJwsclWinCallFailedException is raised. 
+                 EJwsclWinCallFailedException is raised.
 
-       See SetNamedSecurityInfo for exceptions.
        raises
- EJwsclAdaptSecurityInfoException:  will be raised if bTakeOwnerShip is true and the ownership cannot be taken.
+         EJwsclAdaptSecurityInfoException:  will be raised if bTakeOwnerShip is true and the ownership cannot be taken.
+       Seealso
+         See SetNamedSecurityInfo for more exceptions.
       }
     class procedure RestoreInheritanceFlow(const Handle: THandle;
       bTakeOwnerShip: boolean = False); overload; virtual;
@@ -2608,13 +2727,15 @@ type
 
        @param bTakeOwnerShip Defines whether the function should try to restore inheritance by taking the ownership and
                 get so enough rights to restore the DACL.If false and the right to change DACL is denied the exception
-                 EJwsclWinCallFailedException is raised. 
+                 EJwsclWinCallFailedException is raised.
 
-       See SetNamedSecurityInfo for exceptions.
 
        @param PathName defines a file or folder path.
+
        raises
- EJwsclAdaptSecurityInfoException:  will be raised if bTakeOwnerShip is true and the ownership cannot be taken.
+         EJwsclAdaptSecurityInfoException:  will be raised if bTakeOwnerShip is true and the ownership cannot be taken.
+       Seealso
+        See SetNamedSecurityInfo for more exceptions.
       }
     class procedure RestoreInheritanceFlow(const KeyName: TJwString;
       bTakeOwnerShip: boolean = False); overload; virtual;
@@ -2626,14 +2747,13 @@ type
 
        @param bTakeOwnerShip Defines whether the function should try to restore inheritance by taking the ownership and
                 get so enough rights to restore the DACL. If false and the right to change DACL is denied the exception
-                 EJwsclWinCallFailedException is raised. 
-
-       See SetNamedSecurityInfo for exceptions.
+                 EJwsclWinCallFailedException is raised.
 
        raises
- EJwsclInvalidObjectException:  will be raised if the handle and filename is invalid.
-        EJwsclAdaptSecurityInfoException: will be raised if bTakeOwnerShip is true and the ownership cannot be taken.
-
+         EJwsclInvalidObjectException:  will be raised if the handle and filename is invalid.
+         EJwsclAdaptSecurityInfoException: will be raised if bTakeOwnerShip is true and the ownership cannot be taken.
+       Seealso
+         See SetNamedSecurityInfo for more exceptions.
       }
     procedure RestoreInheritanceFlow(bTakeOwnerShip: boolean = False);
       overload; virtual;
@@ -2644,10 +2764,10 @@ type
        To set the owner to an arbitrary one the caller must enable SE_RESTORE_PRIVILEGE. The function doesnt do it.
 
        @param PathName Defines the file or folder which owner is to be changed
-       @param SID defines the new owner. If nil the current user is used. 
+       @param SID defines the new owner. If nil the current user is used.
 
        raises
- EJwsclSecurityException:  See SetNamedSecurityInfo for more exception
+         EJwsclSecurityException:  See SetNamedSecurityInfo for more exceptions
        }
     class procedure TakeOwnerShip(const KeyName: TJwString;
       SID: TJwSecurityId = nil); overload; virtual;
@@ -2658,10 +2778,10 @@ type
        To set the owner to an arbitrary one the caller must enable SE_RESTORE_PRIVILEGE. The function doesnt do it.
 
        @param Handle Defines a handle to the file or folder which owner is to be changed
-       @param SID defines the new owner. If nil the current user is used. 
+       @param SID defines the new owner. If nil the current user is used.
 
        raises
- EJwsclSecurityException:  See SetNamedSecurityInfo for more exception
+         EJwsclSecurityException:  See SetNamedSecurityInfo for more exception
        }
     class procedure TakeOwnerShip(const Handle: THandle;
       SID: TJwSecurityId = nil); overload; virtual;
@@ -2694,10 +2814,10 @@ type
        The owner is set to to current owner or given SID.
        To set the owner to an arbitrary one the caller must enable SE_RESTORE_PRIVILEGE. The function doesnt do it.
 
-       @param SID defines the new owner. If nil the current user is used. 
+       @param SID defines the new owner. If nil the current user is used.
 
        raises
- EJwsclSecurityException:  See SetNamedSecurityInfo for more exception
+         EJwsclSecurityException:  See SetNamedSecurityInfo for more exception
        }
     procedure TakeOwnerShip(SID: TJwSecurityId = nil); overload; virtual;
 
@@ -2773,25 +2893,25 @@ type
    {<B>JwsclEnumerations</B> is not implemented yet}
    TJwSecureWindowObject = class(TJwSecureBaseClass)
    protected
-      procedure Dummy; virtual; abstract;
+      //procedure Dummy; virtual; abstract;
    end;
 
    {<B>JwsclEnumerations</B> is not implemented yet}
    TJwSecurePrinter = class(TJwSecureBaseClass)
    protected
-      procedure Dummy; virtual; abstract;
+      //procedure Dummy; virtual; abstract;
    end;
 
    {<B>JwsclEnumerations</B> is not implemented yet}
    TJwSecureService = class(TJwSecureBaseClass)
    protected
-      procedure Dummy; virtual; abstract;
+      //procedure Dummy; virtual; abstract;
    end;
 
    {<B>JwsclEnumerations</B> is not implemented yet}
    TJwSecureLMShare = class(TJwSecureBaseClass)
    protected
-      procedure Dummy; virtual; abstract;
+      //procedure Dummy; virtual; abstract;
    end;
 
    //SetNamedSecurityInfo
@@ -2856,7 +2976,7 @@ type
  //TSecure = class(TJwSecureBaseClass)
  //end;
 
-var CacheList : TStringList;
+//var CacheList : TStringList;
 
 
 {$ENDIF SL_IMPLEMENTATION_SECTION}
@@ -2866,6 +2986,7 @@ implementation
 
 uses TypInfo,
      JwsclProcess,
+     JwsclPrivileges,
      JwsclEnumerations;
 
 {$ENDIF SL_OMIT_SECTIONS}
@@ -2912,7 +3033,7 @@ begin
   GetFullPathNameW(PWideChar(WideString(FileName)), len, Buffer, FName);
 
   result := TJwString(Buffer);
-  LocalFree(Cardinal(Buffer));
+  LocalFree(HLOCAL(Buffer));
 end;
 {$ENDIF}
 {$ENDIF DELPHI2009_UP}
@@ -2964,7 +3085,6 @@ var
   OwnerPSid, GroupPSid: PSid;
   pDACL, pSACL: PACL;
 
-  //[Hint] Token : TJwSecurityToken;
 begin
 
   OwnerPSID := nil;
@@ -3273,8 +3393,6 @@ begin
   pSDesc := nil;
 
 
-//  CacheList.Add(anObjectName);
-
   OwnerPSID := nil;
   GroupPSID := nil;
   pDACL := nil;
@@ -3350,11 +3468,37 @@ var
   //[Hint] pSACL : PACL;
 
   pSDesc: PSecurityDescriptor;
-
+  Privs : IJwPrivilegeScope;
 begin
   pSDesc := nil;
 
-//  CacheList.Add(anObjectName);
+
+  {This is a bug in Vista.
+   GetNamedSecurityInfo only retrieves the integrity level information
+   if siSaclSecurityInformation is used and privilege SE_SECURITY_NAME is active.
+   In the other way around:
+    SetNamedSecurity does not need the SE_SECURITY_NAME privilege
+  }
+  if (aObjectType = SE_SERVICE) and
+     (siLabelSecurityInformation in aSecurityInfo) and
+     not (siSaclSecurityInformation in aSecurityInfo) and
+     ((TJwWindowsVersion.IsWindowsVista(false) or
+      (TJwWindowsVersion.IsWindows2008(false)))
+     ) then
+  begin
+    try
+      Privs := JwGetPrivilegeScope([SE_SECURITY_NAME]);
+      Include(aSecurityInfo, siSaclSecurityInformation);
+    except
+      on E : EJwsclPrivilegeException do
+        raise EJwsclPrivilegeException.CreateFmtEx(
+              RsSecureObjectsPrivilegeSecurityMissing + #13#10 + RsPrivilegeLabelBug,
+              'GetSecurityInfo',
+              ClassName, RsUNSecureObjects, 0, false,
+              [SE_SECURITY_NAME]);
+    end;
+  end;
+
 
   //[Hint] OwnerPSID := nil;
   //[Hint] GroupPSID := nil;
@@ -3409,56 +3553,102 @@ begin
     FreeAndNil(PrivilegeSet);
 end;
 
-class procedure TJwSecureBaseClass.AccessCheck(
-  const SecurityDescriptor: TJwSecurityDescriptor;
+
+class procedure TJwSecureBaseClass.PrepareAccessCheckTokenAssignment(
   const ClientToken: TJwSecurityToken;
-  const DesiredAccess: TJwAccessMask;
-  const GenericMapping:
-  TJwSecurityGenericMappingClass;
-  out PrivilegeSet: TJwPrivilegeSet;
-  out GrantedAccess: TJwAccessMask;
-  out AccessStatus: boolean);
-
-
-var
-  pSDesc: jwaWindows.PSecurityDescriptor;
-
-  hToken: TJwTokenHandle;
-  pPrivs: PRIVILEGE_SET;
-  pPrivsSize: Cardinal;
-
-  tempDesiredAccess : Cardinal;
-
-  mapping: TGenericMapping;
-  lbAccessStatus: Bool;
-  Token: TJwSecurityToken;
-  IsThreadToken: boolean;
-
-  TempSD  : TJwSecurityDescriptor;
-  bTempSD : Boolean;
+  out Token : TJwSecurityToken;
+  out hToken : TJwTokenHandle);
 begin
   Token := nil;
-  IsThreadToken := False;
-  GrantedAccess := 0;
-  PrivilegeSet := nil;
-  AccessStatus := false;
+  hToken := INVALID_HANDLE_VALUE;
+  try
+    if Assigned(ClientToken) then
+    begin
+      if ClientToken.IsThreadToken then
+      begin
+        {
+        AccessCheck only allows a thread token!
+        }
+        hToken := ClientToken.TokenHandle;
+      end
+      else
+      begin
+        {
+        Duplicate the ClientToken and make it a thread token
 
-  if not Assigned(SecurityDescriptor) then
-    raise EJwsclInvalidParameterException.CreateFmtEx(
-      RsNilParameter,
-      'AccessCheck',
-      ClassName, RsUNSecureObjects, 0, False, ['SecurityDescriptor']);
+        ConvertToImpersonatedToken needs TOKEN_READ to work
+        }
+        Token := TJwSecurityToken.CreateDuplicateExistingToken(ClientToken, TOKEN_READ or TOKEN_IMPERSONATE or TOKEN_DUPLICATE);
+
+        Token.ConvertToImpersonatedToken(
+          jwaWindows.TSecurityImpersonationLevel(SecurityImpersonation),
+          MAXIMUM_ALLOWED);
+        Assert(Token.IsThreadToken, 'Converted client token is not a thread token.');
+
+        hToken := Token.TokenHandle;
+      end;
+    end
+    else
+    begin
+      {
+      Get the primary or thread token.
+      If we get a primary token only we convert it to a thread token
+       since AccessCheck wants it that way.
+
+      ConvertToImpersonatedToken needs TOKEN_READ to work
+      }
+      Token := TJwSecurityToken.CreateTokenEffective(TOKEN_READ or
+          TOKEN_IMPERSONATE or TOKEN_DUPLICATE);
+  
+      if (Token.IsPrimaryToken) then
+      begin
+        Token.ConvertToImpersonatedToken(
+          jwaWindows.TSecurityImpersonationLevel(SecurityImpersonation),
+          MAXIMUM_ALLOWED);
+      end;
+
+      Assert(Token.IsThreadToken, 'Converted token is not a thread token.');
+
+      hToken := Token.TokenHandle;
+    end;
+  except
+    on E : EJwsclSecurityException do
+    begin
+      hToken := INVALID_HANDLE_VALUE;
+      FreeAndNil(Token);
+      raise;
+    end;
+  end;
+end;
+
+
+class procedure TJwSecureBaseClass.PrepareAccessCheckSecurityDescriptor(
+   const SecurityDescriptor: TJwSecurityDescriptor;
+   const aClassName : TJwString;
+   const Method : TJwString);
+begin
+  JwRaiseOnNilParameter(SecurityDescriptor, 'SecurityDescriptor',Method,
+      ClassName, RsUNToken);
 
   if not Assigned(SecurityDescriptor.PrimaryGroup) then
     raise EJwsclInvalidGroupSIDException.CreateFmtEx(
       RsSecureObjectsInvalidGroup,
-      'AccessCheck', ClassName, RsUNSecureObjects, 0, False, []);
- 
+      Method, aClassName, RsUNSecureObjects, 0, False, []);
+
   if not Assigned(SecurityDescriptor.Owner) then
     raise EJwsclInvalidOwnerSIDException.CreateFmtEx(
       RsSecureObjectsInvalidOwner,
-      'AccessCheck', ClassName, RsUNSecureObjects, 0, False, []);
+      Method, aClassName, RsUNSecureObjects, 0, False, []);
+end;
 
+
+class procedure TJwSecureBaseClass.PrepareAccessCheckGenericACE(
+  const SecurityDescriptor: TJwSecurityDescriptor;
+  const GenericMapping: TJwSecurityGenericMappingClass;
+  out bTempSD : Boolean;
+  out TempSD  : TJwSecurityDescriptor);
+
+begin
   bTempSD := Assigned(GenericMapping);
   if bTempSD then
   begin
@@ -3475,42 +3665,67 @@ begin
   end
   else
     TempSD := SecurityDescriptor;
+end;
 
+class procedure TJwSecureBaseClass.AccessCheck(
+  const SecurityDescriptor: TJwSecurityDescriptor;
+  const ClientToken: TJwSecurityToken;
+  const DesiredAccess: TJwAccessMask;
+  const GenericMapping:
+  TJwSecurityGenericMappingClass;
+  out PrivilegeSet: TJwPrivilegeSet;
+  out GrantedAccess: TJwAccessMask;
+  out AccessStatus: boolean);
+
+{
+Mostly same code in TJwSecureBaseClass.AccessCheckByType
+}
+
+
+var
+  pSDesc: jwaWindows.PSecurityDescriptor;
+
+  hToken: TJwTokenHandle;
+  pPrivs: PRIVILEGE_SET;
+  pPrivsSize: Cardinal;
+
+  tempDesiredAccess : Cardinal;
+
+  mapping: TGenericMapping;
+  lbAccessStatus: Bool;
+
+  Token: TJwSecurityToken;
+
+  TempSD  : TJwSecurityDescriptor;
+  bTempSD : Boolean;
+begin
+  //Test parameter SecurityDescriptor
+  PrepareAccessCheckSecurityDescriptor(SecurityDescriptor, ClassName, 'AccessCheck');
 
   //replace generic rights in Desired Access
   tempDesiredAccess := ConvertAccessMask(GenericMapping, DesiredAccess);
 
+
+  //convert generic access rights in ACL
+  PrepareAccessCheckGenericACE(SecurityDescriptor, GenericMapping, {out}bTempSD, {out}TempSD);
   try
     // ShowMessage(tempSecurityDescriptor.DACL.GetTextMap(TJwSecurityFileFolderMapping));
     pSDesc := tempSD.Create_SD(false);
 
     try
-      Token := nil;
-      if Assigned(ClientToken) then
-      begin
-        hToken := ClientToken.TokenHandle;
-      end
-      else
-      begin
-        //impersonate self (may replaced in future by ImpersonateSelf
-        Token := TJwSecurityToken.CreateTokenEffective(TOKEN_ALL_ACCESS);
-        IsThreadToken := Token.GetTokenType =
-          jwaWindows.TOKEN_TYPE(TokenImpersonation);
-        if (not IsThreadToken) then
-        begin
-          Token.ConvertToImpersonatedToken(
-            jwaWindows.TSecurityImpersonationLevel(SecurityImpersonation),
-            TOKEN_ALL_ACCESS);
-          Token.ImpersonateLoggedOnUser;
-        end;
+      //if PrepareAccessCheckTokenAssignment fails with an exception
+      //the finally part checks for the privilege size: pPrivsSize
+      pPrivsSize := 0;
 
-        hToken := Token.TokenHandle;
+      PrepareAccessCheckTokenAssignment(ClientToken, {out}Token,{out}hToken);
+      {
+      We do not impersonate here since AccessCheck does only use the given
+      Token handle for access checks.
+      }
 
-      end;
-
-
-      FillChar(pPrivs, sizeof(pPrivs), 0);
       pPrivsSize := Sizeof(pPrivs);
+      ZeroMemory(@pPrivs, pPrivsSize);
+
 
       //mappings
       if Assigned(GenericMapping) then
@@ -3532,15 +3747,12 @@ begin
           RsUNSecureObjects, 0, True, ['AccessCheck']);
       end;
     finally //clean up
-      if (Assigned(Token) and (not IsThreadToken)) then
-      begin
-        Token.RevertToSelf;
-        Token.RemoveThreadToken(0);
-      end;
+      AccessStatus := lbAccessStatus;
+      
+      //we did not impersonate so there is nothing to do here
       Token.Free;
 
       SecurityDescriptor.Free_SD(pSDesc);
-      AccessStatus := lbAccessStatus;
 
       if (pPrivsSize > 0) then
       begin
@@ -3553,11 +3765,12 @@ begin
           FreeAndNil(PrivilegeSet);
       end
       else
+      begin
         PrivilegeSet := nil;
+      end;
     end;
   finally
-    if bTempSD then
-      TempSD.Free;
+    TempSD.Free;
   end;
 end;
 
@@ -3617,6 +3830,11 @@ class procedure TJwSecureBaseClass.AccessCheckByType(
   out PrivilegeSet: TJwPrivilegeSet;
   out GrantedAccess: TJwAccessMask;
   out AccessStatus: boolean);
+
+{
+Mostly same code in TJwSecureBaseClass.AccessCheck
+}
+
 var
   pSDesc: jwaWindows.PSecurityDescriptor;
   pPrincipalSelfSid : PSID;
@@ -3631,36 +3849,26 @@ var
 
   mapping: TGenericMapping;
   lbAccessStatus: Bool;
+
   Token: TJwSecurityToken;
-  IsThreadToken: boolean;
 
   TempSD: TJwSecurityDescriptor;
   bTempSD : Boolean;
 
   pObjectTypeArray : POBJECT_TYPE_LIST;
 begin
-  Token := nil;
-  IsThreadToken := False;
-
-  if not Assigned(SecurityDescriptor) then
-    raise EJwsclInvalidParameterException.CreateFmtEx(
-      RsNilParameter,
-      'AccessCheckByType',
-      ClassName, RsUNSecureObjects, 0, False, ['SecurityDescriptor']);
-
-  if not Assigned(SecurityDescriptor.PrimaryGroup) then
-    raise EJwsclInvalidGroupSIDException.CreateFmtEx(
-      RsSecureObjectsInvalidGroup,
-      'AccessCheckByType', ClassName, RsUNSecureObjects, 0, False, []);
-
-  if not Assigned(SecurityDescriptor.Owner) then
-    raise EJwsclInvalidOwnerSIDException.CreateFmtEx(
-      RsSecureObjectsInvalidOwner,
-      'AccessCheckByType', ClassName, RsUNSecureObjects, 0, False, []);
+  //Test parameter SecurityDescriptor
+  PrepareAccessCheckSecurityDescriptor(SecurityDescriptor, ClassName, 'AccessCheckByType');
 
   JwRaiseOnNilParameter(ObjectTypeArray, 'ObjectTypeArray', 'AccessCheckByType',
      ClassName, RsUNAuthZCtx);
 
+  //replace generic rights in Desired Access
+  tempDesiredAccess := ConvertAccessMask(GenericMapping, DesiredAccess);
+
+  {
+  ObjectTypeArray stuff
+  }
 
   //check for correct object array
   if not JwCheckArray(ObjectTypeArray,i) then
@@ -3684,56 +3892,19 @@ begin
 
   SetLastError(0);
 
-  bTempSD := Assigned(GenericMapping);
-  if bTempSD then
-  begin
-    TempSD := TJwSecurityDescriptor.Create(SecurityDescriptor);
-    {AccessCheck does not resolve GENERIC_XXXX rights in ACE
-    to the given ones here defined some lines later is quite useless.
-      mapping := TGenericMapping(GenericMapping.GetMapping());
-    See http://groups.google.de/group/microsoft.public.platformsdk.security/browse_thread/thread/2fb371cbd8ad1246/e9abf141630a0539?lnk=gst&q=accesscheck+generic#e9abf141630a0539
-
-    So we replace the ACEs AccessMask if necessary
-    }
-    //replace generic rights in dacl
-    ReplaceGenericRightsInDACL(GenericMapping, TempSD);
-  end
-  else
-    TempSD := SecurityDescriptor;
-
-
-  //replace generic rights in Desired Access
-  tempDesiredAccess := ConvertAccessMask(GenericMapping, DesiredAccess);
-
+  //convert generic access rights in ACL
+  PrepareAccessCheckGenericACE(SecurityDescriptor, GenericMapping, {out}bTempSD, {out}TempSD);
   try
     pSDesc := TempSD.Create_SD(false);
 
     try
-      Token := nil;
-      if Assigned(ClientToken) then
-      begin
-        hToken := ClientToken.TokenHandle;
-      end
-      else
-      begin
-        //impersonate self (may replaced in future by ImpersonateSelf
-        Token := TJwSecurityToken.CreateTokenEffective(TOKEN_ALL_ACCESS);
-        IsThreadToken := Token.GetTokenType =
-          jwaWindows.TOKEN_TYPE(TokenImpersonation);
-        if (not IsThreadToken) then
-        begin
-          Token.ConvertToImpersonatedToken(
-            jwaWindows.TSecurityImpersonationLevel(SecurityImpersonation),
-            TOKEN_ALL_ACCESS);
-          Token.ImpersonateLoggedOnUser;
-        end;
+      PrepareAccessCheckTokenAssignment(ClientToken, {out}Token,{out}hToken);
+      {
+      We do not impersonate here since AccessCheck does only use the given
+      Token handle for access checks.
+      }
 
-        hToken := Token.TokenHandle;
-
-      end;
-
-
-      FillChar(pPrivs, sizeof(pPrivs), 0);
+      ZeroMemory(@pPrivs, sizeof(pPrivs));
       pPrivsSize := Sizeof(pPrivs);
 
       //mappings
@@ -3762,11 +3933,7 @@ begin
           RsUNSecureObjects, 0, True, ['AccessCheckByType']);
 
     finally //clean up
-      if (Assigned(Token) and (not IsThreadToken)) then
-      begin
-        Token.RevertToSelf;
-        Token.RemoveThreadToken(0);
-      end;
+      //we did not impersonate so there is nothing to do here
       Token.Free;
 
       AccessStatus := lbAccessStatus;
@@ -3787,8 +3954,7 @@ begin
         PrivilegeSet := nil;
     end;
   finally
-    if bTempSD then
-      TempSD.Free;
+    TempSD.Free;
   end;
 end;
 
@@ -3817,35 +3983,25 @@ var
   mapping: TGenericMapping;
   //lbAccessStatus: Bool;
   Token: TJwSecurityToken;
-  IsThreadToken: boolean;
 
   TempSD: TJwSecurityDescriptor;
   bTempSD : Boolean;
 
   pObjectTypeArray : POBJECT_TYPE_LIST;
 begin
-  Token := nil;
-  IsThreadToken := False;
-
-  if not Assigned(SecurityDescriptor) then
-    raise EJwsclInvalidParameterException.CreateFmtEx(
-      RsNilParameter,
-      'AccessCheckByTypeResultList',
-      ClassName, RsUNSecureObjects, 0, False, ['SecurityDescriptor']);
-
-  if not Assigned(SecurityDescriptor.PrimaryGroup) then
-    raise EJwsclInvalidGroupSIDException.CreateFmtEx(
-      RsSecureObjectsInvalidGroup,
-      'AccessCheckByTypeResultList', ClassName, RsUNSecureObjects, 0, False, []);
- 
-  if not Assigned(SecurityDescriptor.Owner) then
-    raise EJwsclInvalidOwnerSIDException.CreateFmtEx(
-      RsSecureObjectsInvalidOwner,
-      'AccessCheckByTypeResultList', ClassName, RsUNSecureObjects, 0, False, []);
+  //Test parameter SecurityDescriptor
+  PrepareAccessCheckSecurityDescriptor(SecurityDescriptor, ClassName, 'AccessCheckByTypeResultList');
 
   JwRaiseOnNilParameter(ObjectTypeArray, 'ObjectTypeArray', 'AccessCheckByTypeResultList',
      ClassName, RsUNAuthZCtx);
 
+
+  //replace generic rights in Desired Access
+  tempDesiredAccess := ConvertAccessMask(GenericMapping, DesiredAccess);
+
+  {
+  ObjectTypeArray stuff
+  }
 
   //check for correct object array
   if not JwCheckArray(ObjectTypeArray,i) then
@@ -3872,54 +4028,17 @@ begin
 
   SetLastError(0);
 
-  bTempSD := Assigned(GenericMapping);
-  if bTempSD then
-  begin
-    TempSD := TJwSecurityDescriptor.Create(SecurityDescriptor);
-    {AccessCheck does not resolve GENERIC_XXXX rights in ACE
-    to the given ones here defined some lines later is quite useless.
-      mapping := TGenericMapping(GenericMapping.GetMapping());
-    See http://groups.google.de/group/microsoft.public.platformsdk.security/browse_thread/thread/2fb371cbd8ad1246/e9abf141630a0539?lnk=gst&q=accesscheck+generic#e9abf141630a0539
-
-    So we replace the ACEs AccessMask if necessary
-    }
-    //replace generic rights in dacl
-    ReplaceGenericRightsInDACL(GenericMapping, TempSD);
-  end
-  else
-    TempSD := SecurityDescriptor;
-
-
-  //replace generic rights in Desired Access
-  tempDesiredAccess := ConvertAccessMask(GenericMapping, DesiredAccess);
-
+  //convert generic access rights in ACL
+  PrepareAccessCheckGenericACE(SecurityDescriptor, GenericMapping, {out}bTempSD, {out}TempSD);
   try
     pSDesc := TempSD.Create_SD(false);
 
     try
-      Token := nil;
-      if Assigned(ClientToken) then
-      begin
-        hToken := ClientToken.TokenHandle;
-      end
-      else
-      begin
-        //impersonate self (may replaced in future by ImpersonateSelf
-        Token := TJwSecurityToken.CreateTokenEffective(TOKEN_ALL_ACCESS);
-        IsThreadToken := Token.GetTokenType =
-          jwaWindows.TOKEN_TYPE(TokenImpersonation);
-        if (not IsThreadToken) then
-        begin
-          Token.ConvertToImpersonatedToken(
-            jwaWindows.TSecurityImpersonationLevel(SecurityImpersonation),
-            TOKEN_ALL_ACCESS);
-          Token.ImpersonateLoggedOnUser;
-        end;
-
-        hToken := Token.TokenHandle;
-
-      end;
-
+      PrepareAccessCheckTokenAssignment(ClientToken, {out}Token,{out}hToken);
+      {
+      We do not impersonate here since AccessCheck does only use the given
+      Token handle for access checks.
+      }
 
       FillChar(pPrivs, sizeof(pPrivs), 0);
       pPrivsSize := Sizeof(pPrivs);
@@ -3950,14 +4069,7 @@ begin
           RsUNSecureObjects, 0, True, ['AccessCheckByTypeResultList']);
 
     finally //clean up
-      if (Assigned(Token) and (not IsThreadToken)) then
-      begin
-        Token.RevertToSelf;
-        Token.RemoveThreadToken(0);
-      end;
       Token.Free;
-
-
 
       SecurityDescriptor.Free_SD(pSDesc);
 
@@ -3975,8 +4087,7 @@ begin
         PrivilegeSet := nil;
     end;
   finally
-    if bTempSD then
-      TempSD.Free;
+    TempSD.Free;
   end;
 end;
 
@@ -4176,6 +4287,7 @@ begin
     SetSACL(SD.SACL);
   end;
 
+
 {  if siLabelSecurityInformation in SD_entries then
     SetIntegrityLabel(SD.}
 end;
@@ -4238,6 +4350,26 @@ begin
 end;
 
 
+var
+  _TreeResetNamedSecurityInfo : Pointer;
+
+function InternalTreeResetNamedSecurityInfo(pObjectName: TJwPchar; ObjectType: SE_OBJECT_TYPE;
+    SecurityInfo: SECURITY_INFORMATION; pOwner, pGroup: PSID; pDacl, pSacl: PACL;
+    KeepExplicit: BOOL; fnProgress: FN_PROGRESS; ProgressInvokeSetting: PROG_INVOKE_SETTING;
+    Args: PVOID): DWORD;
+const Suffix = {$IFDEF UNICODE}'W'{$ELSE}'A'{$ENDIF UNICODE};
+begin
+  result := 0;
+  //raises exception if not found!!
+  GetProcedureAddress(_TreeResetNamedSecurityInfo, aclapilib, 'TreeResetNamedSecurityInfo'+Suffix);
+
+  if @_TreeResetNamedSecurityInfo = nil then
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_TreeResetNamedSecurityInfo]
+  end;
+end;
 
 
 class procedure TJwSecureBaseClass.TreeResetNamedSecurityInfo(
@@ -4265,6 +4397,12 @@ var
   FNProgressRecord: PFNProgressRecord;
   SecurityInfo: TJwSecurityInformationFlagSet;
 begin
+   if not (TJwWindowsVersion.IsWindowsXP(True) or
+    TJwWindowsVersion.IsWindows2003(True)) then
+    raise EJwsclUnsupportedWindowsVersionException.CreateFmtEx(
+      RsTokenUnsupportedWtsCall, 'TreeResetNamedSecurityInfo', ClassName, RsUNToken, 0, False, []);
+
+
 
   FNProgressRecord := nil;
   if Assigned(FNProgressMethod) or Assigned(FNProgressProcedure) then
@@ -4310,11 +4448,8 @@ begin
   //[Hint] result := 0;
   try
     Result :=
-{$IFDEF UNICODE}JwaWindows.TreeResetNamedSecurityInfoW
-                        {$ELSE}
-      JwaWindows.TreeResetNamedSecurityInfoA
-{$ENDIF}
-      (TJwPChar(pObjectName),  //LPTSTR pObjectName,
+    InternalTreeResetNamedSecurityInfo(
+      TJwPChar(pObjectName),  //LPTSTR pObjectName,
       aObjectType,        //SE_OBJECT_TYPE ObjectType,
       TJwEnumMap.ConvertSecurityInformation(SecurityInfo),
       //SECURITY_INFORMATION SecurityInfo,
@@ -4404,7 +4539,7 @@ begin
 
     Result := nil;
 
-    pFromArray := PINHERITED_FROMW(LocalAlloc(LPTR, sizeof(TInheritedFromW)*(ACL.count)+1));
+    pFromArray := PINHERITED_FROMW(LocalAlloc(LPTR, sizeof(pFromArray)*ACL.count+1));
     {The following statement should not interfere with memory manager,
      because it was not created by GetMem!
      At the end of function (or explicitly by fromArray := nil;)
@@ -4457,7 +4592,7 @@ begin
   finally
     if pFromArray <> nil then
       FreeInheritedFromArray(PINHERITED_FROMW(pFromArray), ACL.Count, nil);
-    //    LocalFree(Cardinal(pFromArray));
+    //    LocalFree(HLOCAL(pFromArray));
 
     ACL.Free_PACL(aPACL);
   end;
@@ -4917,6 +5052,13 @@ var
   GA: Cardinal;
   privSet: TJwPrivilegeSet;
 begin
+  if DesiredAccess and MAXIMUM_ALLOWED <> 0 then
+  begin
+    raise EJwsclInvalidParameterException.CreateFmtEx(
+      RsInvalidParameterAccessCheck, 'AccessCheck',
+      ClassName, RsUNSecureObjects, 0, False, []);
+  end;
+  
   SD := GetSecurityDescriptor([siOwnerSecurityInformation,
     siGroupSecurityInformation, siDaclSecurityInformation]);
 
@@ -5095,7 +5237,7 @@ var
 begin
   SACL := TJwSAccessControlList.Create;
   SACL.SetMandatoryLabel(MandatoryLabel,cfCopyInstance);
-  
+
   try
     if (fFileName <> '') then
     begin
@@ -5602,7 +5744,6 @@ begin
     SetNamedSecurityInfo(TJwPChar(fFileName), SE_FILE_OBJECT,
       Flags, anOwner,
       anGroup, aDACL, list);
-
   end
   else
   if HasValidHandle then
@@ -5690,7 +5831,7 @@ begin
 
   Result := inherited GetInheritanceSource(pObjectNameTemp,
     SE_FILE_OBJECT, aSecurityInfo, bIsDirectory, GUIDs, ACL,
-    TJwSecurityFileFolderMapping, FN_OBJECT_MGR_FUNCTS);
+    TJwSecurityFileMapping, FN_OBJECT_MGR_FUNCTS);
 end;
 
 
@@ -5700,10 +5841,8 @@ var //[Hint] DACL : TJwDAccessControlList;
   SD: TJwSecurityDescriptor;
 begin
   SD := TJwSecureGeneralObject.GetSecurityInfo(Handle,
-    SE_FILE_OBJECT,
-    //const aObjectType : TSeObjectType;
-    [
-    siDaclSecurityInformation]//aSecurityInfo : TJwSecurityInformationFlagSet;
+    SE_FILE_OBJECT, //const aObjectType : TSeObjectType;
+    [siDaclSecurityInformation]//aSecurityInfo : TJwSecurityInformationFlagSet;
     );
   try
     if Assigned(SD.DACL) then
@@ -5715,11 +5854,10 @@ begin
 
 
       TJwSecureGeneralObject.SetSecurityInfo(Handle,
-        SE_FILE_OBJECT,
-        //const aObjectType : TSeObjectType;
+        SE_FILE_OBJECT,  //const aObjectType : TSeObjectType;
         [siDaclSecurityInformation,
         siProtectedDaclSecurityInformation],
-        //aSecurityInfo : TJwSecurityInformationFlagSet;
+          //aSecurityInfo : TJwSecurityInformationFlagSet;
         nil,//const anOwner : TJwSecurityId;
         nil,//const anGroup : TJwSecurityId;
         SD.DACL,
@@ -5738,10 +5876,8 @@ var //[Hint] DACL : TJwDAccessControlList;
   SD: TJwSecurityDescriptor;
 begin
   SD := TJwSecureGeneralObject.GetNamedSecurityInfo(PathName,
-    SE_FILE_OBJECT,
-    //const aObjectType : TSeObjectType;
-    [
-    siDaclSecurityInformation]//aSecurityInfo : TJwSecurityInformationFlagSet;
+    SE_FILE_OBJECT, //const aObjectType : TSeObjectType;
+    [siDaclSecurityInformation]//aSecurityInfo : TJwSecurityInformationFlagSet;
     );
   try
     if Assigned(SD.DACL) then
@@ -5971,6 +6107,7 @@ end;
 
 
 function TJwSecureFileObject.GetFileInheritanceSource(
+  const Container : Boolean;
   const aSecurityInfo: TJwSecurityInformationFlagSet =
   [siDaclSecurityInformation]): TJwInheritedFromArray;
 begin
@@ -5979,7 +6116,7 @@ begin
       RsSecureObjectsInvalidFileOrFolder,
       'GetFileInheritanceSource', ClassName, RsUNSecureObjects, 0, False, []);
 
-  Result := GetFileInheritanceSource(fFileName, aSecurityInfo);
+  Result := GetFileInheritanceSource(fFileName, Container, aSecurityInfo);
 end;
 
 
@@ -6110,7 +6247,7 @@ var
 {$ENDIF}
   ;
   stack: TQueue;
-  ActualFileName, ActualPath: TJwString;
+  CurrentFileName, CurrentPath: TJwString;
 
   ptrFindData: PFindData;
 
@@ -6121,10 +6258,10 @@ var
   Count:  integer;
 
     {<B>SetSecurity</B> sets the security of a file or folder
-     @param ActualFileName absolute path to file or folder
+     @param CurrentFileName absolute path to file or folder
      @param bRoot defines, if the folder is the first one specified the the user
     }
-  procedure SetSecurity(ActualFileName: TJwString; bRoot: boolean);
+  procedure SetSecurity(CurrentFileName: TJwString; bRoot: boolean);
 
   {not necessary}
     procedure CopyWithoutInheritance(
@@ -6168,7 +6305,7 @@ var
        }
     if bKeepExplicit or (SetType = tstSet) then
     begin
-      TJwSecureFileObject.GetNamedSecurityInfo(ActualFileName, SE_FILE_OBJECT,
+      TJwSecureFileObject.GetNamedSecurityInfo(CurrentFileName, SE_FILE_OBJECT,
         aSecurityInfo,
         oldUser, oldGroup, oldDACL, oldSACL);
 
@@ -6198,7 +6335,7 @@ var
 
       try
         TJwSecureFileObject.SetNamedSecurityInfo(
-          ActualFileName, SE_FILE_OBJECT,
+          CurrentFileName, SE_FILE_OBJECT,
           aSecurityInfo, Owner, Group, oldDACL, oldSACL);
       finally
         FreeAndNil(oldUser);
@@ -6236,7 +6373,7 @@ var
 
       try
         TJwSecureFileObject.SetNamedSecurityInfo(
-          ActualFileName, SE_FILE_OBJECT,
+          CurrentFileName, SE_FILE_OBJECT,
           aSecurityInfo, Owner, Group, oldDACL, oldSACL);
 
       finally
@@ -6246,16 +6383,16 @@ var
     end;
   end;
 
-    {<B>ProcessFile</B> processes the actual find file data.
+    {<B>ProcessFile</B> processes the current find file data.
      Sets the security, catches a possible exception and calls the callback function.
 
      @param FindDataFile the file or folder name (but not path) returned by the FindFirst/FindNext function
-     @param ActualFileName Defines the actual path to the file or folder given in FindDataFile. It must also include it at the end of path.
+     @param CurrentFileName Defines the current path to the file or folder given in FindDataFile. It must also include it at the end of path.
      @param bRoot defines whether this folder is the path given by the first function call. All other calls use FALSE.
 
      @return Returns true if the callback function defined pis_ProgressCancelOperation as the next operation. In this case bAbort is set to true.
     }
-  function ProcessFile(FindDataFile, ActualFileName: TJwString;
+  function ProcessFile(const FindDataFile, CurrentFileName: TJwString;
     bRoot: boolean = False): boolean;
   begin
     Result := False;
@@ -6293,30 +6430,30 @@ var
                { if (siDaclSecurityInformation in aSecurityInfo) then
                 begin
                   TJwSecureFileObject.SetNamedSecurityInfo(
-                    ActualFileName,SE_FILE_OBJECT,
+                    CurrentFileName,SE_FILE_OBJECT,
                           [siDaclSecurityInformation], nil, nil, nil, nil);
                 end;
                 //remove old SACL
                 if (siSaclSecurityInformation in aSecurityInfo) then
                 begin
                   TJwSecureFileObject.SetNamedSecurityInfo(
-                    ActualFileName,SE_FILE_OBJECT,
+                    CurrentFileName,SE_FILE_OBJECT,
                           [siSaclSecurityInformation], nil, nil, nil, nil);
                 end;
 
 
                 TJwSecureFileObject.SetNamedSecurityInfo(
-                  ActualFileName,SE_FILE_OBJECT,
+                  CurrentFileName,SE_FILE_OBJECT,
                           aSecurityInfo, Owner, Group, DACL, SACL);
             }
-          SetSecurity(ActualFileName, bRoot);
+          SetSecurity(CurrentFileName, bRoot);
         except
           on E: EJwsclSecurityException do
           begin
             bError := True;
 
             if (Action = pis_ProgressInvokeOnError) then
-              FNProgress(ActualFileName,
+              FNProgress(CurrentFileName,
                 //const pObjectName : TJwString;              // Name of object just processed
                 GetLastError(),
                 //const cStatus : Cardinal;                    // Status of operation on object
@@ -6332,7 +6469,7 @@ var
         end;
         if not bError and (Action = pis_ProgressInvokeEveryObject) then
         begin
-          FNProgress(ActualFileName,
+          FNProgress(CurrentFileName,
             //const pObjectName : TJwString;              // Name of object just processed
             0,
             //const cStatus : Cardinal;                    // Status of operation on object
@@ -6359,7 +6496,7 @@ var
   end;
 
 begin
-  ActualPath := Path;
+  CurrentPath := Path;
   stack := TQueue.Create;
 
   bFirst := True;
@@ -6369,7 +6506,7 @@ begin
 
   FillChar(FindFileData, sizeof(FindFileData), 0);
   //set security to
-  bAbort  := ProcessFile(ActualPath, ActualPath, bIsRoot{isRootObject});
+  bAbort  := ProcessFile(CurrentPath, CurrentPath, bIsRoot{isRootObject});
   bIsRoot := False;
 
   if Assigned(DACL) then
@@ -6402,7 +6539,7 @@ begin
     if (stack.Count > 0) then
     begin
       ptrFindData := PFindData(stack.Pop);
-      ActualPath  := ptrFindData.PathName;
+      CurrentPath  := ptrFindData.PathName;
       FreeMem(ptrFindData);
       {stack.Count = stack.Count-1 and ptrFindData <> nil}
     end
@@ -6415,9 +6552,9 @@ begin
 
     SetLastError(0);
 {$IFDEF UNICODE}
-    hFind := FindFirstFileExW(TJwPChar(ActualPath+'\*.*'),//  LPCTSTR lpFileName,
+    hFind := FindFirstFileExW(TJwPChar(CurrentPath+'\*.*'),//  LPCTSTR lpFileName,
 {$ELSE}
-    hFind := FindFirstFileExA(TJwPChar(ActualPath + '\*.*'),
+    hFind := FindFirstFileExA(TJwPChar(CurrentPath + '\*.*'),
       //  LPCTSTR lpFileName,
 {$ENDIF}
       FindExInfoStandard,//FINDEX_INFO_LEVELS fInfoLevelId,
@@ -6428,11 +6565,11 @@ begin
       );
     if hFind <> INVALID_HANDLE_VALUE then
     begin
-      ActualFileName := CombinePath(ActualPath, FindFileData.cFileName);
+      CurrentFileName := CombinePath(CurrentPath, FindFileData.cFileName);
 
-      //OutputDebugString(TJwPChar(ActualFileName+#13));
+      //OutputDebugString(TJwPChar(CurrentFileName+#13));
 
-      bAbort := ProcessFile(TJwString(FindFileData.cFileName), ActualFileName);
+      bAbort := ProcessFile(TJwString(FindFileData.cFileName), CurrentFileName);
 
       if (TJwString(FindFileData.cFileName) <> '.') and
         (TJwString(FindFileData.cFileName) <> '..') and
@@ -6441,7 +6578,7 @@ begin
       begin
         GetMem(ptrFindData, sizeof(TFindData));
         FillChar(ptrFindData^, sizeof(TFindData), 0);
-        ptrFindData.PathName := ActualFileName;
+        ptrFindData.PathName := CurrentFileName;
         stack.Push(ptrFindData);
       end;
 
@@ -6464,9 +6601,9 @@ begin
         end
         else
         begin
-          ActualFileName := CombinePath(ActualPath, FindFileData.cFileName);
+          CurrentFileName := CombinePath(CurrentPath, FindFileData.cFileName);
           bAbort := ProcessFile(TJwString(FindFileData.cFileName),
-            ActualFileName);
+            CurrentFileName);
 
           if (TJwString(FindFileData.cFileName) <> '.') and
             (TJwString(FindFileData.cFileName) <> '..') and
@@ -6475,7 +6612,7 @@ begin
           begin
             GetMem(ptrFindData, sizeof(TFindData));
             FillChar(ptrFindData^, sizeof(TFindData), 0);
-            ptrFindData.PathName := ActualFileName;
+            ptrFindData.PathName := CurrentFileName;
             stack.Push(ptrFindData);
           end;
         end;
@@ -6492,7 +6629,7 @@ begin
       if (Action = pis_ProgressInvokeOnError) or
         (Action = pis_ProgressInvokeEveryObject) then
       begin
-        FNProgress(ActualPath,
+        FNProgress(CurrentPath,
           //const pObjectName : TJwString;              // Name of object just processed
           GetLastError(),
           //const cStatus : Cardinal;                    // Status of operation on object
@@ -6507,7 +6644,7 @@ begin
       end;
 
       if (pInvokeSetting = pis_ProgressRetryOperation) then
-        IterateFolder(ActualPath,
+        IterateFolder(CurrentPath,
           aSecurityInfo,
           //const aSecurityInfo : TJwSecurityInformationFlagSet; //  SECURITY_INFORMATION SecurityInfo,
           Action,//const Action : TJwProgInvokeSetting;
@@ -6629,23 +6766,27 @@ begin
 
 
     //call callback function, the thread has ended
-    with Data^ do
-    begin
-      if Assigned(FNProgressMethod) then
-        try
-          p := pis_ProgressFinished;
-          FNProgressMethod(pObjectName, 0, p, nil, ProgressUserData, False);
-        except
-        end;
+    if Assigned(Data^.FNProgressMethod) then
+      try
+        p := pis_ProgressFinished;
+        Data^.FNProgressMethod(Data^.pObjectName, 0, p, nil, Data^.ProgressUserData, False);
+      except
+        //don't let us get out of the concept!
+        //so just ignore the users exception
+        //After all, we're maybe in a thread!
+      end;
 
-      if Assigned(FNProgressProcedure) then
-        try
-          p := pis_ProgressFinished;
-          Data^.FNProgressProcedure(pObjectName, 0, p, nil,
-            ProgressUserData, False);
-        except
-        end;
-    end;
+
+    if Assigned(Data^.FNProgressProcedure) then
+      try
+        p := pis_ProgressFinished;
+        Data^.FNProgressProcedure(Data^.pObjectName, 0, p, nil,
+          Data^.ProgressUserData, False);
+      except
+        //don't let us get out of the concept!
+        //so just ignore the users exception
+        //After all, we're maybe in a thread!
+      end;
 
     Data.Owner.Free;
     Data.Group.Free;
@@ -6852,13 +6993,12 @@ begin
   end;
 end;
 
-
-//SD := GetNamedSecurityInfo(PathName, SE_FILE_OBJECT, aSecurityInfo);
-
 class function TJwSecureFileObject.GetFileInheritanceSource(
   const PathName: TJwString;
+  const Container : Boolean;
   const aSecurityInfo: TJwSecurityInformationFlagSet =
   [siDaclSecurityInformation];
+
   const OnGetNamedSecurityInfo : TJwOnGetNamedSecurityInfo = nil;
   const Data : Pointer = nil): TJwInheritedFromArray;
 
@@ -6946,10 +7086,11 @@ class function TJwSecureFileObject.GetFileInheritanceSource(
     SD:  TJwSecurityDescriptor;
 
     bOwnedSD : Boolean;
+    //IncFlags : TJwInclusionFlag;
 
 
   begin
-    bError := false;
+   bError := false;
     SD := nil;
     try
       bOwnedSD := false;
@@ -7011,6 +7152,8 @@ class function TJwSecureFileObject.GetFileInheritanceSource(
 
 
 
+    //ShowMessage(PreviousInhACL.GetTextMap({nil));//}TJwSecurityFileFolderMapping));
+    //ShowMessage(SD.DACL.GetTextMap({nil));//}TJwSecurityFileFolderMapping));
 
 
     // try
@@ -7028,13 +7171,17 @@ class function TJwSecureFileObject.GetFileInheritanceSource(
         Their (inherited) access masks can have less bits set than their parents.
         So we check using eactSEAccessMask (smaller equal)
       }
-      ps := SD.DACL.FindEqualACE(PreviousInhACL[i], [eactSameSid,
-        eactSameAccessMask, eactSEAccessMask, eactSameType], -1, [efExplicit] , true);
 
+      ps := SD.DACL.FindEqualACE(PreviousInhACL[i], [eactSameSid,
+        eactSameAccessMask, eactSEAccessMask, eactSameType, eactSameFlags, eactGEFlags], -1, [],[efExplicit], true);
+
+      //not inherited found
+      //search for explicit only
       if ps < 0 then
         ps := SD.DACL.FindEqualACE(PreviousInhACL[i], [eactSameSid,
-          eactSameAccessMask, eactSEAccessMask, eactSameType], -1, [efInherited], false);
+          eactSameAccessMask, eactSEAccessMask, eactSameType], -1, [], [efInherited]  ,false);
 
+  //    ShowMessage(PreviousInhACL[i].GetTextMap(TJwSecurityFileFolderMapping));
       //ShowMessage( SD.DACL[i].GetTextMap(TJwSecurityFileFolderMapping));
 
 
@@ -7045,21 +7192,23 @@ class function TJwSecureFileObject.GetFileInheritanceSource(
 
       if (ps >= 0) then
       begin
-         {Flags1 := PreviousInhACL[i].Flags;
-         Flags2 := SD.DACL[ps].Flags;
-         Exclude(Flags1, afInheritedAce);
-         Exclude(Flags2, afInheritedAce);
-                                                 }
+        //* The for loop variable I iterates through PreviousInhACL
+        //* The variable ps points to an item in SD.DACL
 
         if //the previous ACE is inherited
         (afInheritedAce in PreviousInhACL[i].Flags) and
           //the current root ACE is not inherited
           not (afInheritedAce in SD.DACL[ps].Flags) and
+
+          //if object is container, only check container inheritance
+        {  ((Container and (afContainerInheritAce in SD.DACL[ps].Flags)) or
+           (not Container and (afObjectInheritAce in SD.DACL[ps].Flags))) and}
+          //not (afContainerInheritAce in SD.DACL[ps].Flags) and
           //current ACE is explicit
           not (PreviousInhACL[i].Ignore) then
           //root ACE was not already considered
         begin
-          UpdateInheritedArrayElement(pInhArray, ps, Level, PathName, SD.DACL[ps].SID);
+          UpdateInheritedArrayElement(pInhArray, i, Level, PathName, SD.DACL[ps].SID);
 
           //This ACE has its inheritance, so don't touch it anymore
           PreviousInhACL[i].Ignore := True; //Ignore this ACE next time
@@ -7149,7 +7298,15 @@ begin
    
   //we need absolute path
   sPathName := ExpandFileName(PathName);
-
+  
+  if (Length(PathName) < 2) or
+     ((Length(PathName) >= 2) and (PathName[1] = '\') and (PathName[2] = '\'))
+     then
+  begin
+    raise EJwsclInvalidPathException.CreateFmtEx(
+        RsInvalidPathPatternForGetFileInheritanceSource, 'GetFileInheritanceSource', ClassName, RsUNSecureObjects, 0, False, [PathName]);
+  end;
+  
 
   SetLength(Result, 0);
   try
@@ -7499,10 +7656,16 @@ function TJwSecureRegistryKey.AccessCheck(DesiredAccess: TJwAccessMask =
   TJwSecurityToken = nil): boolean;
 var
   SD: TJwSecurityDescriptor;
-  //[Hint] GA : TJwSecurityGenericMapping;
   privSet: TJwPrivilegeSet;
   GrantedAccess: Cardinal;
 begin
+  if DesiredAccess and MAXIMUM_ALLOWED <> 0 then
+  begin
+    raise EJwsclInvalidParameterException.CreateFmtEx(
+      RsInvalidParameterAccessCheck, 'AccessCheck',
+      ClassName, RsUNSecureObjects, 0, False, []);
+  end;
+
   SD := GetSecurityDescriptor([siOwnerSecurityInformation,
     siGroupSecurityInformation, siDaclSecurityInformation]);
 
@@ -9320,22 +9483,20 @@ type
 
 var
   stack: TQueue;
-  //[Hint] ActualFileName,
-  ActualPath: TJwString;
+  CurrentPath: TJwString;
 
   ptrFindData: PFindData;
 
   bFirst,
-  //[Hint] bCallback,
   bError: boolean;
   pInvokeSetting: TJwProgInvokeSetting;
   Count:  integer;
 
     {<B>SetSecurity</B> sets the security of a file or folder
-     @param ActualFileName absolute path to file or folder
+     @param CurrentFileName absolute path to file or folder
      @param bRoot defines, if the folder is the first one specified the the user
     }
-  procedure SetSecurity(ActualKeyName: TJwString; bRoot: boolean);
+  procedure SetSecurity(CurrentKeyName: TJwString; bRoot: boolean);
   var
     oldDACL: TJwDAccessControlList;
     oldSACL: TJwSAccessControlList;
@@ -9352,7 +9513,7 @@ var
     if bKeepExplicit or (SetType = tstSet) then
     begin
       SD := TJwSecureRegistryKey.GetSecurityDescriptorEx(
-        ActualKeyName, aSecurityInfo, False);
+        CurrentKeyName, aSecurityInfo, False);
 
       try
         oldDACL := SD.DACL;
@@ -9378,7 +9539,7 @@ var
 
 
         TJwSecureRegistryKey.SetSecurityDescriptorEx(
-          ActualKeyName, aSecurityInfo, SD, False);
+          CurrentKeyName, aSecurityInfo, SD, False);
       finally
         FreeAndNil(SD);
       end;
@@ -9413,7 +9574,7 @@ var
         SD.SACL := oldSACL;
 
         TJwSecureRegistryKey.SetSecurityDescriptorEx(
-          ActualKeyName, aSecurityInfo, SD, False);
+          CurrentKeyName, aSecurityInfo, SD, False);
 
       finally
         FreeAndNil(oldSACL);
@@ -9426,12 +9587,12 @@ var
      Sets the security, catches a possible exception and calls the callback function.
 
      @param FindDataFile the file or folder name (but not path) returned by the FindFirst/FindNext function
-     @param ActualFileName Defines the actual path to the file or folder given in FindDataFile. It must also include it at the end of path.
+     @param CurrentFileName Defines the current path to the file or folder given in FindDataFile. It must also include it at the end of path.
      @param bRoot defines whether this folder is the path given by the first function call. All other calls use FALSE.
 
      @return Returns true if the callback function defined pis_ProgressCancelOperation as the next operation. In this case bAbort is set to true.
     }
-  function ProcessKey(ActualKeyName: TJwString;
+  function ProcessKey(CurrentKeyName: TJwString;
     bRoot: boolean = False): boolean;
   var
     bOldReg64Redirection: boolean;
@@ -9471,33 +9632,33 @@ var
                { if (siDaclSecurityInformation in aSecurityInfo) then
                 begin
                   TJwSecureFileObject.SetNamedSecurityInfo(
-                    ActualFileName,SE_FILE_OBJECT,
+                    CurrentFileName,SE_FILE_OBJECT,
                           [siDaclSecurityInformation], nil, nil, nil, nil);
                 end;
                 //remove old SACL
                 if (siSaclSecurityInformation in aSecurityInfo) then
                 begin
                   TJwSecureFileObject.SetNamedSecurityInfo(
-                    ActualFileName,SE_FILE_OBJECT,
+                    CurrentFileName,SE_FILE_OBJECT,
                           [siSaclSecurityInformation], nil, nil, nil, nil);
                 end;
 
 
                 TJwSecureFileObject.SetNamedSecurityInfo(
-                  ActualFileName,SE_FILE_OBJECT,
+                  CurrentFileName,SE_FILE_OBJECT,
                           aSecurityInfo, Owner, Group, DACL, SACL);
             }
         bOldReg64Redirection := False;
         try
           if Disable64Redirection then
             bOldReg64Redirection :=
-              EnableReg64Redirection(ActualKeyName, not Disable64Redirection);
+              EnableReg64Redirection(CurrentKeyName, not Disable64Redirection);
 
           //set security
-          SetSecurity(ActualKeyName, bRoot);
+          SetSecurity(CurrentKeyName, bRoot);
         finally
           if Disable64Redirection then
-            EnableReg64Redirection(ActualKeyName,
+            EnableReg64Redirection(CurrentKeyName,
               bOldReg64Redirection);
         end;
       except
@@ -9506,7 +9667,7 @@ var
           bError := True;
 
           if (Action = pis_ProgressInvokeOnError) then
-            FNProgress(ActualKeyName,
+            FNProgress(CurrentKeyName,
               //const pObjectName : TJwString;              // Name of object just processed
               GetLastError(),
               //const cStatus : Cardinal;                    // Status of operation on object
@@ -9522,7 +9683,7 @@ var
       end;
       if not bError and (Action = pis_ProgressInvokeEveryObject) then
       begin
-        FNProgress(ActualKeyName,
+        FNProgress(CurrentKeyName,
           //const pObjectName : TJwString;              // Name of object just processed
           0,
           //const cStatus : Cardinal;                    // Status of operation on object
@@ -9656,9 +9817,9 @@ var
 begin
   subKeys := nil;
 
-  ActualPath := Path;
-  if (Length(ActualPath) > 0) and (ActualPath[Length(ActualPath)] <> '\') then
-    ActualPath := ActualPath + '\';
+  CurrentPath := Path;
+  if (Length(CurrentPath) > 0) and (CurrentPath[Length(CurrentPath)] <> '\') then
+    CurrentPath := CurrentPath + '\';
 
   {Create a stack on heap for saving
    key recursion
@@ -9673,7 +9834,7 @@ begin
 
 
   //set security
-  bAbort := ProcessKey(ActualPath, bIsRoot{isRootObject});
+  bAbort := ProcessKey(CurrentPath, bIsRoot{isRootObject});
 
 
   if Assigned(DACL) then
@@ -9709,11 +9870,11 @@ begin
     if Count > 0 then
     begin
       ptrFindData := PFindData(stack.Pop);
-      ActualPath  := ptrFindData.SubKey;
+      CurrentPath  := ptrFindData.SubKey;
       FreeMem(ptrFindData);
 
       //set security
-      bAbort := ProcessKey(ActualPath, bFirst);
+      bAbort := ProcessKey(CurrentPath, bFirst);
     end;
 
     if not bAbort then
@@ -9721,7 +9882,7 @@ begin
       SetLastError(0);
 
       //get sub keys
-      subKeys := EnumKeys(ActualPath);
+      subKeys := EnumKeys(CurrentPath);
 
       //call user if error occured
       if GetLastError() <> 0 then
@@ -9736,7 +9897,7 @@ begin
           begin
             //call user function for
             //next step
-            FNProgress(ActualPath,
+            FNProgress(CurrentPath,
               //const pObjectName : TJwString;              // Name of object just processed
               GetLastError(),
               //const cStatus : Cardinal;                    // Status of operation on object
@@ -9753,7 +9914,7 @@ begin
           SetLastError(0);
           //retry
           if (pInvokeSetting = pis_ProgressRetryOperation) then
-            subKeys := EnumKeys(ActualPath)
+            subKeys := EnumKeys(CurrentPath)
           else
           //abort
           if bAbort or (pInvokeSetting = pis_ProgressCancelOperation) then
@@ -9830,23 +9991,27 @@ begin
   finally
 
     //call callback function, the thread has ended
-    with Data^ do
-    begin
-      if Assigned(FNProgressMethod) then
-        try
-          p := pis_ProgressFinished;
-          FNProgressMethod(pObjectName, 0, p, nil, ProgressUserData, False);
-        except
-        end;
+    if Assigned(Data^.FNProgressMethod) then
+      try
+        p := pis_ProgressFinished;
+        Data^.FNProgressMethod(Data^.pObjectName, 0, p, nil, Data^.ProgressUserData, False);
+      except
+        //don't let us get out of the concept!
+        //so just ignore the users exception
+        //After all, we're maybe in a thread!
+      end;
 
-      if Assigned(FNProgressProcedure) then
-        try
-          p := pis_ProgressFinished;
-          Data^.FNProgressProcedure(pObjectName, 0, p, nil,
-            ProgressUserData, False);
-        except
-        end;
-    end;
+
+    if Assigned(Data^.FNProgressProcedure) then
+      try
+        p := pis_ProgressFinished;
+        Data^.FNProgressProcedure(Data^.pObjectName, 0, p, nil,
+          Data^.ProgressUserData, False);
+      except
+        //don't let us get out of the concept!
+        //so just ignore the users exception
+        //After all, we're maybe in a thread!
+      end;
 
     Data.Owner.Free;
     Data.Group.Free;
@@ -10089,7 +10254,6 @@ finalization
 {$IFNDEF SL_FINALIZATION_SECTION}
   DeleteCriticalSection(_Wow64FsRedirection_Critical);
 {$ENDIF SL_FINALIZATION_SECTION}
-
 
 
 

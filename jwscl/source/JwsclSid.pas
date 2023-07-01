@@ -42,14 +42,14 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclSid;
-{$INCLUDE Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
 
 uses
   SysUtils, Contnrs, Classes,
-  JwaWindows, JwaVista, JwsclUtils, JwsclResource,
+  JwaWindows, JwsclUtils, JwsclResource,
   JwsclTypes, JwsclExceptions, JwsclEnumerations,
   JwsclVersion, JwsclConstants, 
   JwsclStrings; //JwsclStrings, must be at the end of uses list!!!
@@ -200,7 +200,7 @@ type
     MSDN on http://msdn2.microsoft.com/en-us/library/aa379594.aspx
                      http://msdn2.microsoft.com/en-us/library/aa379597.aspx
     }
-  TJwSecurityId = class(TObject)
+  TJwSecurityId = class(TInterfacedObject, IJwBase)
   private
     fWellKnownSidType: TWellKnownSidType;
 
@@ -225,10 +225,12 @@ type
       }
     fDbgDisableException: boolean;
 
+{$IFDEF JWSCL_DEBUG_INFO}
       {<B>UpdateDbgData</B> updates the variable fDbgData  for debugging purposes.
        It is called in the constructors of @classname.
         }
     procedure UpdateDbgData; virtual;
+{$ENDIF JWSCL_DEBUG_INFO}
   public
       {<B>NewSID</B> allocates memory for a SID and returns the pointer to it.
        The size of allocated memory is always the maximum possible size of a
@@ -319,7 +321,7 @@ type
     #  WinBuiltinAuthorizationAccessSid,
     #  WinBuiltinTerminalServerLicenseServersSid
     
-     
+
       }
     function GetWellKnownSidType: TWellKnownSidType;
 
@@ -353,20 +355,30 @@ type
     constructor Create; overload;
   public
       {<B>GetWindowsAccountDomainSid</B> returns the domain sid of the sid instance.
+
+        This function simulates the WINAPI function GetWindowsAccountDomainSid
+        and is therefore also available on Windows 2000.
+
        @return <B>GetWindowsAccountDomainSid</B> returns the sid domain of the sid instance 
        raises
- EJwsclWinCallFailedException:  if the call to a winapi function failed 
+         EJwsclWinCallFailedException:  if the call to a winapi function failed
+         EJwsclInvalidSIDException: This exception is raised if the given SID instance
+          does not match the pattern "S-1-5-21-xx-yy-zz..."
        }
     function GetWindowsAccountDomainSid: TJwSecurityId; overload;
       {<B>GetWindowsAccountDomainSid</B> returns the domain sid of the sid instance given as parameter.
-        The actual SID instance will be checked with CheckSID. Also the
+        The current SID instance will be checked with CheckSID. Also the
          the parameter aSID and the result will be checked in this way.
 
-       @param aSID contains the sid to be examined. 
-       @return <B>GetWindowsAccountDomainSid</B> returns the sid domain of the sid instance. 
+        This function simulates the WINAPI function GetWindowsAccountDomainSid
+        and is therefore also available on Windows 2000.
+
+       @param aSID contains the sid to be examined.
+       @return <B>GetWindowsAccountDomainSid</B> returns the sid domain of the sid instance.
        raises
- EJwsclNILParameterException:  if parameter aSID is nil 
-        EJwsclWinCallFailedException: if the call to a winapi function failed 
+        EJwsclNILParameterException:  if parameter aSID is nil
+        EJwsclInvalidSIDException: This exception is raised if the given SID instance
+          does not match the pattern "S-1-5-21-xx-yy-zz..."
         EJwsclSecurityException: See CheckSID  for more exceptions 
 
        }
@@ -375,16 +387,21 @@ type
 
       {<B>EqualPrefixSid</B> tests two security-identifier (SID) prefix values for equality.
        A SID prefix is the entire SID except for the last subauthority value
-       @param pSid1 the SID to be compared with the actual sid instance 
+
+       This function simulates the WINAPI function GetWindowsAccountDomainSid
+        and is therefore also available on Windows 2000.
+
+       @param pSid1 the SID to be compared with the current sid instance 
        @return If the SID prefixes are equal, the return value is true; otherwise false 
        raises
- EJwsclNILParameterException:  if parameter pSID1 is nil 
-        EJwsclWinCallFailedException: if the call to a winapi function failed 
+         EJwsclNILParameterException:  if parameter pSID1 is nil
+         EJwsclInvalidSIDException: This exception is raised if the given SID instance
+          does not match the pattern "S-1-5-21-xx-yy-zz..."
 
       }
     function EqualPrefixSid(pSid1: TJwSecurityId): boolean;virtual;
       {<B>EqualSid</B> tests two security-identifier (SID) values for equality.
-       @param pSid1 the SID to be compared with the actual sid instance 
+       @param pSid1 the SID to be compared with the current sid instance 
        @return If the SID prefixes are equal, the return value is true; otherwise false 
        raises
  EJwsclNILParameterException:  if parameter pSID1 is nil 
@@ -393,7 +410,7 @@ type
     function EqualSid(pSid1: TJwSecurityId): boolean;virtual;
 
       {<B>EqualDomainSid</B> determines whether two SIDs are from the same domain.
-       @param pSid1 the SID to be compared with the actual sid instance 
+       @param pSid1 the SID to be compared with the current sid instance 
        @return If the SID domains are equal, the return value is true; otherwise false 
        raises
  EJwsclNILParameterException:  if parameter pSID1 is nil 
@@ -415,7 +432,14 @@ type
             #  SidTypeInvalid        = 7;
             #  SidTypeUnknown        = 8;
             #  SidTypeComputer       = 9;
-         
+
+       Remarks
+         If the compiler directive JWSCL_SIDCACHE or JWSCL_USE_CACHES is active
+         <b>GetAccountSidString</b> uses an caching algorithm per thread basis
+         to return the name. A new SID is stored in the global JwSidNameCache
+         variable (per thread) and used every time the same SID is returned.
+         A SID is determined by its SidString (property) and its System name.
+
        @return <B>GetAccountSidString</B> returns the account name associated by this SID.
        raises
  EJwsclWinCallFailedException:  if the call to a winapi function failed 
@@ -458,7 +482,7 @@ type
        The SID instance will be copied into a new SID structure that is attached to the returned structure in its SID value.
        The new created structure must be freed by Free_PSID_AND_ATTRIBUTES.
 
-       Actually two memory blocks will be allocated and initialized:
+       Currently two memory blocks will be allocated and initialized:
          1. PSID_AND_ATTRIBUTES
          2. PSID
 
@@ -492,7 +516,7 @@ type
       {<B>GetText</B> creates a text that contains domain, account name and humand readable SID structure.
        The form is "[domain@]name (S-1-XXXXXX)" where [] is optional.
        @param ignoreExceptions if set to true ignores exceptions that are thrown 
-       @return Returns the string value 
+       @return Returns the string value
       }
     function GetText(ignoreExceptions: boolean = False): TJwString; virtual;
 
@@ -506,7 +530,7 @@ type
         The given SID must be a correct SID.
         The resulted SID will be checked by CheckSID .
 
-        @param SecurityID receives a SID instance to be copied
+        @param SecurityID receives a SID instance to be copied 
         raises
  EJwsclSecurityException:  See CheckSID  for exceptions description 
 
@@ -653,6 +677,11 @@ type
 
     {<B>Destroy</B> destroys the instance and frees the SID.}
     destructor Destroy; override;
+
+  public
+    function Equals(Obj: TObject): Boolean; {$IFDEF DELPHI2009_UP}override;{$ELSE}virtual;{$ENDIF}
+    function GetHashCode: Integer;          {$IFDEF DELPHI2009_UP}override;{$ELSE}virtual;{$ENDIF}
+    function ToString: String;              {$IFDEF DELPHI2009_UP}override;{$ELSE}virtual;{$ENDIF}
   public
        {<B>SID</B> contains a pointer to the internal SID structure.
         The SID structure must not be freed by CloseHandle otherwise the behavior of the instance is undefined.
@@ -731,6 +760,13 @@ type
        EJwsclWinCallFailedException if the call to a winapi function failed
        @Seealso(GetAccountSidString);
 
+       Remarks
+         If the compiler directive JWSCL_SIDCACHE or JWSCL_USE_CACHES is active
+         <b>GetAccountSidString</b> uses an caching algorithm per thread basis
+         to return the name. A new SID is stored in the global JwSidNameCache
+         variable (per thread) and used every time the same SID is returned.
+         A SID is determined by its SidString (property) and its System name.
+
        COM: Also available as com method.
        }
     property AccountName[SystemName: TJwString]: TJwString Read GetAccountName;
@@ -738,7 +774,34 @@ type
     {
      COM: Also available as com method.
     }
-    property ChachedUserFromSid : WideString read GetCachedUserFromSid;
+
+    {<B>CachedGetUserFromSid</B> uses an undocumented  function that is exported
+     by utildll.dll. It keeps a variable with this structure:
+     CACHED_USERNAME = record  // RW The structure probably has a different name
+       cbUsername: DWORD;
+       Crc16: WORD
+       Username: array[0..USERNAME_LENGTH-1] of WCHAR;  // USERNAME_LENGTH = 20
+     end;
+
+     The function compares the Crc16 of the given Sid to the stored one and if
+     it matches returns the stored username. If it doesn't match a lookup is
+     done and the result in stored in the structure.
+
+     Access to the variable is guarded by CRITICAL_SECTIONS to prevent
+     multi threading issues.
+
+     This functions was written and is optimal for enumerating processes using
+     WinStationGetAllProcesses because this API returns a SID (and not a
+     username)and typically a user has more than 1 process open.
+
+     The function was tested on the following OS versions:
+     Windows 2000 Server
+     Windows XP
+     Windows 2003
+     Windows Vista
+     Windows 2008
+    }
+    property CachedUserFromSid : WideString read GetCachedUserFromSid;
 
        {<B>AccountDomainName[SystemName</B> returns the domain account name of the SID on the computer given in SystemName.
        For more information see the see also section.
@@ -794,6 +857,9 @@ type
    }
     property CachedSystemName : TJwString read fCachedSystemName write fCachedSystemName;
 
+    {<b>CachedSidString</b> returns the stored SID String.
+     It is created once on the creation of the object and
+     returns the same value as property StringSID.}
     property CachedSidString : TJwString read fCachedSidString;
   end;
 
@@ -901,7 +967,7 @@ begin
   Create;
 
   fSID := NewSID; //getmem
-  len  := SECURITY_MAX_SID_SIZE; //sizeof(fSID^);//GlobalSize(Cardinal(fSid));
+  len  := SECURITY_MAX_SID_SIZE; //sizeof(fSID^);//GlobalSize(HGLOBAL(fSid));
 
   if not CopySid(len, fSid, SID) then
     raise EJwsclWinCallFailedException.CreateFmtEx(RsWinCallFailed,
@@ -909,7 +975,6 @@ begin
       ['CopySid']);
 
   CheckSID;
-
   fCachedSidString := StringSID;
 
 {$IFDEF JWSCL_DEBUG_INFO}
@@ -1079,7 +1144,9 @@ end;
 
 constructor TJwSecurityId.Create(const Authorities: TJwSubAuthorityArray;
   Identifier: TSidIdentifierAuthority);
-var i : Integer;
+var
+  i: integer;
+
 begin
   Create;
 
@@ -1110,6 +1177,7 @@ begin
   }
 
   CheckSID;
+
 
   fCachedSidString := StringSID;
 
@@ -1195,7 +1263,7 @@ begin
       (TJwPChar(SystemName), TJwPChar(AccountName), tempSID, iSidSize,
       TJwPChar(pDomainName), iDomainName, SidNameUse) then
     begin
-      LocalFree(Cardinal(pDomainName));
+      LocalFree(HLOCAL(pDomainName));
       raise EJwsclWinCallFailedException.CreateFmtEx(
         RsWinCallFailed,
         'Create(const SystemName, AccountName : TJwString);', ClassName,
@@ -1221,7 +1289,7 @@ begin
     //free the SID
     LocalFree(HLOCAL(tempSID));
 
-    LocalFree(Cardinal(pDomainName));
+    LocalFree(HLOCAL(pDomainName));
   end
   else
     raise EJwsclWinCallFailedException.CreateFmtEx(
@@ -1254,7 +1322,7 @@ begin
 
   Result := TJwString(sSid);
 
-  LocalFree(Cardinal(sSid));
+  LocalFree(HLOCAL(sSid));
 end;
 
 function TJwSecurityId.GetTrustee: TTrusteeEx;
@@ -1270,10 +1338,98 @@ end;
 
 class function TJwSecurityId.GetWindowsAccountDomainSid(aSID: TJwSecurityId):
 TJwSecurityId;
+
+{
+WINAPI calls ONLY and not really good error checking
+
+function JwGetWindowsAccountDomainSid(const aSid : PSid) : PSid;
+const
+   DomainIndent : TSidIdentifierAuthority = (Value : (0,0,0,0,0,5));
 var
-  pDomainSID: PSID;
-  dwSize: Cardinal;
+  dw : DWORD;
+  Ident : PSidIdentifierAuthority;
+   i, count : Integer;
+   SubAuth : Array[0..3] of DWORD;
 begin
+  result := nil;
+
+  for i := 0 to 3 do
+    SubAuth[i] := 0;
+
+  if not IsValidSid(aSid) then
+    RaiseLastOSError;
+
+  SetLastError(0);
+  Ident := GetSidIdentifierAuthority(aSid);
+  if (GetLastError() <> 0) and not CompareMem(@DomainIndent.Value, @Ident^.Value, SizeOf(DomainIndent.Value)) then
+    RaiseLastOSError;
+
+  SetLastError(0);
+  count := DWORD(GetSidSubAuthorityCount(aSid)^);
+  if GetLastError() <> 0 then
+    RaiseLastOSError;
+
+  dw := DWORD(GetSidSubAuthority(aSid, 0)^);
+  if (count < 4) or (dw <> 21) then
+    exit;
+
+  if count > 4 then
+    count := 4;
+
+  for i := 0 to count -1 do
+  begin
+    SubAuth[i] := DWORD(GetSidSubAuthority(aSid, i)^);
+  end;
+
+  if not AllocateAndInitializeSid(
+    @DomainIndent,//__in   PSID_IDENTIFIER_AUTHORITY pIdentifierAuthority,
+    4,//__in   BYTE nSubAuthorityCount,
+    SubAuth[0],//__in   DWORD dwSubAuthority0,
+    SubAuth[1],//__in   DWORD dwSubAuthority1,
+    SubAuth[2],//__in   DWORD dwSubAuthority2,
+    SubAuth[3],//__in   DWORD dwSubAuthority3,
+    0,//__in   DWORD dwSubAuthority4,
+    0,//__in   DWORD dwSubAuthority5,
+    0,//__in   DWORD dwSubAuthority6,
+    0,//__in   DWORD dwSubAuthority7,
+    result//__out  PSID *pSid
+    ) then
+    RaiseLastOSError
+end;
+}
+
+  function JwGetWindowsAccountDomainSid(const SID : TJwSecurityId) : TJwSecurityId;
+  const DomainIndent : TSidIdentifierAuthority = (Value : (0,0,0,0,0,5));
+  var
+    i : Integer;
+    SubAuth : TJwSubAuthorityArray;
+    SidIdent : TSidIdentifierAuthority;
+    Valid : Boolean;
+  begin
+    SidIdent := Sid.IdentifierAuthority;
+
+    //Just check for this pattern: S-1-5-21-xx-yy-zz-??...
+    Valid := CompareMem(@DomainIndent, @SidIdent, SizeOf(DomainIndent)); //S-?-5
+    Valid := Valid and (Sid.SubAuthorityCount >= 4) and (SID.SubAuthority[0] = 21); //21-xx-yy-zz...
+
+    if not Valid then
+      raise EJwsclInvalidSIDException.CreateFmtEx(
+        RsInvalidDomainSid, 'GetWindowsAccountDomainSid',
+        ClassName, RsUNSid, 0, false, [Sid.GetText(true)]);
+
+    //copy the sub authorites: 21-xx-yy-zz
+    SetLength(SubAuth, 4);
+    for i := 0 to 3 do
+      SubAuth[i] := Sid.SubAuthorityArray[i];
+
+    result := TJwSecurityId.Create(SubAuth, DomainIndent);
+  end;
+
+//var
+//  pDomainSID: PSID;
+//  dwSize: Cardinal;
+begin
+
   if not Assigned(aSID) then
     raise EJwsclNILParameterException.CreateFmtEx(
       RsNilParameter, 'GetWindowsAccountDomainSid',
@@ -1281,6 +1437,8 @@ begin
 
   aSID.CheckSID;
 
+  {
+  ** Only available in Windows XP/2003 and newer
   pDomainSID := NewSID;
 
   dwSize := SECURITY_MAX_SID_SIZE;
@@ -1295,7 +1453,9 @@ begin
   end;
 
   Result := TJwSecurityId.Create(pDomainSID);
-  FreeSID(pDomainSID);
+  FreeSID(pDomainSID); }
+
+  Result := JwGetWindowsAccountDomainSid(aSID);
 
   Result.CheckSID;
 end;
@@ -1332,12 +1492,6 @@ begin
 
   pSid1.CheckSID;
 
-
-{
-  if Self.SubAuthorityCount = pSid1.SubAuthorityCount then
-    Result := CompareMem(Self.SID, pSid1.SID, SIDLength)
-  else
-    result := false;}
   Result := JwaWindows.EqualSid(Self.SID, pSid1.SID);
   if GetLastError() <> 0 then
   begin
@@ -1430,8 +1584,8 @@ begin
       (TJwPChar(SystemName), Self.SID, TJwPChar(pSIDName), iSIDName,
       TJwPChar(pDomainName), iDomainName, SidNameUse) then
     begin
-      LocalFree(Cardinal(pSIDName));
-      LocalFree(Cardinal(pDomainName));
+      LocalFree(HLOCAL(pSIDName));
+      LocalFree(HLOCAL(pDomainName));
 
       if fDbgDisableException then
         Exit;
@@ -1770,7 +1924,7 @@ begin
 
   FreeSID(Sids.Sid);
 
-  //GlobalFree(Cardinal(sids));
+  //GlobalFree(HGLOBAL(sids));
   FillChar(sids^, sizeof(sids^), 0);
   FreeMem(sids);
 
@@ -1822,15 +1976,13 @@ begin
   System.Delete(Result, 1, 2);
 end;
 
-procedure TJwSecurityId.UpdateDbgData;
 {$IFDEF JWSCL_DEBUG_INFO}
+procedure TJwSecurityId.UpdateDbgData;
 var
   Data: array[1..10] of AnsiString;
   i: integer;
   ident: TSidIdentifierAuthority;
-{$ENDIF JWSCL_DEBUG_INFO}
 begin
-{$IFDEF JWSCL_DEBUG_INFO}
   fDbgDisableException := True;
 
 
@@ -1893,8 +2045,8 @@ begin
   begin
     fDbgData := fDbgData + Data[i] + #13#10;
   end;
-{$ENDIF JWSCL_DEBUG_INFO}
 end;
+{$ENDIF JWSCL_DEBUG_INFO}
 
 {*********** TJwSecurityIdList *************}
 
@@ -2002,7 +2154,7 @@ begin
     TJwSecurityId.FreeSID(sids[i].Sid);
   end;
 
-  //GlobalFree(Cardinal(Sids));
+  //GlobalFree(HGLOBAL(Sids));
   //FillChar(sids^,sizeof(sids^),0);
   FreeMem(sids);
   Sids := nil;
@@ -2106,14 +2258,35 @@ begin
 end;
 
 
-{$ENDIF SL_INTERFACE_SECTION}
 
-{$IFNDEF SL_OMIT_SECTIONS}
+function TJwSecurityId.Equals(Obj: TObject): Boolean;
+begin
+  result := EqualSid(Obj as TJwSecurityId);
+end;
+
+function TJwSecurityId.GetHashCode: Integer;
+var P : Pointer;
+begin
+  P := JwBeginCreateHash;
+
+  JwDataHash(P, Sid, SIDLength);
+
+  result := JwEndCreateHash(P);
+end;
+
+function TJwSecurityId.ToString: String;
+begin
+  result := Format('%s@%d',[ClassName, GetHashCode]);
+end;
+
 
 
 procedure JwClearSidNameCache;
 var i : integer;
 begin
+  if not Assigned(JwSidNameCache) then
+    exit;
+
   JwSidNameCache.BeginUpdate;
   for I := 0 to JwSidNameCache.Count - 1 do
   begin
@@ -2126,6 +2299,9 @@ end;
 
 procedure JwInitSidNameCache;
 begin
+  if Assigned(JwSidNameCache) then
+    exit;
+
   JwSidNameCache := TStringList.Create;
   JwSidNameCache.Sorted := true;
   JwSidNameCache.Duplicates := dupAccept;
@@ -2153,67 +2329,6 @@ finalization
 {$IFNDEF SL_OMIT_SECTIONS}
 
 end.
-{$ENDIF SL_OMIT_SECTIONS}(*
- BOOL IsUserAdmin(VOID)
-/*++
-Routine Description: This routine returns TRUE if the caller's
-process is a member of the Administrators local group. Caller is NOT
-expected to be impersonating anyone and is expected to be able to
-open its own process and process token.
-Arguments: None.
-Return Value:
-   TRUE - Caller has Administrators local group.
-   FALSE - Caller does not have Administrators local group. --
-*/
-{
-BOOL b;
-SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;
-PSID AdministratorsGroup;
-b = AllocateAndInitializeSid(
-    &NtAuthority,
-    2,
-    SECURITY_BUILTIN_DOMAIN_RID,
-    DOMAIN_ALIAS_RID_ADMINS,
-    0, 0, 0, 0, 0, 0,
-    &AdministratorsGroup);
-if(b)
-{
-    if (!CheckTokenMembership( NULL, AdministratorsGroup, &b))
-    {
-         b = FALSE;
-    }
-    FreeSid(AdministratorsGroup);
-}
 
-return(b);
-}
 
-Access check
-http://msdn2.microsoft.com/en-us/library/aa379648.aspx
-
-Determine Whether the File System Supports ACLs
-You can use the following code to determine whether a given file system supports ACLs. All you need to do is change the szVol variable to point to the volume.
-
-#include <stdio.h>
-#include <windows.h>
-void main() {
-    char *szVol = "c:\\";
-    DWORD dwFlags = 0;
-
-    if (GetVolumeInformation(szVol,
-                             NULL,
-                             0,
-                             NULL,
-                             NULL,
-                             &dwFlags,
-                             NULL,
-                             0)) {
-        printf("Volume %s does%s support ACLs.",
-               szVol,
-               (dwFlags & FS_PERSISTENT_ACLS) ? "" : " not");
-    } else {
-        printf("Error %d",GetLastError());
-    }
-}
-
-*)
+{$ENDIF SL_OMIT_SECTIONS}

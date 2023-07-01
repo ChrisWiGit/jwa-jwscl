@@ -40,14 +40,14 @@ See Jwscl.inc for Vista related stuff!
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclToken;
 
-{$INCLUDE Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
 
 uses SysUtils, Contnrs, Classes,
   JwaWindows,
-  JwsclResource, JwsclUtils, JwaVista,
+  JwsclResource, JwsclUtils, 
   JwsclTypes, JwsclExceptions, JwsclSid, JwsclAcl,
   JwsclDescriptor, JwsclEnumerations,
   JwsclVersion, JwsclConstants,
@@ -79,23 +79,12 @@ type
       to a impersonation token. However the first process token cannot be converted. It must be duplicated and then
       converted. After that the thread can call SetThreadToken to change its security context.
 
-      Actually these token functions are not supported :
-      
-      #  - NTCreateToken
-      
-
-      <B>TJwSecurityToken</B> does only support few vista enhancements :
-        
-        #  Elevation
-        #  ElevationType
-      
-
       <B>TJwSecurityToken</B> does not support some of the values defined in the MSDN http://msdn2.microsoft.com/en-us/library/aa379626.aspx
 
       <B>TJwSecurityToken</B> administers a token (impersonated or not) 
       }
 
-  TJwSecurityToken = class(TObject)//,ISecurityMemoryClass)
+  TJwSecurityToken = class(TInterfacedObject, IJwBase)
   private
        {fPrivelegesList administers all created privileges list by GetTokenPrivileges .
         If a list was not freed by user, it will be freed on the instance ending.
@@ -106,6 +95,9 @@ type
     fTokenHandle: TJwTokenHandle;
     //shared status
     fShared:      boolean;
+
+    fClassHash : Integer;
+
     fAccessMask:  TJwAccessMask;
        {<B>Done</B> is called by Destroy to free all things that were allocated by Create();
         Only objects are destroyed!
@@ -116,7 +108,7 @@ type
       @return Returns the count of privilege stack elements.
      }
     //function PopPrivileges: cardinal;
-    {<B>PushPrivileges</B> saves the actual privilege enabled states in a stack.
+    {<B>PushPrivileges</B> saves the current privilege enabled states in a stack.
         They can be restored with a correctly nested call to PopPrivileges.
                TODO: to test
         @return
@@ -124,7 +116,7 @@ type
     //function PushPrivileges: cardinal;
 
     {<B>RaiseOnInvalidPrimaryToken</B> checks for whether user is SYSTEM and raises exception if not.
-     @param MethodName defines the method name of the caller 
+     @param MethodName defines the method name of the caller
      raises
  EJwsclInvalidPrimaryToken:  if primary user token is not SYSTEM. }
     procedure RaiseOnInvalidPrimaryToken(MethodName: TJwString);
@@ -205,6 +197,7 @@ type
 
     function GetTokenRestrictedSids: TJwSecurityIdList; virtual;
 
+    function IsTokenType(index : Integer) : Boolean; virtual;
 
 
     function GetTokenDefaultDacl: TJwDAccessControlList;
@@ -275,7 +268,7 @@ type
         The privilege names are compared case sensitive. 
         @param Privileges contains all privileges names that the token must held 
         raises
- EJwsclPrivilegeCheckException:  will be raised if one privilege was not found 
+ EJwsclPrivilegeCheckException:  will be raised if one privilege was not found
         }
 
     procedure CheckTokenPrivileges(Privileges: array of TJwString);
@@ -325,7 +318,7 @@ type
         the process by changing enabled privileges. This does not affect
         an impersonation of the token because for this action is has to be duplicated.
 
-        @param aProcessHandle Receives a process handle which is used to get the process token. The handle can be zero (0) to use the actual process handle of the caller 
+        @param aProcessHandle Receives a process handle which is used to get the process token. The handle can be zero (0) to use the current process handle of the caller 
         @param aDesiredAccess Receives the desired access for this token. The access types can be get from the following list. Access flags must be concatenated with or operator.
               Can be MAXIMUM_ALLOWED to get maximum access. 
         @param Duplicate Defines whether the token of the Processhandle should be spawned into this process.
@@ -396,7 +389,7 @@ type
 
      @param ProcessID defines a process ID 
      @param DesiredAccess Receives the desired access for this token. The access types can be get from the list written at CreateTokenByProcess.
-        Access flags must be concatenated with or operator. Can be MAXIMUM_ALLOWED to get maximum access. 
+        Access flags must be concatenated with or operator. Can be MAXIMUM_ALLOWED to get maximum access.
 
      raises
  EJwsclOpenProcessTokenException:  If the token could not be opened 
@@ -406,7 +399,7 @@ type
     constructor CreateTokenByProcessId(const ProcessID: DWORD;
       const DesiredAccess: TJwAccessMask); virtual;
 
-        {CreateTokenByThread creates a new instances and opens a thread token.
+        {CreateTokenByThread creates a new class instance and opens a thread token if available; otherwise it fails.
 
         @param aThreadHandle Receives a thread handle which is used to get 
 				the process token. The handle can be zero (0) to use the current 
@@ -427,9 +420,9 @@ type
       const aDesiredAccess: TJwAccessMask;
       const anOpenAsSelf: boolean); virtual;
 
-        {<B>CreateTokenEffective</B> opens a thread token or process. If it can not open the thread token it simply opens the process tokens
+        {<B>CreateTokenEffective</B> opens a token of the current thread or process. If it can't open the thread token it opens the process token instead.
         @param aDesiredAccess Receives the desired access for this token. The access types can be get from the following list. Access flags must be concatenated with or operator.
-        If you want to use DuplicateToken or creating an impersonated token (by ConvertToImpersonatedToken) you must specific TOKEN_DUPLICATE. 
+        If you want to use DuplicateToken or creating an impersonated token (by ConvertToImpersonatedToken) you must specific TOKEN_DUPLICATE.
 
         @param aDesiredAccess The desired access rights of the new token.
            It can be MAXIMUM_ALLOWED to get the maximum possible access.
@@ -439,7 +432,7 @@ type
     constructor CreateTokenEffective(const aDesiredAccess: TJwAccessMask);
       virtual;
 
-    {<B>CreateDuplicateExistingToken</B> create a duplicate token from an existing one. The token will be a primary one.
+    {<B>CreateDuplicateExistingToken</B> duplicates an existing token. The token will be a primary one.
      You cannot use the class to adapt an existing token, because the access mask of the token is unkown. (AccessCheck not implemented yet)
      The token needs the TOKEN_DUPLICATE access type.
 
@@ -449,19 +442,44 @@ type
      @param aTokenHandle The token handle to be copied.
      @param aDesiredAccess The desired access rights of the new token.
        It can be MAXIMUM_ALLOWED to get the maximum possible access.
-      
+
      @param UseDuplicateExistingToken For C++ compability only. If you are using C++ and want to use this constructor instead of Create.
           Set this parameter to true of false. This parameter is ignored!
+
+     raises
+       EJwsclSecurityException See ConvertToImpersonatedToken and ConvertToPrimaryToken for possible exceptions.
      }
     constructor CreateDuplicateExistingToken(
       const aTokenHandle: TJwTokenHandle; const aDesiredAccess: TJwAccessMask;
-      UseDuplicateExistingToken: boolean = False); virtual;
+      UseDuplicateExistingToken: boolean = False); overload; virtual;
+
+    {<B>CreateDuplicateExistingToken</B> duplicates an existing token.  The token will be a primary one.
+     You cannot use the class to adapt an existing token, because the access mask of the token is unkown. (AccessCheck not implemented yet)
+     The token needs the TOKEN_DUPLICATE access type.
+
+     New: <B>CreateDuplicateExistingToken</B> creates in every case a second handle. Shared will be set to false so the handle is closed
+      if instance is freed.
+
+     @param Token The token instance to be copied.
+     @param DesiredAccess The desired access rights of the new token.
+       It can be MAXIMUM_ALLOWED to get the maximum possible access.
+
+     @param UseDuplicateExistingToken For C++ compability only. If you are using C++ and want to use this constructor instead of Create.
+          Set this parameter to true of false. This parameter is ignored!
+
+     raises
+       EJwsclNILParameterException This exception is raised if if parameter Token is nil.
+     }
+    constructor CreateDuplicateExistingToken(
+      const Token: TJwSecurityToken; const DesiredAccess: TJwAccessMask;
+      UseDuplicateExistingToken: boolean = False); overload; virtual;
+
 
     {<B>Create</B> creates a token instance using an already existing token handle.
      It can be choosen whether the token instance will close the handle or not.
 
      @param aTokeHandle defines the handle to the token.
-       <B>Create</B> does not do a validity check on the handle! 
+       <B>Create</B> does not do a validity check on the handle!
      @param ShareTokenHandle defines whether the instance ought to close the handle
       or not 
      @param aDesiredAccess defines the access to the token handle.
@@ -482,20 +500,19 @@ type
          to call CreateProcessAsUser to lunch a process in the given terminal session.
 
          @param SessionID defines the session which is used to obtain the token.
-               If set to INVALID_HANDLE_VALUE, the function does the following :
+               If set to INVALID_HANDLE_VALUE, the function does the following steps:
                
-                1. Try to open the token of the actual console session. Using WtsGetActiveConsoleSessionID to obtain the session ID. 
+                1. Try to open the token of the current console session. Using WtsGetActiveConsoleSessionID to obtain the session ID. 
                 2. Try to open the token of the current session using the session ID WTS_CURRENT_SESSION 
                 
-               If this fails an exception is raised. 
+               If it fails an exception is raised. 
 
          raises
  EJwsclUnsupportedWindowsVersionException:  is raised if the Windows System does not have WTS function support 
           EJwsclPrivilegeCheckException: is raised if the privilege SE_TCB_NAME is not held. 
           EJwsclWinCallFailedException: if a call to WTSQueryUserToken failed 
          }
-    constructor CreateWTSQueryUserToken(SessionID: cardinal =
-      INVALID_HANDLE_VALUE);
+    constructor CreateWTSQueryUserToken(SessionID: TJwSessionId = INVALID_HANDLE_VALUE);
       overload; virtual;
 
     {<B>CreateWTSQueryUserTokenEx</B> opens a token of a logged on user on a local or remote server.
@@ -504,18 +521,21 @@ type
      to CreateWTSQueryUserToken.
 
      @param Server defines the Terminal Server where this function will
-      be processed. Use nil to use current server. 
-      @param SessionID defines the session which is used to obtain the token.
-         If set to INVALID_HANDLE_VALUE, the function does the following :
-         
-          1. Try to open the token of the actual console session. Using WtsGetActiveConsoleSessionID to obtain the session ID. 
-          2. Try to open the token of the current session using the session ID WTS_CURRENT_SESSION 
-          
-         If this fails an exception is raised. 
+      be processed. Use nil to use current server.
+      This parameter receives an instance of a TJwTerminalServer object or derivat.
+     @param SessionID defines the session which is used to obtain the token.
+         If set to INVALID_HANDLE_VALUE, the function does the following steps :
+
+          1. Try to open the token of the current console session. Using WtsGetActiveConsoleSessionID to obtain the session ID.
+          2. Try to open the token of the current session using the session ID WTS_CURRENT_SESSION
+
+         If it fails an exception is raised.
 
      raises
- EJwsclTerminalServiceNecessary:  will be raised if the no terminal
-      service is running 
+      EInvalidCast: This exception will be raised if a given instance to parameter Server
+        is not a TJwTerminalServer object or a derivat.
+      EJwsclTerminalServiceNecessary:  will be raised if the no terminal
+        service is running
       EJwsclInvalidPrimaryToken: will be raised if the process token
       is not a SYSTEM user token 
       EJwsclPrivilegeCheckException: will be raised if the privilege
@@ -675,6 +695,13 @@ type
      Because the old handle is discarded you must call these functions again :
        GetTokenPrivileges
 
+     ConvertToImpersonatedToken needs the following access rights:
+      # TOKEN_QUERY
+      # READ_CONTROL
+      # TOKEN_DUPLICATE
+     You can use TOKEN_READ instead of TOKEN_QUERY and READ_CONTROL.
+
+
      This function does the same as ImpersonateLoggedOnUser if used in this way:
      <code lang="Delphi">
      var Token : TJwSecurityToken;
@@ -721,7 +748,11 @@ type
          Because the old handle is discarded you must call these functions again :
            GetTokenPrivileges
 
-
+        ConvertToPrimaryToken needs the following access rights:
+          # TOKEN_QUERY
+          # READ_CONTROL
+          # TOKEN_DUPLICATE
+         You can use TOKEN_READ instead of TOKEN_QUERY and READ_CONTROL.
 
         @param aDesiredAccess Receives the desired access for this token. The access types can be get from the following list. Access flags must be concatenated with or operator.
         If you want to use DuplicateToken or creating an primary token (by ConvertToPrimaryToken) you must specify TOKEN_DUPLICATE.
@@ -760,7 +791,12 @@ type
      raises
  EJwsclInitWellKnownException:  will be raised if InitWellKnownException was not called 
       EJwsclNILParameterException: will be raised if parameter MandatorySid is nil 
-      EJwsclWinCallFailedException: will be raised if the integrity level could not be changed 
+      EJwsclWinCallFailedException: will be raised if the integrity level could not be changed
+
+    Remarks
+      If the compiler directive VISTA (jwscl.inc) is not defined, an exception
+      EJwsclVistaFeaturesDisabled is raised. This feature can only be used with
+      activated VISTA compiler directive.
     }
     procedure SetIntegrityLevel(const MandatorySid: TJwSecurityId;
       const Attributes: TJwSidAttributeSet = [sidaGroupMandatory]);
@@ -769,12 +805,17 @@ type
     {<B>SetIntegrityLevel</B> sets the integrity level of the token using a Sid structure.
      <B>SetIntegrityLevel</B> needs InitWellKnownException from JwsclKnownSid to be called before.
 
-     @param MandatorySidType a mandatory . Must not be nil 
-     @param Attributes defines attributes for the Sid 
+     @param MandatorySidType a mandatory . Must not be nil
+     @param Attributes defines attributes for the Sid
      raises
- EJwsclInitWellKnownException:  will be raised if InitWellKnownException was not called 
-      EJwsclNILParameterException: will be raised if parameter MandatorySid is nil 
-      EJwsclWinCallFailedException: will be raised if the integrity level could not be changed 
+ EJwsclInitWellKnownException:  will be raised if InitWellKnownException was not called
+      EJwsclNILParameterException: will be raised if parameter MandatorySid is nil
+      EJwsclWinCallFailedException: will be raised if the integrity level could not be changed
+
+     Remarks
+      If the compiler directive VISTA (jwscl.inc) is not defined, an exception
+      EJwsclVistaFeaturesDisabled is raised. This feature can only be used with
+      activated VISTA compiler directive.
     }
     procedure SetIntegrityLevel(const LabelType: TJwIntegrityLabelType;
       const Attributes: TJwSidAttributeSet = [sidaGroupMandatory]);
@@ -796,7 +837,7 @@ type
       
 
      @param AccessMask defines the access to the token handle.
-       MAXIMUM_ALLOWED can be used to get the maximum access allowed. 
+       MAXIMUM_ALLOWED can be used to get the maximum access allowed.
     }
     function CreateDuplicateToken(AccessMask: TJwAccessMask;
       Security: PSECURITY_ATTRIBUTES): TJwSecurityToken;
@@ -814,7 +855,11 @@ type
 
     {<B>CheckTokenMembership</B> checks whether a given SID is member of the token.
      It returns true if the SID could be found in the list ignoring
-     whether the SID is enabled or not; otherwise it returns false.}
+     whether the SID is enabled or not; otherwise it returns false.
+
+     Exceptions
+      EJwsclWinCallFailedException This exception is thrown if winapi call CheckTokenMembership failed.
+    }
     function CheckTokenMembership(aSidToCheck: TJwSecurityId): boolean;
 
         {<B>IsEqual</B> compares the token instance with a second one.
@@ -830,7 +875,7 @@ type
          @param Thread contains the thread handle. If Thread is zero the calling thread will be used. 
 
         raises
- EJwsclSecurityException:  will be raised if the token could not be attached to the thread 
+ EJwsclSecurityException:  will be raised if the token could not be attached to the thread
          EJwsclSecurityException: will be raised if a winapi function failed 
         }
     procedure SetThreadToken(const Thread: TJwThreadHandle);
@@ -839,7 +884,7 @@ type
         <B>RemoveThreadToken</B> removes the token from the thread.
         @param Thread contains the thread handle. If Thread is zero the calling thread will be used. 
         raises
- EJwsclSecurityException:  will be raised if a winapi function failed 
+ EJwsclSecurityException:  will be raised if a winapi function failed
         }
     class procedure RemoveThreadToken(const Thread: TJwThreadHandle);
 
@@ -850,7 +895,7 @@ type
          (e.g. set privileges) don't have an effect on the token of the thread. Create a new instance by calling TJwSecurityToken.CreateTokenByThread to get the new thread token or
          call ConvertToImpersonatedToken to get an thread token directly without creating a new instance.
         raises
- EJwsclAccessTypeException:  will be raised if the token is an impersonation token and does not have access type TOKEN_QUERY and TOKEN_IMPERSONATE 
+ EJwsclAccessTypeException:  will be raised if the token is an impersonation token and does not have access type TOKEN_QUERY and TOKEN_IMPERSONATE
          EJwsclAccessTypeException: will be raised if the token is a primary token and does not have access type TOKEN_QUERY and TOKEN_DUPLICATE 
          EJwsclSecurityException: will be raised if a winapi function failed 
         }
@@ -858,13 +903,13 @@ type
 
         {<B>PrivilegeCheck</B> is a simulation of WinAPI PrivilegeCheck (http://msdn2.microsoft.com/en-us/library/aa379304.aspx)
          <B>PrivilegeCheck</B> checks for enabled privleges of the token.
-         If RequiresAllPrivs is false <B>PrivilegeCheck</B> returns true if one privilege provided in aRequiredPrivileges is enabled in the token
+         If RequiresAllPrivs is pcDefault <B>PrivilegeCheck</B> returns true if one privilege provided in aRequiredPrivileges is enabled in the token
           If no privilege from aRequiredPrivileges is enabled in the token the function returns false.
-         If RequiresAllPrivs is true <B>PrivilegeCheck</B> returns true if all privileges from aRequiredPrivileges are enabled in the token; otherwise false.
+         If RequiresAllPrivs is pcAllPrivsEnabled <B>PrivilegeCheck</B> returns true if all privileges from aRequiredPrivileges are enabled in the token; otherwise false.
 
          Every privilege that was used for a privilege check will have the property Privilege_Used_For_Access set to true.
 
-         @param aRequiredPrivileges provides a list of priveleges that are compared with the token  
+         @param aRequiredPrivileges provides a list of priveleges that are compared with the token
          @return see description 
          }
     function PrivilegeCheck(const RequiredPrivileges: TJwPrivilegeSet;
@@ -878,9 +923,9 @@ type
 
         {<B>PrivilegeCheck</B> is a simulation of WinAPI PrivilegeCheck (http://msdn2.microsoft.com/en-us/library/aa379304.aspx)
          <B>PrivilegeCheck</B> checks for enabled privleges of the token.
-         If RequiresAllPrivs is false <B>PrivilegeCheck</B> returns true if one privilege provided in aRequiredPrivileges is enabled in the token
+         If RequiresAllPrivs is pcDefault <B>PrivilegeCheck</B> returns true if one privilege provided in aRequiredPrivileges is enabled in the token
           If no privilege from aRequiredPrivileges is enabled in the token the function returns false.
-         If RequiresAllPrivs is true <B>PrivilegeCheck</B> returns true if all privileges from aRequiredPrivileges are enabled in the token; otherwise false.
+         If RequiresAllPrivs is pcAllPrivsEnabled <B>PrivilegeCheck</B> returns true if all privileges from aRequiredPrivileges are enabled in the token; otherwise false.
 
          @param ClientToken is a token that is used to check the privileges 
          @param aRequiredPrivileges provides a list of priveleges that are compared with the token  
@@ -932,7 +977,7 @@ type
           set the correct user name 
 
       # pmProfilePath Exclude this value if you want to let the method
-        get the roaming profile. 
+        get the roaming profile.
      
       
 
@@ -966,7 +1011,7 @@ type
 
          The audit event can be seen in the event viewer in security leaf.
 
-         @param ClientToken is the token to be used in audit log.  
+         @param ClientToken is the token to be used in audit log.
 
          raises
  EJwsclPrivilegeNotFoundException:  will be raised if the process token does not have the privilege : SE_AUDIT_NAME 
@@ -1028,6 +1073,13 @@ type
     procedure SetSecurityDescriptor(
       const SecurityFlags: TJwSecurityInformationFlagSet;
       const SecurityDescriptor: TJwSecurityDescriptor); virtual;
+
+  public
+    //overriden basic methods
+    function Equals(Obj: TObject): Boolean; {$IFDEF DELPHI2009_UP}override;{$ELSE}virtual;{$ENDIF}
+    function GetHashCode: Integer;          {$IFDEF DELPHI2009_UP}override;{$ELSE}virtual;{$ENDIF}
+    function ToString: String;              {$IFDEF DELPHI2009_UP}override;{$ELSE}virtual;{$ENDIF}
+
   public
     {TokenHandle contains a handle to the opened token. It can be zero.}
     property TokenHandle: TJwTokenHandle Read fTokenHandle;
@@ -1118,7 +1170,7 @@ type
       Read GetTokenRestrictedSids;
 
         {<B>TokenDefaultDacl</B> sets or gets the defaul discretionary access control list of the token.
-         The value is dynamic returned. It always returns the actual token state and is not saved.
+         The value is dynamic returned. It always returns the current token state and is not saved.
          So after a reading call the returned object must be freed!
 
          }
@@ -1150,7 +1202,10 @@ type
          To set the value the token needs SE_TCB_NAME privilege.
 
          A write call on a Windows 2000 is ignored!
-         A write call on higher systems neeeds the SE_TCB_NAME privilege.
+         A write call on needs the SE_TCB_NAME privilege.
+
+		 To set the SessionID in an existing token you need to create a duplicate first and
+		 set the ID of the duplicated token. Use CreateDuplicateExistingToken for this reason.
 
          See
          http://msdn2.microsoft.com/en-us/library/aa379591.aspx
@@ -1178,21 +1233,51 @@ type
 
     {<B>RunElevation</B> returns the elavation status of the process on a Windows Vista system.
      If the system is not a supported the exception EJwsclUnsupportedWindowsVersionException will be raised
-     Actually only windows vista is supported.
 
-     If the token is elevated the return value is 1; otherwise 0.
+     Raises
+       EJwsclUnsupportedWindowsVersionException This exception will be raised if the
+         Windows System is not a Windows Vista/Server or newer.
+
+     Remarks
+       Only Windows Vista is supported.
+       If the token is elevated the return value is 1; otherwise 0.
+
+       If the compiler directive VISTA (jwscl.inc) is not defined, an exception
+       EJwsclVistaFeaturesDisabled is raised. This feature can only be used with
+       activated VISTA compiler directive.
      }
     property RunElevation: cardinal Read GetRunElevation;
 
-        {<B>ElevationType</B> returns the elavation type of the process on a Windows Vista system.
-         If the system is not a supported the exception EJwsclUnsupportedWindowsVersionException will be raised
-         Actually only windows vista is supported.
-         }
+      {<B>ElevationType</B> returns the elavation type of the process on a Windows Vista system.
+       If the system is not a supported the exception EJwsclUnsupportedWindowsVersionException will be raised
+
+       Raises
+         EJwsclUnsupportedWindowsVersionException This exception will be raised if the
+           Windows System is not a Windows Vista/Server or newer.
+
+
+       Remarks
+         Only Windows Vista is supported.
+
+         If the compiler directive VISTA (jwscl.inc) is not defined, an exception
+         EJwsclVistaFeaturesDisabled is raised. This feature can only be used with
+         activated VISTA compiler directive.
+       }
     property ElevationType: TTokenElevationType Read GetElevationType;
 
     {<B>TokenIntegrityLevel</B> returns the integrity level of the token.
-     This function only works in Windows Vista and newer.
-     The caller is responsible for freeing the resulting TJwSecurityIdList.
+
+     Raises
+       EJwsclUnsupportedWindowsVersionException This exception will be raised if the
+         Windows System is not a Windows Vista/Server 2008 or newer.
+
+     Remarks
+       This function only works in Windows Vista and newer.
+       The caller is responsible for freeing the resulting TJwSecurityIdList.
+
+       If the compiler directive VISTA (jwscl.inc) is not defined, an exception
+       EJwsclVistaFeaturesDisabled is raised. This feature can only be used with
+       activated VISTA compiler directive.
     }
     property TokenIntegrityLevel: TJwSecurityIdList Read GetIntegrityLevel;
 
@@ -1200,10 +1285,20 @@ type
      This property uses iltLow, iltMedium, iltHigh, iltSystem and iltProtected to
      get or set the integrity level.
 
-     If the token does not have a level the function returns iltNone.
-     The value iltNone cannot be set!
 
-     This property can raise exceptions on get and set! See SetIntegrityLevel.
+     Raises
+       EJwsclUnsupportedWindowsVersionException This exception will be raised if the
+         Windows System is not a Windows Vista/Server 2008 or newer.
+
+     Remarks
+       If the token does not have a level the function returns iltNone.
+       The value iltNone cannot be set!
+
+       This property can raise exceptions on get and set! See SetIntegrityLevel.
+
+       If the compiler directive VISTA (jwscl.inc) is not defined, an exception
+       EJwsclVistaFeaturesDisabled is raised. This feature can only be used with
+       activated VISTA compiler directive.
     }
     property TokenIntegrityLevelType: TJwIntegrityLabelType
       Read GetIntegrityLevelType Write SetIntegrityLevelType;
@@ -1215,22 +1310,58 @@ type
      rights.
      However this token is useless for non privileged tokens because SetThreadToken
      and other functions which get this token checks whether the user can use this
-     token or not. 
+     token or not.
 
-    This function only works in Windows Vista and newer.
-     The caller is responsible for freeing the resulting TJwSecurityToken}
+     Raises
+       EJwsclUnsupportedWindowsVersionException This exception will be raised if the
+         Windows System is not a Windows Vista/Server 2008 or newer.
+
+     Remarks
+       This function only works in Windows Vista and newer.
+       The caller is responsible for freeing the resulting TJwSecurityToken
+
+       If the compiler directive VISTA (jwscl.inc) is not defined, an exception
+       EJwsclVistaFeaturesDisabled is raised. This feature can only be used with
+       activated VISTA compiler directive.
+
+       The token must be converted to a primary token first to be usable in
+       CreateProcessAsUser. However this duplication needs the TCB privilege
+       even if the linked token has less rights.
+    }
     property LinkedToken: TJwSecurityToken Read GetLinkedToken;
 
-        {<B>VirtualizationAllowed</B> returns the status of allowance of virtualization of the process on a Windows Vista system.
-         If the system is not a supported the exception EJwsclUnsupportedWindowsVersionException will be raised
-         Actually only windows vista is supported.
-         }
+    {<B>VirtualizationAllowed</B> returns the status of allowance of virtualization of the process on a Windows Vista system.
+     If the system is not a supported the exception EJwsclUnsupportedWindowsVersionException will be raised
+
+     Raises
+       EJwsclUnsupportedWindowsVersionException This exception will be raised if the
+         Windows System is not a Windows Vista/Server 2008 or newer.
+
+     Remarks
+      Only Windows Vista is supported.
+
+      If the compiler directive VISTA (jwscl.inc) is not defined, an exception
+      EJwsclVistaFeaturesDisabled is raised. This feature can only be used with
+      activated VISTA compiler directive.
+     }
     property VirtualizationAllowed: boolean Read GetVirtualizationAllowed;
 
-        {<B>VirtualizationEnabled</B> returns the status of status of virtualization. It is either on or off and only works on a Windows Vista system.
-         If the system is not a supported the exception EJwsclUnsupportedWindowsVersionException will be raised
-         Actually only windows vista is supported.
-         }
+    {<B>VirtualizationEnabled</B> returns the status of status of virtualization. It is either on or off and only works on a Windows Vista system.
+     If the system is not a supported the exception EJwsclUnsupportedWindowsVersionException will be raised
+
+     Raises
+       EJwsclUnsupportedWindowsVersionException This exception will be raised if the
+         Windows System is not a Windows Vista/Server 2008 or newer.
+
+     Remarks
+      Only Windows Vista is supported.
+
+      If the compiler directive VISTA (jwscl.inc) is not defined, an exception
+      EJwsclVistaFeaturesDisabled is raised. This feature can only be used with
+      activated VISTA compiler directive.
+
+
+     }
     property VirtualizationEnabled: boolean Read GetVirtualizationEnabled;
 
     {<B>MandatoryPolicy</B> returns the mandatory policy of the token.
@@ -1239,12 +1370,30 @@ type
         # TOKEN_MANDATORY_POLICY_OFF No mandatory integrity policy is enforced for the token. 
         # TOKEN_MANDATORY_POLICY_NO_WRITE_UP A process associated with the token cannot write to objects that have a greater mandatory integrity level. 
         # TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN A process created with the token has an integrity level that is the lesser of the parent-process integrity level and the executable-file integrity level. 
-        # TOKEN_MANDATORY_POLICY_VALID_MASK A combination of TOKEN_MANDATORY_POLICY_NO_WRITE_UP and TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN 
-      
+        # TOKEN_MANDATORY_POLICY_VALID_MASK A combination of TOKEN_MANDATORY_POLICY_NO_WRITE_UP and TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN
+
+    Raises
+       EJwsclUnsupportedWindowsVersionException This exception will be raised if the
+         Windows System is not a Windows Vista/Server 2008 or newer.
+
+    Remarks
+      If the compiler directive VISTA (jwscl.inc) is not defined, an exception
+      EJwsclVistaFeaturesDisabled is raised. This feature can only be used with
+      activated VISTA compiler directive.
     }
 
     property MandatoryPolicy: TJwTokenMandatoryPolicies
       Read GetMandatoryPolicy;
+
+    {<b>IsPrimaryToken</b> returns true if the current token instance
+     is a primary token; otherwise false.}
+    property IsPrimaryToken : Boolean index 1 read IsTokenType;
+    {<b>IsImpersonationToken</b> returns true if the current token instance
+     is a impersonated token; otherwise false. Same as IsThreadToken}
+    property IsImpersonationToken : Boolean index 2 read IsTokenType;
+    {<b>IsThreadToken</b> returns true if the current token instance
+     is a thread token; otherwise false; Same as IsImpersonationToken.}
+    property IsThreadToken : Boolean index 2 read IsTokenType;
 
   end;
 
@@ -1752,7 +1901,7 @@ type
   TJwPrivilegeQueryType = (pqt_Available, pqt_Enabled);
   TJwPrivilegeSetType   = (pst_Enable, pst_EnableIfAvail, pst_Disable);
 
-{<B>JwIsPrivilegeSet</B> checks whether a given privilege is available or enabled in the actual process or thread.
+{<B>JwIsPrivilegeSet</B> checks whether a given privilege is available or enabled in the current process or thread.
 @param Index gets the privilege name
 @param query defines whether the given privilege should be checked for availability or is enable
 @return Returns true if the privilege is available and enabled. If the privilege is not available or disabled the result is false.
@@ -1848,10 +1997,8 @@ function JwIsUACEnabled: Boolean;
 implementation
 
 uses JwsclKnownSid, JwsclMapping, JwsclSecureObjects, JwsclProcess,
-     JwsclTerminalServer, JwsclLsa,
-      JwsclPrivileges, Math;
-
-
+     JwsclTerminalServer, JwsclLsa, TypInfo,
+      JwsclPrivileges, Math, D5impl;
 
 {$ENDIF SL_OMIT_SECTIONS}
 
@@ -1917,6 +2064,8 @@ begin
   T := TJwSecurityToken.CreateTokenByProcess(0, TOKEN_READ or TOKEN_QUERY);
   try
     Stat := T.GetTokenStatistics;
+
+    //Compare the authentication ID with 0x999d (SYSTEM)
     result := CompareMem(@Stat.fAuthenticationId, @SYSTEM_LUID, sizeof(TLUID));
     Stat.Free;
   finally
@@ -2098,6 +2247,7 @@ begin
 
   for i := 0 to PrivilegesPointer.PrivilegeCount - 1 do
   begin
+    //fails for range check errors {_R+}
     fList.Add(TJwPrivilege.Create(Self, PrivilegesPointer.Privileges[i]));
   end;
 end;
@@ -2426,7 +2576,7 @@ begin
   for i := 0 to Count - 1 do
   begin
     Result^.Privileges[i].Luid := PrivByIdx[i].LUID;
-    Result^.Privileges[i].Attributes := 0;
+    Result^.Privileges[i].Attributes := PrivByIdx[i].Attributes;
     //SE_PRIVILEGE_ENABLED_BY_DEFAULT or SE_PRIVILEGE_ENABLED;
   end;
 end;
@@ -2613,7 +2763,7 @@ constructor TJwPrivilege.Create(anOwner: TJwPrivilegeSet;
     HeapFree(JwProcessHeap, 0, sName);
   end;
 
-  function GetDisplayName(aName: TJwString;
+  function GetDisplayName(const aName: TJwString;
     out aLanguageID: cardinal): TJwString;
   var
     len:   cardinal;
@@ -2886,6 +3036,8 @@ begin
 
   fTokenHandle := 0;
   fShared      := True;
+
+  fClassHash := 0;
 end;
 
 procedure TJwSecurityToken.Done;
@@ -3012,6 +3164,7 @@ begin
 
   //  ShowMEssage(SD.Text);
   try
+    //TOKEN_READ = TOKEN_QUERY + READ_CONTROL = read access to dacl
     Token := TJwSecurityToken.CreateTokenEffective(TOKEN_READ or
       TOKEN_QUERY or TOKEN_DUPLICATE);
     Token.ConvertToImpersonatedToken(SecurityImpersonation,
@@ -3243,6 +3396,22 @@ begin
 end;
 
 
+type
+  TWtsGetActiveConsoleSessionID = function : DWORD; stdcall;
+var
+  _WtsGetActiveConsoleSessionID : TWtsGetActiveConsoleSessionID = nil;
+
+function InternalWtsGetActiveConsoleSessionID : DWORD;
+begin
+  if @_WtsGetActiveConsoleSessionID = nil then
+    _WtsGetActiveConsoleSessionID := GetProcAddress(
+       GetModuleHandle('kernel32.dll'),'WTSGetActiveConsoleSessionId');
+
+  if @_WtsGetActiveConsoleSessionID <> nil then
+    result := _WtsGetActiveConsoleSessionID
+  else
+    result := 0;
+end;
 
 constructor TJwSecurityToken.CreateWTSQueryUserTokenEx(
   const Server: TObject; SessionID: cardinal);
@@ -3257,12 +3426,13 @@ begin
   if Assigned(Server) then
   begin
     TS := Server as TJwTerminalServer;
-    //TODO: @remko : TS.IsTerminalServiceRunning needs to be implemented
-    TSRunning := false;
     hServer := TS.ServerHandle;
+
+    TSRunning := true;
   end
   else
-    TSRunning := TJwWindowsVersion.IsTerminalServiceRunning;
+    TSRunning := TJwWindowsVersion.IsWindows7 or //On Win7 WTS calls are always valid
+      TJwWindowsVersion.IsTerminalServiceRunning;
 
   if (not TSRunning) then
     raise EJwsclTerminalServiceNecessary.CreateFmtEx(
@@ -3283,7 +3453,7 @@ begin
 
   if SessionID = INVALID_HANDLE_VALUE then
   begin
-    if not WinStationQueryUserToken(hServer, WtsGetActiveConsoleSessionID,
+    if not WinStationQueryUserToken(hServer, InternalWtsGetActiveConsoleSessionID,
       fTokenHandle) then
       if not WinStationQueryUserToken(hServer, WTS_CURRENT_SESSION,
         fTokenHandle) then
@@ -3311,7 +3481,7 @@ begin
 end;
 
 constructor TJwSecurityToken.CreateWTSQueryUserToken(SessionID:
-  cardinal {= INVALID_HANDLE_VALUE});
+  TJwSessionId = INVALID_HANDLE_VALUE);
 begin
   RaiseOnInvalidPrimaryToken('CreateWTSQueryUserToken');
 
@@ -3333,7 +3503,7 @@ begin
 
   if SessionID = INVALID_HANDLE_VALUE then
   begin
-    if not WTSQueryUserToken(WtsGetActiveConsoleSessionID, fTokenHandle) then
+    if not WTSQueryUserToken(InternalWtsGetActiveConsoleSessionID, fTokenHandle) then
       if not WTSQueryUserToken(WTS_CURRENT_SESSION, fTokenHandle) then
         raise EJwsclWinCallFailedException.CreateFmtEx(
           RsTokenCallWtsQueryUserTokenFailed, 'WTSQueryUserToken',
@@ -3371,8 +3541,8 @@ begin
   fAccessMask  := TOKEN_ALL_ACCESS;
 
   try
-    //first convert token to thread token
-    //this method will do thing if token is already impersonated
+    //first convert the token to a thread token
+    //this method will do nothing if the token is already impersonated
 
     ConvertToImpersonatedToken(DEFAULT_IMPERSONATION_LEVEL, aDesiredAccess);
     //If the token handle differs we have a new token handle that
@@ -3389,6 +3559,17 @@ begin
     raise;
   end;
 end;
+
+constructor TJwSecurityToken.CreateDuplicateExistingToken(
+  const Token: TJwSecurityToken;
+  const DesiredAccess: TJwAccessMask; UseDuplicateExistingToken: boolean);
+begin
+  JwRaiseOnNilParameter(Token, 'Token', 'CreateDuplicateExistingToken', ClassName, RsUNToken);
+
+  CreateDuplicateExistingToken(Token.TokenHandle, DesiredAccess, UseDuplicateExistingToken);
+end;
+
+
 
 constructor TJwSecurityToken.CreateRestrictedToken(
   PrevTokenHandle : TJwTokenHandle;
@@ -3488,6 +3669,10 @@ procedure TJwSecurityToken.ConvertToImpersonatedToken(
 var
   hNewTokenHandle: TJwTokenHandle;
 begin
+  {
+  TOKEN_READ = TOKEN_QUERY + READ_CONTROL
+   We need access to the DACL for GetMaximumAllowed
+  }
   //check for valid token handle
   CheckTokenHandle('ConvertToImpersonatedToken');
   CheckTokenAccessType(TOKEN_DUPLICATE + TOKEN_READ,
@@ -3529,6 +3714,11 @@ procedure TJwSecurityToken.ConvertToPrimaryToken(
 var
   hNewTokenHandle: TJwTokenHandle;
 begin
+  {
+  TOKEN_READ = TOKEN_QUERY + READ_CONTROL
+   We need access to the DACL for GetMaximumAllowed
+  }
+
   //check for valid token handle
   CheckTokenHandle('ConvertToPrimaryToken');
   CheckTokenAccessType(TOKEN_DUPLICATE + TOKEN_READ,
@@ -3595,7 +3785,7 @@ begin
        We fix that here
       }
       case aTokenInformationClass of
-        JwaVista.TokenSessionId : result := SizeOf(DWORD);
+        JwaWindows.TokenSessionId : result := SizeOf(DWORD);
       end;
     end;
   end;
@@ -3698,7 +3888,7 @@ begin
 (*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
     JwsclTypes.
 {$ENDIF}*)
-    JwaVista.TokenUser, Pointer(pUser));
+    JwaWindows.TokenUser, Pointer(pUser));
 
 
   Result := TJwSecurityId.Create(PSidAndAttributes(@pUser^.User));
@@ -3840,7 +4030,7 @@ begin
 (*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
     JwsclTypes.
 {$ENDIF}*)
-    JwaVista.TokenGroups, Pointer(pGroups));
+    JwaWindows.TokenGroups, Pointer(pGroups));
 
   Result := TJwSecurityIdList.Create(True, pGroups);
 
@@ -3856,7 +4046,7 @@ begin
 (*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
     JwsclTypes.
 {$ENDIF}*)
-    JwaVista.TokenGroups, Pointer(Result));
+    JwaWindows.TokenGroups, Pointer(Result));
 end;
 
 
@@ -3871,7 +4061,7 @@ begin
 (*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
     JwsclTypes.
 {$ENDIF}     *)
-    JwaVista.TokenRestrictedSids, Pointer(pGroups));
+    JwaWindows.TokenRestrictedSids, Pointer(pGroups));
   Result := TJwSecurityIdList.Create(True, pGroups);
   HeapFree(JwProcessHeap, 0, pGroups);
 end;
@@ -3889,7 +4079,7 @@ begin
 (*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
     JwsclTypes.
 {$ENDIF}     *)
-    JwaVista.TokenDefaultDacl, Pointer(pDACL));
+    JwaWindows.TokenDefaultDacl, Pointer(pDACL));
   {If the value of the TokenInformationClass parameter is TokenDefaultDacl and the
   token has no default DACL, the function sets the variable pointed to by ReturnLength
   to sizeof(TOKEN_DEFAULT_DACL) and sets the DefaultDacl member of the
@@ -3938,7 +4128,7 @@ begin
 (*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
     JwsclTypes.
 {$ENDIF}     *)
-    JwaVista.TokenOrigin, Pointer(pOrigin));
+    JwaWindows.TokenOrigin, Pointer(pOrigin));
   try
     Result := pOrigin^.OriginatingLogonSession;
   finally
@@ -3981,7 +4171,7 @@ begin
 (*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
     JwsclTypes.
 {$ENDIF}     *)
-    JwaVista.TokenOwner, Pointer(pOwner));
+    JwaWindows.TokenOwner, Pointer(pOwner));
   try
     Result := TJwSecurityId.Create(PSidAndAttributes(@pOwner^.Owner));
   finally
@@ -4021,7 +4211,7 @@ begin
 (*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
     JwsclTypes.
 {$ENDIF}     *)
-    JwaVista.TokenPrimaryGroup, Pointer(pPrimaryGroup));
+    JwaWindows.TokenPrimaryGroup, Pointer(pPrimaryGroup));
   try
     Result := TJwSecurityId.Create(PSidAndAttributes(
       @pPrimaryGroup^.PrimaryGroup));
@@ -4058,7 +4248,7 @@ begin
 (*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
     JwsclTypes.
 {$ENDIF}     *)
-    JwaVista.TokenSessionId, Pointer(ID));
+    JwaWindows.TokenSessionId, Pointer(ID));
   try
     Result := ID^;
   finally
@@ -4143,41 +4333,61 @@ begin
 end;
 
 function TJwSecurityToken.GetRunElevation: cardinal;
+{$IFDEF VISTA}
 var
   privs: PTokenElevation;
+{$ENDIF VISTA}
 begin
   TJwWindowsVersion.CheckWindowsVersion(
     cOsVista, True, 'GetRunElevation', ClassName, RsUNToken, 0);
   CheckTokenHandle('GetRunElevation');
 
+  JwCheckVISTACompilerSwitch('GetRunElevation', ClassName, RsUNToken);
+
+{$IFDEF VISTA}
+{
+If JwaWindows.TokenElevation could not be found, you probably
+did not set the WINVISTA compiler directive for JwaWindows.pas
+in \includes\jediapilib.inc.
+}
+
   //Raises an exception if errors occur
   Self.GetTokenInformation(fTokenHandle,
-(*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
-    JwsclTypes.
-{$ENDIF}*)
-    JwaVista.TTokenInformationClass(
-(*{$IFNDEF SL_OMIT_SECTIONS}
-    JwsclTypes.
-{$ENDIF SL_OMIT_SECTIONS}*)
-    JwaVista.TokenElevation), Pointer(privs));
+    JwaWindows.TTokenInformationClass(
+    JwaWindows.TokenElevation), Pointer(privs));
 
   Result := privs^.TokenIsElevated;
 
   HeapFree(GetProcessHeap, 0, privs);
+{$ELSE}
+  result := 0;
+{$ENDIF VISTA}  
 end;
 
 
 function TJwSecurityToken.GetLinkedToken: TJwSecurityToken;
+{$IFDEF VISTA}
 var
   Data: PTokenLinkedToken;
+{$ENDIF VISTA}  
 begin
   TJwWindowsVersion.CheckWindowsVersion(
     cOsVista, True, 'GetLinkedToken', ClassName, RsUNToken, 0);
   CheckTokenHandle('GetLinkedToken');
 
+  JwCheckVISTACompilerSwitch('GetLinkedToken', ClassName, RsUNToken);
+
+{$IFDEF VISTA}
+{
+If JwaWindows.XXX could not be found, you probably
+did not set the WINVISTA compiler directive for JwaWindows.pas
+in \includes\jediapilib.inc.
+}
+
+
   //Raises an exception if errors occur
   Self.GetTokenInformation(fTokenHandle,
-    JwaVista.TTokenInformationClass(JwaVista.TokenLinkedToken), Pointer(Data));
+    JwaWindows.TTokenInformationClass(JwaWindows.TokenLinkedToken), Pointer(Data));
 
   try
     {TODO: Warning:
@@ -4188,6 +4398,9 @@ begin
   finally
     HeapFree(GetProcessHeap, 0, Data);
   end;
+{$ELSE}
+  result := nil;  
+{$ENDIF VISTA}  
 end;
 
 function TJwSecurityToken.GetIntegrityLevelType: TJwIntegrityLabelType;
@@ -4245,20 +4458,32 @@ end;
 
 procedure TJwSecurityToken.SetIntegrityLevel(const MandatorySid: TJwSecurityId;
   const Attributes: TJwSidAttributeSet = [sidaGroupMandatory]);
+{$IFDEF VISTA}
 var
   mL: TTokenMandatoryLabel;
+{$ENDIF VISTA}  
 begin
   if not Assigned(MandatorySid) then
     raise EJwsclNILParameterException.CreateFmtEx(
       RsNilParameter, 'SetIntegrityLevel', RsTokenGlobalClassName,
       RsUNToken, 0, False, ['MandatorySid']);
 
+  JwCheckVISTACompilerSwitch('SetIntegrityLevel', ClassName, RsUNToken);
+
+{$IFDEF VISTA}
   mL.Label_.Sid := MandatorySid.CreateCopyOfSID;
   mL.Label_.Attributes := TJwEnumMap.ConvertAttributes(Attributes);
 
+
+{
+If JwaWindows.XXX could not be found, you probably
+did not set the WINVISTA compiler directive for JwaWindows.pas
+in \includes\jediapilib.inc.
+}
+
   try
     if (not SetTokenInformation(fTokenHandle,
-      JwaWindows.TTokenInformationClass(JwaVista.TokenIntegrityLevel),
+      JwaWindows.TTokenInformationClass(JwaWindows.TokenIntegrityLevel),
       Pointer(@mL), sizeof(mL))) then
       raise EJwsclWinCallFailedException.CreateFmtEx(
         RsWinCallFailed, 'SetIntegrityLevel', ClassName,
@@ -4266,19 +4491,33 @@ begin
   finally
     MandatorySid.FreeSID(mL.Label_.Sid);
   end;
+{$ENDIF VISTA}
 end;
 
 function TJwSecurityToken.GetIntegrityLevel: TJwSecurityIdList;
+{$IFDEF VISTA}
 var
   mL: PTokenMandatoryLabel;
+{$ENDIF VISTA}  
 begin
   TJwWindowsVersion.CheckWindowsVersion(
     cOsVista, True, 'GetIntegrityLevel', ClassName, RsUNToken, 0);
   CheckTokenHandle('GetIntegrityLevel');
 
+  JwCheckVISTACompilerSwitch('GetIntegrityLevel', ClassName, RsUNToken);
+
+
+{$IFDEF VISTA}
+{
+If JwaWindows.XXX could not be found, you probably
+did not set the WINVISTA compiler directive for JwaWindows.pas
+in \includes\jediapilib.inc.
+}
+
+
   //Raises an exception if errors occur
   Self.GetTokenInformation(fTokenHandle,
-    JwaVista.TTokenInformationClass(JwaVista.TokenIntegrityLevel),
+    JwaWindows.TTokenInformationClass(JwaWindows.TokenIntegrityLevel),
     Pointer(mL));
 
   Result := nil;
@@ -4288,92 +4527,126 @@ begin
     finally
       HeapFree(GetProcessHeap, 0, mL);
     end;
+{$ELSE}
+  result := nil;
+{$ENDIF VISTA}
 end;
 
 function TJwSecurityToken.GetElevationType: TTokenElevationType;
+{$IFDEF VISTA}
 var
   privs: PTokenElevationType;
+{$ENDIF VISTA}
 begin
   TJwWindowsVersion.CheckWindowsVersion(
     cOsVista, True, 'GetElevationType', ClassName, RsUNToken, 0);
   CheckTokenHandle('GetElevationType');
 
+  JwCheckVISTACompilerSwitch('GetElevationType', ClassName, RsUNToken);
+
+{$IFDEF VISTA}
+
+{
+If JwaWindows.XXX could not be found, you probably
+did not set the WINVISTA compiler directive for JwaWindows.pas
+in \includes\jediapilib.inc.
+}
+
   //Raises an exception if errors occur
   Self.GetTokenInformation(fTokenHandle,
-(*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
-    JwsclTypes.
-{$ENDIF}*)
-    JwaVista.TTokenInformationClass(
-(*{$IFNDEF SL_OMIT_SECTIONS}
-    JwsclTypes.
-{$ENDIF SL_OMIT_SECTIONS}*)
-    JwaVista.TokenElevationType), Pointer(privs));
+    JwaWindows.TTokenInformationClass(
+
+    JwaWindows.TokenElevationType), Pointer(privs));
 
   Result := privs^;
 
   HeapFree(GetProcessHeap, 0, privs);
+{$ELSE}
+  result := TokenElevationTypeDefault;
+{$ENDIF VISTA}
 end;
 
 function TJwSecurityToken.GetVirtualizationAllowed: boolean;
+{$IFDEF VISTA}
 var
   privs: PCardinal;
+{$ENDIF VISTA}
 begin
   TJwWindowsVersion.CheckWindowsVersion(
     cOsVista, True, 'GetVirtualizationAllowed', ClassName, RsUNToken, 0);
   CheckTokenHandle('GetVirtualizationAllowed');
 
+  JwCheckVISTACompilerSwitch('GetVirtualizationAllowed', ClassName, RsUNToken);
+
+
+{$IFDEF VISTA}
+{
+If JwaWindows.XXX could not be found, you probably
+did not set the WINVISTA compiler directive for JwaWindows.pas
+in \includes\jediapilib.inc.
+}
+
+
   //Raises an exception if errors occur
   Self.GetTokenInformation(fTokenHandle,
-(*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
-    JwsclTypes.
-{$ENDIF}*)
-    JwaVista.TTokenInformationClass(
-(*{$IFNDEF SL_OMIT_SECTIONS}
-    JwsclTypes.
-{$ENDIF SL_OMIT_SECTIONS}*)
-    JwaVista.TokenVirtualizationAllowed), Pointer(privs));
+    JwaWindows.TTokenInformationClass(
+    JwaWindows.TokenVirtualizationAllowed), Pointer(privs));
 
   Result := privs^ <> 0;
 
   HeapFree(GetProcessHeap, 0, privs);
+{$ELSE}
+  result := false;
+{$ENDIF VISTA}
 end;
 
 function TJwSecurityToken.GetVirtualizationEnabled: boolean;
+{$IFDEF VISTA}
 var
   privs: PCardinal;
+{$ENDIF VISTA}
 begin
   TJwWindowsVersion.CheckWindowsVersion(
     cOsVista, True, 'GetVirtualizationEnabled', ClassName, RsUNToken, 0);
   CheckTokenHandle('GetVirtualizationEnabled');
 
+  JwCheckVISTACompilerSwitch('GetVirtualizationEnabled', ClassName, RsUNToken);
+
+
+{$IFDEF VISTA}
   //Raises an exception if errors occur
   Self.GetTokenInformation(fTokenHandle,
-(*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
-    JwsclTypes.
-{$ENDIF}*)
-    JwaVista.TTokenInformationClass(
-(*{$IFNDEF SL_OMIT_SECTIONS}
-    JwsclTypes.
-{$ENDIF SL_OMIT_SECTIONS}*)
-    JwaVista.TokenVirtualizationEnabled), Pointer(privs));
+    JwaWindows.TTokenInformationClass(
+
+    JwaWindows.TokenVirtualizationEnabled), Pointer(privs));
 
   Result := privs^ <> 0;
-
   HeapFree(GetProcessHeap, 0, privs);
+{$ELSE}
+  result := false;
+{$ENDIF VISTA}
 end;
 
 
 function TJwSecurityToken.GetMandatoryPolicy: TJwTokenMandatoryPolicies;
+{$IFDEF VISTA}
 var
   p: PTokenMandatoryPolicy;
+{$ENDIF VISTA}
 begin
+  JwCheckVISTACompilerSwitch('GetMandatoryPolicy', ClassName, RsUNToken);
+
+{$IFDEF VISTA}
   //Raises an exception if errors occur
   Self.GetTokenInformation(fTokenHandle,
-    JwaVista.TokenMandatoryPolicy, Pointer(p));
+    JwaWindows.TokenMandatoryPolicy, Pointer(p));
 
   Result := TJwEnumMap.ConvertTokenMandatoryPolicyFlags(p^.Policy);
 
   HeapFree(GetProcessHeap, 0, p);
+{$ELSE}
+  result := [];
+{$ENDIF VISTA}
 end;
 
 
@@ -4386,7 +4659,7 @@ begin
 (*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
     JwsclTypes.
 {$ENDIF}     *)
-    JwaVista.TokenPrivileges, Pointer(privs));
+    JwaWindows.TokenPrivileges, Pointer(privs));
 
   Result := TJwPrivilegeSet.Create(Self, privs);
   fPrivelegesList.Add(Result);
@@ -4402,7 +4675,7 @@ begin
 (*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
     JwsclTypes.
 {$ENDIF}     *)
-    JwaVista.TokenPrivileges, Pointer(Result));
+    JwaWindows.TokenPrivileges, Pointer(Result));
 end;
 
 function TJwSecurityToken.CreateRestrictedToken(
@@ -4466,7 +4739,12 @@ begin
   CheckTokenHandle('CheckTokenMembership');
 
   bRes := True;
-  jwaWindows.CheckTokenMembership(Self.TokenHandle, @aSidToCheck.SID, bRes);
+  if not jwaWindows.CheckTokenMembership(Self.TokenHandle, aSidToCheck.SID,
+    bRes) then
+    raise EJwsclWinCallFailedException.CreateFmtEx(
+      RsWinCallFailed, 'CheckTokenMembership',
+      ClassName, RsUNToken, 0, True, ['CheckTokenMembership']);
+
   Result := bRes;
 end;
 
@@ -4748,7 +5026,7 @@ begin
 (*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
     JwsclTypes.
 {$ENDIF}*)
-    JwaVista.TokenStatistics, Pointer(stat));
+    JwaWindows.TokenStatistics, Pointer(stat));
 
   Result := TJwSecurityTokenStatistics.Create(stat^);
 
@@ -4836,7 +5114,7 @@ procedure TJwSecurityToken.LoadUserProfile(
     DomainControllerInfo := nil;
     
     try
-      //ask domain controler for its name
+      //ask domain controller for its name
       Res := {$IFDEF UNICODE}DsGetDcNameW{$ELSE}DsGetDcNameA{$ENDIF}
         (nil, nil, nil, nil, DS_BACKGROUND_ONLY or
         DS_RETURN_FLAT_NAME, DomainControllerInfo);
@@ -4884,7 +5162,7 @@ begin
   the caller in error case.
   Otherwise Loaduserprofile would just return 5 (Access denied).
 
-  The Interface disables them at the end of in case of exception
+  The Interface disables them at the end of this function or in case of an exception
   }
   PrivScope := JwGetPrivilegeScope([SE_RESTORE_NAME, SE_BACKUP_NAME]);
 
@@ -5010,21 +5288,16 @@ end;
 
 class function TJwSecurityToken.HasThreadAToken(): boolean;
 var
-  p: TJwSecurityToken;
+  Handle : DWORD;
 begin
-  p := nil;
-  try
-    p      := GetThreadToken(TOKEN_QUERY or TOKEN_READ, False);
-    Result := Assigned(p);
-    if not Result then
-      p := GetThreadToken(TOKEN_QUERY or TOKEN_READ, True);
-    Result := Assigned(p);
+  Handle := INVALID_HANDLE_VALUE;
+  result := OpenThreadToken(GetCurrentThread, TOKEN_QUERY or TOKEN_READ, false, Handle);
 
-  except
-    Result := False;
-  end;
+  if not result then
+    result := OpenThreadToken(GetCurrentThread, TOKEN_QUERY or TOKEN_READ, true, Handle);
 
-  p.Free;
+  if Handle <> INVALID_HANDLE_VALUE then
+    CloseHandle(Handle);
 end;
 
 class function TJwSecurityToken.GetThreadToken(
@@ -5050,7 +5323,7 @@ begin
 (*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
     JwsclTypes.
 {$ENDIF}     *)
-    JwaVista.TokenType, Pointer(ptrTokenType));
+    JwaWindows.TokenType, Pointer(ptrTokenType));
 
   Result := ptrTokenType^;
 
@@ -5268,7 +5541,7 @@ begin
     dwLogonType, dwLogonProvider, fTokenHandle);
 
   if (not bResult) then
-    raise EJwsclSecurityException.CreateFmtEx(RsWinCallFailed,
+    raise EJwsclWinCallFailedException.CreateFmtEx(RsWinCallFailed,
       'CreateLogonUser', ClassName, RsUNToken, 0, True, ['LogonUser']);
 end;
 
@@ -5509,6 +5782,104 @@ begin
 end;
 
 
+function TJwSecurityToken.IsTokenType(index: Integer): Boolean;
+begin
+  case index of
+    {primary}1 : result := TokenType = TokenPrimary;
+    {impersonation}2 : result := TokenType = TokenImpersonation;
+  else
+    result := false;
+  end;
+end;
+
+
+function TJwSecurityToken.Equals(Obj: TObject): Boolean;
+begin
+  result := IsEqual(Obj as TJwSecurityToken);
+end;
+
+function TJwSecurityToken.GetHashCode: Integer;
+var
+  P : Pointer;
+begin
+  P := JwBeginCreateHash;
+
+   JwIntegerHash(P, TokenHandle);
+   JwIntegerHash(P, Integer(TokenType));
+   JwIntegerHash(P, Integer(Shared));
+   JwIntegerHash(P, Integer(TokenOrigin.LowPart));
+   JwStringHash(P, ClassName);
+   try
+     JwStringHash(P, TokenUserName);
+   except
+     {
+     http://msdn.microsoft.com/en-us/magazine/cc163883.aspx
+     If the token is opened with SECURITY_IDENTIFICATION
+     this fails.
+     }
+   end;
+
+   JwStringHash(P, UserName);
+
+
+  result := JwEndCreateHash(P);
+end;
+
+function TJwSecurityToken.ToString: String;
+var
+  Groups,Restricted : TJwSecurityIdList;
+  Privs : TJwPrivilegeSet;
+  sUserName : String;
+begin
+  Groups := TokenGroups;
+  Restricted := TokenRestrictedSids;
+  Privs := GetTokenPrivileges;
+
+  try
+    sUserName := TokenUserName;
+  except
+   {
+   http://msdn.microsoft.com/en-us/magazine/cc163883.aspx
+   If the token is opened with SECURITY_IDENTIFICATION
+   this fails.
+   }
+    sUserName := '<Access denied>';
+  end;
+
+  try
+    result := JwCreateToString(
+    [ClassName,'',
+     'Hash',GetHashCode,
+     'Handle',TokenHandle,
+     'AccessMask', JwFormatAccessRightsSimple(AccessMask, TokenMapping),
+     'IsPrimaryToken',IsPrimaryToken,
+     'IsThreadtoken',IsThreadToken,
+     'IsRestricted',IsRestricted,
+     'SessionID',TokenSessionId,
+     'PrimaryGroup',PrimaryGroup.ToString,
+     'TokenUserName',sUserName,
+     'UserName',UserName,
+     'TokenType', GetEnumName(TypeInfo(TOKEN_TYPE), integer(TokenType)),
+     'Shared', Shared,
+     'Origin',Format('%d.%d',[TokenOrigin.HighPart, TokenOrigin.LowPart]),
+     'Groups', Groups.Count,
+     'GroupMembers',Groups.GetText(true), //TODO: instead .ToString
+     'Restricted', Restricted.Count,
+     'RestrictedMembers',Restricted.GetText(true), //TODO: instead .ToString
+     'Privileges',Privs.Count,
+     'PrivilegesMembers',Privs.GetText //TODO: instead .ToString
+     ]);
+
+  finally
+    Groups.Free;
+    Restricted.Free;
+    Privs.Free;
+  end;
+end;
+
+
+
+
 function TJwSecurityToken.RetrieveSpecificAccessRights(
   const AccessMask: TJwAccessMask): TJwAccessMask;
 begin
@@ -5525,9 +5896,12 @@ begin
     result := 0;
   end;
 end;
+
+
 {$ENDIF SL_INTERFACE_SECTION}
 
 {$IFNDEF SL_OMIT_SECTIONS}
+
 
 
 

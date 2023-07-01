@@ -24,7 +24,7 @@ of the LGPL License and not to allow others to use your version of this file
 under the MPL, indicate your decision by deleting  the provisions above and
 replace  them with the notice and other provisions required by the LGPL      
 License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
+your version of this file under either the MPL or the LGPL License.
                                                                              
 For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
 
@@ -40,6 +40,7 @@ Add Security Features for Mapped Files. (Security Descriptor)
 }
 
 unit JwsclStreams;
+{$INCLUDE ..\includes\Jwscl.inc}
 
 interface
 
@@ -85,10 +86,10 @@ type
        raises
          EJwsclNilPointer: is raised if the memory is a nil pointer.
 
-       @return Returns the number of bytes which have actually been read into the buffer.
+       @return Returns the number of bytes which have currently been read from the buffer.
     }
     function Read(var Buffer; Count: Longint): Longint; override;
-    
+
     {<B>Write</B> Writes <i>Count</i> Bytes from the <i>Buffer</i> into the stream
        @param Buffer The buffer which will be written into the stream
        @param Count The size of the <i>Buffer</i>
@@ -96,7 +97,7 @@ type
        raises
          EJwsclNilPointer: is raised if the memory is a nil pointer.
 
-       @return Returns the number of bytes which have actually been written into the stream.
+       @return Returns the number of bytes which have currenly been written to the stream.
     }
     function Write(const Buffer; Count: Longint): Longint; override;
 
@@ -112,7 +113,11 @@ type
 
        @return Returns the new position of the stream
     }
-    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
+    {$IFDEF DELPHI6_UP}
+      function Seek(const Offset: Int64; Origin:TSeekOrigin): Int64; override;
+    {$ELSE}
+      function Seek(Offset: Longint; Origin: Word): Longint; override;
+    {$ENDIF}
 
     {The property <B>Memory</B> returns a pointer to the stream data}
     property Memory: Pointer read FMemory;
@@ -129,8 +134,12 @@ type
   private
     FFilename: TJwString;
   protected
+{$IFDEF DELPHI6_UP}
     procedure SetSize(NewSize: Longint); overload; override;
     procedure SetSize(const NewSize: Int64); overload; override;
+{$ELSE}
+    procedure SetSize(NewSize: Longint); override;
+{$ENDIF}
     procedure EOSHandler(var Count: LongInt); override;
   public
     {<B>Create</B> Creates an instance of the TJwFileStreamEx class
@@ -230,6 +239,14 @@ type
 
 implementation
 
+
+{$IFDEF DELPHI5}
+const
+   soBeginning = soFromBeginning;
+   soCurrent = soFromCurrent;
+   soEnd = soFromEnd;
+{$ENDIF}
+
 { TJwCustomMappedStream }
 
 procedure TJwCustomMappedStream.CloseMapView;
@@ -283,7 +300,8 @@ begin
     if FPosition + Count > Size then
       Count := FSize-FPosition;
 
-    Move(Pointer(Integer(FMemory)+FPosition)^,Buffer,Count);
+//64bit Warning: Converting a pointer to Cardinal may conflict with 64bit
+    Move(Pointer(DWORD_PTR(FMemory)+FPosition)^,Buffer,Count);
     inc(FPosition,Count);
     Result := Count;
   end
@@ -291,8 +309,11 @@ begin
     raise EJwsclNilPointer.CreateFmtEx(RsNilPointer,'Read',Classname,RsUNStreams,0,false,[]);
 end;
 
-function TJwCustomMappedStream.Seek(const Offset: Int64;
-  Origin: TSeekOrigin): Int64;
+{$IFDEF DELPHI6_UP}
+function TJwCustomMappedStream.Seek(const Offset: Int64; Origin:TSeekOrigin): Int64;
+{$ELSE}
+function TJwCustomMappedStream.Seek(Offset: Longint; Origin: Word): Longint;
+{$ENDIF}
 begin
   case Origin of
     soBeginning: FPosition := Offset;
@@ -309,7 +330,8 @@ begin
     if (FPosition + Count > FSize) then
       EOSHandler(Count);
 
-    Move(Buffer,Pointer(Integer(FMemory) + FPosition)^,Count);
+//64bit Warning: Converting a pointer to Cardinal may conflict with 64bit
+    Move(Buffer,Pointer(DWORD_PTR(FMemory) + FPosition)^,Count);
     inc(FPosition,Count);
     Result := Count;
   end
@@ -398,9 +420,17 @@ end;
 
 procedure TJwFileStreamEx.SetSize(NewSize: Integer);
 begin
+{$IFDEF DELPHI6_UP}
   SetSize(Int64(NewSize));
+{$ELSE}
+  CloseMapView;
+  SetFilePointer(FFileHandle,NewSize,nil,FILE_BEGIN);
+  SetEndOfFile(FFileHandle);
+  FSize := CreateMapView(NewSize);
+{$ENDIF}
 end;
 
+{$IFDEF DELPHI6_UP}
 procedure TJwFileStreamEx.SetSize(const NewSize: Int64);
 begin
   CloseMapView;
@@ -408,6 +438,7 @@ begin
   SetEndOfFile(FFileHandle);
   FSize := CreateMapView(NewSize);
 end;
+{$ENDIF}
 
 destructor TJwFileStreamEx.Destroy;
 begin

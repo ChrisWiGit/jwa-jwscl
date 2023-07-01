@@ -39,13 +39,13 @@
                                                                                    }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclDescriptor;
-{$INCLUDE Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
 
 uses SysUtils, Classes,
-  JwaWindows, JwaVista, JwsclResource, JwsclMapping,
+  JwaWindows, JwsclResource, JwsclMapping,
   JwsclTypes, JwsclExceptions, JwsclSid, JwsclAcl,
   JwsclVersion, JwsclConstants,  
   JwsclStrings; //JwsclStrings, must be at the end of uses list!!!
@@ -95,6 +95,8 @@ type
 
     fDACL:     TJwDAccessControlList;
     fAuditACL: TJwSAccessControlList;
+
+    fDACLPresent : Boolean;
 
     fProtectionDACLState,
     fProtectionSACLState  : TJwACLProtection;
@@ -152,6 +154,7 @@ type
     constructor Create(aSecurityDescriptor: TJwSecurityDescriptor);
       overload;
 
+
     {<B>CreatePrivateObjectSecurity</B> combines a parent and a creator security descriptor into a new security descriptor.
      For detailed information see MSDN http://msdn2.microsoft.com/en-us/library/aa446581.aspx
 
@@ -192,7 +195,7 @@ type
                   the process token. 
             # rttTokenPrimary The process token is forced to use.
                     See TJwSecurityToken.CreateTokenByProcess for more information 
-            # rttTokenImpersonation The thread token is forced to use.
+            # rttTokenImpersonation The thread token is forced to be used.
                   The token is opened against the process rights.
                     See TJwSecurityToken.CreateTokenByThread for more information 
           
@@ -225,7 +228,7 @@ type
  EJwsclWinCallFailedException:  will be raised if the string could not be parsed correctly.
         }
 
-    constructor Create(aSDString:
+    constructor Create(const aSDString:
  {$IFNDEF SL_OMIT_SECTIONS}JwsclStrings.{$ENDIF SL_OMIT_SECTIONS}TJwString);
       overload;
 
@@ -448,7 +451,7 @@ type
 
     {<B>ReplaceDescriptorElements</B> replaces the security descriptor elements given in SecurityInformationSet with
      the ones in SecurityDescriptor.
-     @param SecurityInformationSet Contains the members of the SD to be replaced.
+     @param SecurityInformationSet Contains the members of the SD to be replaced. 
      @param SecurityDescriptor defines the SD which is used to copy the members into
         the instance. 
     }
@@ -486,6 +489,8 @@ type
 
     function GetTextMap(const Mapping: TJwSecurityGenericMappingClass =
       nil): TJwString;
+
+    procedure ReplaceOwner(const Sid : TJwSecurityId);
   public
     {<B>Owner</B> sets or gets the owner of the SD.
     If the property OwnOwner is true and the property is set, the old Owner TJwSecurityId instance will be freed and
@@ -495,7 +500,6 @@ type
     the new one will directly point to the new SID.
 
     The following code can be used to set a newly created instance.
-
     <code lang="Delphi">
        //first free or disconnect old owner
        //1. If OwnOwner is true, the Owner instance will be freed
@@ -505,13 +509,6 @@ type
        Owner := TJwSecurityID.Create(..); //set new Sid
        OwnOwner := true; //lets free the Sid automatically
     </code>
-
-    Use this code to release old owner and copy new owner into a new instance:
-    <code lang="Delphi">
-       Owner := nil; //free or release old owner
-       OwnOwner := true; //next set copies owner
-       Owner := SecurityDescriptor.Owner; //create copy of owner and set it
-    </code>
     This code is equivalent:
     <code lang="Delphi">
        Owner := nil; //free or release old owner
@@ -519,6 +516,15 @@ type
        Owner := TJwSecurityID.Create(SecurityDescriptor.Owner);
        OwnOwner := true; //lets free the Sid automatically
     </code>
+
+    Use this code to release old owner and copy new owner into a new instance:
+    <code lang="Delphi">
+       Owner := nil; //free or release old owner
+       OwnOwner := true; //next set copies owner
+       Owner := SecurityDescriptor.Owner; //create copy of owner and set it
+    </code>
+
+
 
 
     Use this code to use the same instance from another SD instance in both
@@ -550,8 +556,8 @@ type
 
      {<B>DACL</B> sets or gets the discretionary access control list.
       The read value is the internal used DACL. So do not free it directly. Instead set the write value to nil.
-      The write value is copied into a new DACL (using Assign) if the property OwnDACL is true
-       otherwise the given DACL instance directly used.
+      The write value is copied into a new DACL (using Assign) if the property OwnDACL is false
+       otherwise the given DACL instance is used directly (using ":=").
 
       If the write value is nil the internal list is freed and set to nil.
 
@@ -607,7 +613,7 @@ type
    {<B>RMControl</B> sets or gets the resource managercontrol values of the sd.
     Do not change them if you do not know what it means.
         For more information see MSDN.
-    This value is ignored in actual version.
+    This value is ignored in current version.
     }
     property RMControl: jwaWindows.TSecurityDescriptorControl
       Read GetRMControl Write SetRMControl;
@@ -708,6 +714,23 @@ type
     property AuditInherited: boolean
       Read fAuditInherited Write fAuditInherited;
 
+    {This property is useful to determine whether the property DACL should be
+    considered if its value is nil. A nil DACL is considered as "allow everybody".
+    If DACLPresent is true and DACL is nil and any of the Create_SD and Create_SA
+    function is called, the newly created winapi security descriptor will have a
+    NULL DACL and so allow everybody access; otherwise the SD will not have a DACL at all.
+
+    This situation is equal to a DACL with an access entry that grants GENERIC_ALL to World SID.
+
+    This property is automatically set to true if a DACL was set to a value different to nil;
+    otherwise it won't be set.
+
+    The initial value is true.
+    }
+    property DACLPresent : Boolean read fDACLPresent write fDACLPresent;
+
+
+
 (*       {<B>Text</B> creates a security string descriptor.
         You can set flags to define which information is placed in the newly created string.
         The following flags can be combined with OR:
@@ -750,14 +773,14 @@ type
     property Tag : Integer read fTag write fTag;
   end;
 
-const {<B>SD_MAGIC_HEADER</B> is the header string that initiates a security descriptor stream block used
-       by TJwSecurityDescriptor.SaveToStream and TJwSecurityDescriptor.LoadFromStream.
-      }
-  SD_MAGIC_HEADER = #3#4'SDH';
-
-      {<B>SD_MAGIC_LENGTH</B> is the size of the magic header length in a security descriptor stream.
+const       {<B>SD_MAGIC_LENGTH</B> is the size of the magic header length in a security descriptor stream.
        See TJwSecurityDescriptor.SaveToStream and TJwSecurityDescriptor.LoadFromStream}
   SD_MAGIC_LENGTH = 5;
+
+  {<B>SD_MAGIC_HEADER</B> is the header string that initiates a security descriptor stream block used
+       by TJwSecurityDescriptor.SaveToStream and TJwSecurityDescriptor.LoadFromStream.
+      }
+  SD_MAGIC_HEADER : array[0..SD_MAGIC_LENGTH-1] of AnsiChar = (#3,#4,'S','D','H');
 
       {<B>SD_HEADER_SIZE</B> is the size of the header written into a stream by TJwSecurityDescriptor.SaveToStream 
        and TJwSecurityDescriptor.LoadFromStream }
@@ -807,6 +830,8 @@ begin
 
   fOwnOwner := False;
   fOwnPrimaryGroup := False;
+
+  DACLPresent := true;
 
   fOwnerInherited := False;
   fPrimaryGroupInherited := False;
@@ -873,6 +898,22 @@ begin
   if siSaclSecurityInformation in SecurityInformationSet then
   begin
     SACL := SecurityDescriptor.SACL;
+  end;
+end;
+
+procedure TJwSecurityDescriptor.ReplaceOwner(const Sid: TJwSecurityId);
+var Own : Boolean;
+begin
+  Own := OwnOwner;
+  try
+    //first free or disconnect old owner
+    //1. If OwnOwner is true, the Owner instance will be freed
+    //2. If OwnOwner is false, the property will be set to nil
+    Owner := nil;
+    OwnOwner := false; //set to false so the next step does not copy the security id in a new instance
+    Owner := Sid;
+  finally
+    OwnOwner := Own;
   end;
 end;
 
@@ -1071,7 +1112,7 @@ begin
   end;
 end;
 
-constructor TJwSecurityDescriptor.Create(aSDString:
+constructor TJwSecurityDescriptor.Create(const aSDString:
  {$IFNDEF SL_OMIT_SECTIONS}JwsclStrings.{$ENDIF SL_OMIT_SECTIONS}TJwString);
 var
   pSD: PSECURITY_DESCRIPTOR;
@@ -1110,7 +1151,7 @@ begin
   if pSD <> nil then
   begin
     Self.Create(jwaWindows.PSECURITY_DESCRIPTOR(pSD));
-    LocalFree(Cardinal(pSD));
+    LocalFree(HLOCAL(pSD));
   end
   else
     Self.Create;
@@ -1353,7 +1394,8 @@ end;
 procedure TJwSecurityDescriptor.SetDACL(anACL: TJwDAccessControlList);
 begin
   //if we have a nil fdACL class we must create one
-  if Assigned(anACL) and not Assigned(fDACL) then
+  if not Assigned(fDACL) and
+     Assigned(anACL) then
   begin
     if OwnDACL then
       fDACL := anACL
@@ -1362,13 +1404,17 @@ begin
       fDACL := TJwDAccessControlList.Create;
       fDACL.Assign(anACL);
     end;
+
+    DACLPresent := True; //we have a DACL
   end
+
   else
-  //if anACL list was provided we assign it to our
-  if Assigned(fDACL) and Assigned(anACL) then
+  //if anACL list was provided we assign it to our own
+  if Assigned(fDACL) and
+     Assigned(anACL) then
     fDACL.Assign(anACL);
 
-  //if there is no anACL list we free the actual one
+  //if there is no anACL list we free the current one
   //so we get a NULL DACL
   if not Assigned(anACL) then
   begin
@@ -1391,9 +1437,11 @@ begin
 
   //if anACL list was provided we assign it to our
   if Assigned(fAuditACL) and Assigned(anACL) then
+  begin
     fAuditACL.Assign(anACL);
+  end;
 
-  //if there is no anACL list we free the actual one
+  //if there is no anACL list we free the current one
   //so we get a NULL SACL
   if not Assigned(anACL) then
   begin
@@ -1474,7 +1522,7 @@ begin
       if not MakeSelfRelativeSD(pSD, Result, ipSDSize) then
       begin
         FreeMem(Result);
-        //LocalFree(Cardinal(result));
+        //LocalFree(HLOCAL(result));
         raise EJwsclWinCallFailedException.CreateFmtEx(
           RsWinCallFailed, 'Create_SD;', ClassName,
           RsUNDescriptor, 0, True,
@@ -1564,7 +1612,7 @@ begin
       //DACL.Free_PACL(aACL);
     end
     else
-    if not SetSecurityDescriptorDacl(Result, False, nil, fDACLInherited) then
+    if not SetSecurityDescriptorDacl(Result, DACLPresent, nil, fDACLInherited) then
     begin
       FreeMem(Result);
       raise EJwsclWinCallFailedException.CreateFmtEx(
@@ -1599,7 +1647,6 @@ begin
           'Create_SD;', ClassName, RsUNDescriptor, 0, True,
           ['SetSecurityDescriptorDacl']);
       end;
-
 
       //we create an absolute SD, so we must not free it!
       //DACL.Free_PACL(aACL);
@@ -1682,7 +1729,7 @@ begin
 
   if SD.Control and SE_SELF_RELATIVE = SE_SELF_RELATIVE then
   begin
-    //LocalFree(Cardinal(SD));
+    //LocalFree(HLOCAL(SD));
     FreeMem(SD);
   end
   else
@@ -1700,10 +1747,10 @@ begin
       TJwSecurityAccessControlList.Free_PACL(SD.Dacl);
 
     FreeMem(SD);
-    //LocalFree(Cardinal(SD));
+    //LocalFree(HLOCAL(SD));
   end;
 
-  //GlobalFree(Cardinal(SD));
+  //GlobalFree(HGLOBAL(SD));
   SD := nil;
 end;
 
@@ -1804,7 +1851,7 @@ begin
     exit;
 
   if OwnOwner and Assigned(fOwner) and (not fOwner.IsStandardSID) then
-    //dont free a standard sid from USM_KnwonSID
+    //dont free a standard sid from JwsclKnownSid
     fOwner.Free;
 
   if OwnOwner and Assigned(Value) then
@@ -1880,7 +1927,7 @@ begin
   SetLength(Result, iStrSD);
   Result := pStrSD;
 
-  LocalFree(Cardinal(pStrSD));
+  LocalFree(HLOCAL(pStrSD));
 
   Free_SD(pSD);
 end;
@@ -1930,13 +1977,11 @@ var
   iHash: int64;
   iSDSize: Cardinal;
 
-  magic: array[0..SD_MAGIC_LENGTH - 1] of char;
   isHashed: byte;
 begin
-  magic := SD_MAGIC_HEADER;
   SD := Create_SD(iSDSize, True);
   try
-    Stream.Write(magic, SD_MAGIC_LENGTH);
+    Stream.Write(SD_MAGIC_HEADER, SD_MAGIC_LENGTH);
     Stream.Write(iSDSize, sizeof(iSDSize));
 
     iHash := 0;
@@ -1973,7 +2018,7 @@ procedure TJwSecurityDescriptor.LoadFromStream(const Stream: TStream);
 var
   SD:  TJwSecurityDescriptor;
   pSD: PSecurityDescriptor;
-  magic: array[0..SD_MAGIC_LENGTH - 1] of char;
+  magic: array[0..SD_MAGIC_LENGTH - 1] of AnsiChar;
   iRHash, iCHash: int64;
   iSDSize: Cardinal;
   byteHashed: byte;
@@ -2202,7 +2247,7 @@ begin
 
   finally
     Self.Free_SD(ObjectSD);
-    LocalFree(Cardinal(ResultSD));
+    LocalFree(HLOCAL(ResultSD));
   end;
 end;
 
@@ -2325,7 +2370,7 @@ begin
       end;
 
   finally
-    LocalFree(Cardinal(ObjectSD));
+    LocalFree(HLOCAL(ObjectSD));
     TJwSecurityDescriptor.Free_SD(ModSD);
     FreeAndNil(TokenInstance);
   end;

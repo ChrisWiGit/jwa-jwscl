@@ -52,7 +52,7 @@ Unsupported features :
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclAuthCtx;
-{$INCLUDE Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 
@@ -60,7 +60,7 @@ interface
 
 uses
   SysUtils, 
-  jwaWindows, JwaVista,
+  jwaWindows, 
   JwsclResource, JwsclUtils,
 
   JwsclTypes, JwsclExceptions, JwsclMapping, JwsclACL, JwsclToken,
@@ -155,7 +155,7 @@ type
    ) of object;
 
 
-  {<B>TJwAuthZAccessRequest</B> provides simple access to arequest that is submitted
+  {<B>TJwAuthZAccessRequest</B> provides simple access to a request that is submitted
   to TJwAuthContext.AccessCheck }
   TJwAuthZAccessRequest = class
   protected
@@ -513,51 +513,54 @@ type
 
 
 
-    {<B>AccessCheck</B> does an access check of an authentication context.
-     The context contains Sids, restricted sids,
-     several security descriptors, auditing information and the user herself.
-
-     @param Flags from http://msdn2.microsoft.com/en-us/library/aa375788.aspx
-        A DWORD value that specifies how the security descriptor is copied.
-        This parameter can be one of the following values.
-        
-          # Value 	Meaning 
-          # 0   If pAuthzHandle is not NULL, a deep copy of the
-            security descriptor is copied to the handle referenced by pAuthzHandle. 
-          # AUTHZ_ACCESS_CHECK_NO_DEEP_COPY_SD 1
-          A deep copy of the security descriptor is not performed. The caller
-          can use the handle for AccessCheckCached .
-
-          The AccessCheck function sets this handle to a security
-          descriptor that must remain valid during subsequent calls
-          to AccessCheckCached. 
-        
-       
-     @param Request receives a class that contains information about the
-      access check procedure. This instance is automatically freed
-      if no exception was raised and Request.Shared is shOwned.
-       
-     @param AuditInfo Receives audit information handle. If this handle is zero
-       the static audit information is read from resource manager 
-     @param SecurityDescriptor defines the primary SD which is used to perfom
-       access checking. The owner and group must not be nil; otherwise the
-       call will fail 
-     @param OptionalSecurityDescriptorArray defines additional security descriptor
-      which are used for the access check. They a simply added at the end
-      of the primary security descriptor (logical order).
-       The canonical ACE order is not enforced.
-      Deny ACE in the optional security descriptors may be useless if a positive
-      ACE could be found in the primary security descriptor.
+    { <b>AccessCheck</b> does an access check of an authentication context. The
+      context contains Sids, restricted sids, several security descriptors, auditing
+      information and the user herself.
       
-     @param Reply receives the results of the access check 
-     @param AuthzHandle
-        A handle to the cached results of the access check. 
-
-     raises
- EJwsclWinCallFailedException:  if a call to AuthzAccessCheck failed. 
-      EJwsclNILParameterException: will be raised if parameter Request,
-      SecurityDescriptor or Request.PrincipalSelfSid is nil 
-    }
+      
+      Parameters
+      Flags :                            from
+                                         http\://msdn2.microsoft.com/en\-us/library/aa375788.aspx
+                                         A DWORD value that specifies how the security
+                                         descriptor is copied. This parameter can be one
+                                         of the following values.<p /><p />Value \:
+                                         Meaning<p />0 \: If pAuthzHandle is not NULL, a
+                                         deep copy of the security descriptor is copied
+                                         to the handle referenced by pAuthzHandle.<p />AUTHZ_ACCESS_CHECK_NO_DEEP_COPY_SD
+                                         1 \: A deep copy of the security descriptor is
+                                         not performed. The caller can use the handle
+                                         for AccessCheckCached . The AccessCheck
+                                         function sets this handle to a security
+                                         descriptor that must remain valid during
+                                         subsequent calls to AccessCheckCached.<p />
+      Request :                          receives a class that contains information
+                                         about the access check procedure. This instance
+                                         is automatically freed if no exception was
+                                         raised and Request.Shared is shOwned.<p />
+      AuditInfo :                        Receives audit information handle. If this
+                                         handle is zero the static audit information is
+                                         read from resource manager 
+      SecurityDescriptor :               defines the primary SD which is used to perfom
+                                         access checking. The owner and group must not
+                                         be nil; otherwise the call will fail 
+      OptionalSecurityDescriptorArray :  defines additional security descriptor which
+                                         are used for the access check. They are simply
+                                         added at the end of the primary security
+                                         descriptor (logical order). The canonical ACE
+                                         order is not enforced. Deny ACE in the optional
+                                         security descriptors may be useless if a
+                                         positive ACE could be found in the primary
+                                         security descriptor.<p />
+      Reply :                            receives the results of the access check
+      AuthzHandle :                      A pointer to a handle to the cached results of the access
+                                         check. Set to nil if not used.
+                                         Any created handle will be freed automatically when the instance
+                                         is freed.
+      Exceptions
+      EJwsclWinCallFailedException :  if a call to AuthzAccessCheck failed.
+      EJwsclNILParameterException :   will be raised if parameter Request,
+                                      SecurityDescriptor or Request.PrincipalSelfSid is
+                                      nil                                                                                 }
     procedure AccessCheck(
       Flags : Cardinal;
       const Request : TJwAuthZAccessRequest;
@@ -566,7 +569,7 @@ type
       const OptionalSecurityDescriptorArray : TJwSecurityDescriptorArray;
       const GenericMapping: TJwSecurityGenericMappingClass;
       out Reply : TJwAuthZAccessReply;
-      out AuthZHandle : TAuthZAccessCheckResultHandle
+      AuthZHandle: PAUTHZ_ACCESS_CHECK_RESULTS_HANDLE
       );
 
     {<B>AccessCheckCached</B> does a cached access check of an authentication context.
@@ -1102,7 +1105,7 @@ procedure TJwAuthContext.AccessCheck(Flags: Cardinal;
   const OptionalSecurityDescriptorArray: TJwSecurityDescriptorArray;
   const GenericMapping: TJwSecurityGenericMappingClass;
   out Reply: TJwAuthZAccessReply;
-  out AuthZHandle: TAuthZAccessCheckResultHandle);
+  AuthZHandle: PAUTHZ_ACCESS_CHECK_RESULTS_HANDLE);
 
 
 
@@ -1118,13 +1121,18 @@ var pRequest : AUTHZ_ACCESS_REQUEST;
     bTempSD : Boolean;
 
 begin
-  AuthZHandle := 0;
+  AuthZHandle := nil;
 
   JwRaiseOnNilParameter(Request, 'Request', 'AccessCheck',
       ClassName, RsUNAuthZCtx);
   JwRaiseOnNilParameter(SecurityDescriptor, 'SecurityDescriptor', 'AccessCheck',
       ClassName, RsUNAuthZCtx);
   JwRaiseOnNilParameter(Request.PrincipalSelfSid, 'Request.PrincipalSelfSid', 'AccessCheck',
+      ClassName, RsUNAuthZCtx);
+
+  JwRaiseOnNilParameter(SecurityDescriptor.Owner, 'SecurityDescriptor.Owner', 'AccessCheck',
+      ClassName, RsUNAuthZCtx);
+  JwRaiseOnNilParameter(SecurityDescriptor.PrimaryGroup, 'SecurityDescriptor.PrimaryGroup', 'AccessCheck',
       ClassName, RsUNAuthZCtx);
 
 
@@ -1241,7 +1249,7 @@ begin
           @pOSD[0],//__in_opt  PSECURITY_DESCRIPTOR* OptionalSecurityDescriptorArray,
           Length(OptionalSecurityDescriptorArray),//__in_opt  DWORD OptionalSecurityDescriptorCount,
           @pReply,//__inout   PAUTHZ_ACCESS_REPLY pReply,
-          @AuthZHandle //__out     PAUTHZ_ACCESS_CHECK_RESULTS_HANDLE pAuthzHandle
+          AuthZHandle //__out     PAUTHZ_ACCESS_CHECK_RESULTS_HANDLE pAuthzHandle
         ) then
           raise EJwsclWinCallFailedException.CreateFmtEx(
             RsWinCallFailed, 'AuthzAccessCheck', ClassName,
@@ -1253,7 +1261,7 @@ begin
         FreeMem(pReply.GrantedAccessMask);
         FreeMem(pReply.SaclEvaluationResults);
         FreeMem(pReply.Error);
-    
+
         TJwSecurityDescriptor.Free_SD(pSD);
 
 

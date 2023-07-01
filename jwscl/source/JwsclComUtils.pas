@@ -55,7 +55,7 @@ unit JwsclComUtils;
 interface
 
 uses
-  Classes, JwsclTypes, JwsclResource ,Jwsclexceptions;
+  JwaWindows, Classes, JwsclTypes, JwsclResource ,Jwsclexceptions;
 {$ENDIF SL_OMIT_SECTIONS}
 
 {$IFNDEF SL_IMPLEMENTATION_SECTION}
@@ -94,6 +94,7 @@ type
 
     function Lock : IJwAutoLock;
   end;
+
 
   {<B>TJwAutoPointer</B> implements tool functions for creating new and wrapping existing
    pointers and classes for auto destruction. }
@@ -177,7 +178,7 @@ type
 
 {$IFNDEF SL_OMIT_SECTIONS}
 implementation
-uses JwaWindows, SysUtils, SyncObjs;
+uses SysUtils, SyncObjs;
 {$ENDIF SL_OMIT_SECTIONS}
 
 
@@ -218,7 +219,7 @@ type
       section defined by parameter AutoPointer. If this section was already entered by
       another thread, the constructor is blocked until released. There is no timeout!
       
-      
+
       
       
       Parameters
@@ -329,7 +330,7 @@ begin
     case fPointerType of
       ptClass  : fInstance.Free();
       ptGetMem : FreeMem(fPointer);
-      ptLocalAlloc : LocalFree(Cardinal(fPointer));
+      ptLocalAlloc : LocalFree(HLOCAL(fPointer));
       ptNew : Dispose(fPointer);
       ptHandle : CloseHandle(fHandle); 
     end;

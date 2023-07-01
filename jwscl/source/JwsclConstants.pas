@@ -40,7 +40,7 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclConstants;
-{$INCLUDE Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 
@@ -49,7 +49,6 @@ interface
 uses
   JwsclResource,
   jwaWindows,
-  jwaVista,
   JwsclTypes,
   JwsclStrings;
 
@@ -111,7 +110,7 @@ const
     {<B>SM_SERVERR2</B> is used as an additional constant for GetSystemMetrics
      to detect the second release of Win2003
     }
-  SM_SERVERR2 = 98;
+  SM_SERVERR2 = 89;
 
 
   { operating system (OS)constants }

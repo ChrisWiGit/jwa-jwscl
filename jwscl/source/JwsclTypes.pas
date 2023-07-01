@@ -35,32 +35,27 @@ The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
 }
-{$IFNDEF SL_OMIT_SECTIONS}
+
 unit JwsclTypes;
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
-{$I Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 
 
 interface
 
 uses
   JwaWindows,
-  JwaVista,
   JwsclResource,
+  SysUtils,
   JwsclStrings; //JwsclStrings, must be at the end of uses list!!!
-{$ENDIF SL_OMIT_SECTIONS}
 
-{$IFNDEF SL_IMPLEMENTATION_SECTION}
+
 type
-{$IFNDEF DELPHI6_UP}
-  { <b>PCardinal</b> is defined for Delphi 5 because it does not know this type. }
-  PCardinal = ^Cardinal;
-{$ENDIF DELPHI6_UP}
-
 {$IFDEF DELPHI6_UP}
  {$ALIGN 4}  //warning do not remove. WinApi relies on that!
 {$ELSE}
- {$A-} //[warning] Enumeration types need to be 4 bytes long (not 1 byte)
+ {$A+} //[warning] D5 uses 4 byte alignment
+ {$MINENUMSIZE 4}
 {$ENDIF DELPHI6_UP}
 
 
@@ -123,6 +118,7 @@ type
   TJwAceFlags = set of TJwAceFlag;
 
 const
+   {<b>TJwAceFlagStrings</b> converts the TJwAceFlag constants to strings.}
    TJwAceFlagStrings: array [TJwAceFlag] of TJwString =
     (
      'OBJECT_INHERIT_ACE',
@@ -219,14 +215,22 @@ type
 
 
 
+  {<b>TJwAccessControlListType</b> defines the type of an
+  access control list (ACL)}
   TJwAccessControlListType = (
-    acltDiscretionary, acltAuditing, acltMandatory);
+    {It's a discretionary ACL: DACL}
+    acltDiscretionary,
+    {It's a system ACL: SACL}
+    acltAuditing,
+    {It's a mandatory ACL: MACL}
+    acltMandatory);
+
+  {<b>TJwAceType</b> defines the type of an access control element (ACE).}
   TJwAceType = (
     actAudit,
     actAuditCallback,
     actAuditObject,
     actAuditCallbackObject,
-
 
     actMandatory,
 
@@ -240,6 +244,7 @@ type
     actDenyObject,
     actDenyCallbackObject,
 
+    {The ACE type could not be determined.}
     actUnknown
    );
 
@@ -298,6 +303,14 @@ type
    should ignore inherited or explicit ACEs}
   TJwExclusionFlags = set of TJwExclusionFlag;
 
+  TJwInclusionFlag = (
+    ifInherited,
+    ifExplicit,
+    ifContainer,
+    ifLeaf
+  );
+  TJwInclusionFlags = set of TJwInclusionFlag;
+
   {<b>TJwEqualAceTypeSet</b> defines how the method TJwSecurityAccessControlList.FindEqualACE
    finds an access control element.
   }
@@ -350,17 +363,28 @@ const
     siSaclSecurityInformation];
 
 type
-  TJwSecurityResetType = (srtNone,
+  {<b>TJwSecurityResetType</b> is used by TJwSecurityDescriptorDialog.
+   It defines enum constats that defines what security descriptor
+   parts must be assigned on all objects (recursively through all containers)
+   }
+  TJwSecurityResetType = (
+    {The owner must be reassigned on all objects}
     srtOwner,
+    {The DACL must be reassinged on all objects. It means that the
+    existing DACL must be removed and new a added. }
     srtDacl,
+    {The SACL must be reassigned on all objects.}
     srtSacl);
+  {<b>TJwSecurityResetTypes</b> defines a set of
+   reset types.}
+  TJwSecurityResetTypes = set of TJwSecurityResetType;
 
-  { SI_OWNER_RECURSE
-    SI_RESET_DACL_TREE
-    SI_RESET_SACL_TREE    }
-
+  {<b>TJwGuidArray</b> defines an array of TGUID}
   TJwGuidArray = array of TGUID;
 
+  {<b>TCardinalE</b> defines an extended cardinal type
+   which includes -1 as a value.
+   -1 is used for an error status.}
   TCardinalE = -1..high(Cardinal);
 
   {<B>TJwInheritedFromRecord</B> is used to gather information about
@@ -800,7 +824,7 @@ type
     cfVerifyProtection});
   TJwCryptProtectFlagSet = set of  TJwCryptProtectFlag;
 
-  {<B>TJwCryptProtectOnPromptFlag</B> defines when a prompt should occur.}
+
   TJwCryptProtectOnPromptFlag =
    (cppf_Pad0,
     //prompt on data protection
@@ -1334,7 +1358,7 @@ type
     {<B>Hash</B> defines a dynamic memory block that contains
 	a hash. The pointer must be freed by TJwHash.FreeBuffer (unit JwsclCryptProvider.pas).
 	}
-	Hash : Pointer;
+  	Hash : Pointer;
     Size : Cardinal;
   end;
 
@@ -1363,23 +1387,208 @@ type
   TJwSecurityCapabilities = set of TJwSecurityCapability;
 
 
+  TJwFileVersionInfo = record
+    CompanyName: TJwString;
+    FileDescription: TJwString;
+    FileVersion: TJwString;
+    InternalName: TJwString;
+    LegalCopyright: TJwString;
+    LegalTradeMarks: TJwString;
+    OriginalFilename: TJwString;
+    ProductName: TJwString;
+    ProductVersion: TJwString;
+    Comments: TJwString;
+  end;
 
-{$ENDIF SL_IMPLEMENTATION_SECTION}
 
-{$IFNDEF SL_OMIT_SECTIONS}
+
+   {<B>TJwShellExecuteFlag</B> controls execution of JwShellExecute }
+  TJwShellExecuteFlag = (
+      //does not display GUI elements on errors
+      sefNoUi,
+      {does not try to elevate if it is not available
+       In this case verb "open" is used.
+      }
+      sefIgnoreElevationIfNotAvailable,
+      {On Elevation and a given directory it uses
+       a trick to set the correct path for the target application
+       This is because ShellExecute does not set given directory
+       for the target app.
+       This may lead to a command line window in background
+      }
+      sefFixDirWithRunAs,
+
+      //does not close returned process handle
+      sefNoClosehProcess
+  );
+
+
+  {<B>TJwShellExecuteFlag</B> controls execution of JwShellExecute
+    See TJwShellExecuteFlag}
+  TJwShellExecuteFlags = set of TJwShellExecuteFlag;
+
+    {TJwSuRunStatus contains status information of SuRun}
+  TJwSuRunStatus = record
+     {Version contains the SuRun version as an array: e.g. 1.2.0.6}
+     Version : array[0..3] of WORD;
+     {LocationPath contains the full path to SuRun.exe (with exe file)}
+     LocationPath : String;
+     {ExeFileShellCommand contains the command line for shell exe file setting}
+     ExeFileShellCommand : String;
+
+     {CancelTimeOut contains the timeout of SuRun prompt (since 1.2.0.6)}
+     CancelTimeOut : Integer;
+     {UseCancelTimeOut contains whether the timeout is active or not (since 1.2.0.6)}
+     UseCancelTimeOut : Boolean;
+
+     {PIDSupport defines whether the installed SuRun supports
+      returning a PID of the new process? (since 1.2.0.6)}
+     PIDSupport : Boolean;
+
+     {ServerStatusCode contains the LastError code of the attempt to connect to running SuRun}
+     ServerStatusCode : DWORD;
+
+     {FileVersionInfo contains extended FileInformation of SuRun.exe}
+     FileVersionInfo : TJwFileVersionInfo;
+   end;
+
+  { TJwElevationProcessFlag is used by <link JwElevateProcess@TJwString@TJwString@TJwString@HWND@TJwElevationProcessFlags@TJwOnElevationGetCredentials, JwElevateProcess Function>
+    and controls certain aspects of this function.                                                                                                                                 }
+  TJwElevationProcessFlag = (
+    { This flag must be set to disallow the <link JwElevateProcess@TJwString@TJwString@TJwString@HWND@TJwElevationProcessFlags@TJwOnElevationGetCredentials, JwElevateProcess Function>
+      to display a dialog box for user credentials.                                                                                                                                     }
+    epfNoUi,
+    { This flag must be set to allow the <link JwElevateProcess@TJwString@TJwString@TJwString@HWND@TJwElevationProcessFlags@TJwOnElevationGetCredentials, JwElevateProcess Function>
+      to use SuRun if it is available.                                                                                                                                               }
+    epfAllowSuRun
+  );
+
+
+  { TJwElevationProcessFlags is used by <link JwElevateProcess@TJwString@TJwString@TJwString@HWND@TJwElevationProcessFlags@TJwOnElevationGetCredentials, JwElevateProcess Function>
+    and controls certain aspects of this function.
+    See TJwElevationProcessFlag}
+  TJwElevationProcessFlags = set of TJwElevationProcessFlag;
+
+    { The TJwOnElevationGetCredentials event is called by the <link JwElevateProcess@TJwString@TJwString@TJwString@HWND@TJwElevationProcessFlags@TJwOnElevationGetCredentials, JwElevateProcess Function>
+    if
+      * SuRun is not available
+      * UAC is not supported by OS
+      * epfNoUi is set in parameter ElevationProcessFlags so no dialog box is shown.
+    
+    It receives user credential to be used by CreateProcess.
+    Parameters
+    Abort :              Set abort to true if you like to abort the elevation
+                         process. A EJwsclAbortException will be thrown though.
+    UserName :           Receives a username that has administrative privileges. By
+                         default it contains "Administrator.". However the <link JwElevateProcess@TJwString@TJwString@TJwString@HWND@TJwElevationProcessFlags@TJwOnElevationGetCredentials, JwElevateProcess Function>
+                         does not check whether the user is really an administrator
+                         or even exists. It just tries to create the process and will
+                         fail if the user does not exist. The new process mayb not
+                         have administrator powers.
+    Password :           This parameter receives a plaintext or encrypted password
+                         depending on parameter EncryptedPassword.
+    EncryptedPassword :  Defines whether parameter Password is encrypted (true) or
+                         plaintext (false).
+    Entropy :            Receives additional data that was used for the encryption
+                         and must be supplied to decrypt the password.
+    EncryptionPrompt :   This parameter defines whether a decryption prompt is shown
+                         (true) to confirm the decryption by the user. Set to false
+                         to suppress the dialog (default).
+    Environment :        This parameter receives the user environment block created
+                         by WinAPI CreateEnvironmentBlock. The data is freed
+                         automatically if Abort is false.
+    lpStartupInfo :      This parameter receives a <extlink http://msdn.microsoft.com/en-us/library/ms686331(VS.85).aspx>StartupInfo
+                         structure</extlink> that contains more information for
+                         CreateProcess. The cb member (size) is ignored.<p />
+    Remarks
+    Any exception thrown in this function is returned by the <link JwElevateProcess@TJwString@TJwString@TJwString@HWND@TJwElevationProcessFlags@TJwOnElevationGetCredentials, JwElevateProcess Function>.
+    
+    The exception EjwsclCryptApiException will be raised if the encrypted password
+    could not be decrypted.
+    See Also
+    <link JwElevateProcess@TJwString@TJwString@TJwString@HWND@TJwElevationProcessFlags@TJwOnElevationGetCredentials, JwElevateProcess Function>
+    Example
+    This examples shows how to encrypt a password for OnElevationGetCredentials:
+    
+    <code lang="delphi">
+    procedure TForm1.OnElevationGetCredentials(var Abort: Boolean;
+     var UserName, Password: TJwString; var EncryptedPassword: Boolean;
+     var Entropy: PDataBlob; var EncryptionPrompt: Boolean;
+     var Environment: Pointer; var lpStartupInfo: TStartupInfoW);
+    begin
+     //set default username
+     YourCredentialPrompt.UserName := UserName;
+    
+     //run login dialog
+     Abort := not YourCredentialPrompt.Execute;
+     if Abort then
+     exit;
+    
+     UserName := YourCredentialPrompt.UserName;
+    
+     //secure password in memory -
+     //no prompt and on local machine only
+     Password := JwEncryptString(YourCredentialPrompt.Password, '', false,true);
+    
+     //the password is encrypted
+     EncryptedPassword := True;
+    end;
+    </code>                                                                                                                                                                                                            }
+  TJwOnElevationGetCredentials = procedure (
+    var Abort : Boolean;
+    var UserName, Password : TJwString;
+    var EncryptedPassword : Boolean;
+    var Entropy : PDataBlob;
+    var EncryptionPrompt : Boolean;
+    var Environment : Pointer;
+    var lpStartupInfo: TStartupInfoW)  of object;
+
+
+  {IJwBase is the new base interface class for all JWSCL classes
+  which want to implement basic methods.}
+  IJwBase = interface
+{.$IFNDEF DELPHI2009_UP}
+    function Equals(Obj: TObject): Boolean;
+    function GetHashCode: Integer;
+    function ToString: String;
+{.$ENDIF DELPHI2009_UP}
+  end;
+
+
+{IJwBase_Equals implements IJwBase.Equals and always returns false.}
+function IJwBase_Equals(Obj: TObject): Boolean;
+
+{IJwBase_GetHashCode implements IJwBase.GetHashCode and always returns 0.}
+function IJwBase_GetHashCode(self : TObject): Integer;
+
+{IJwBase_ToString implements IJwBase.ToString and always returns the classname of
+ given self parameter.}
+function IJwBase_ToString(self : TObject): String;
+
+
+
+
+type
+  TJwHandles = array of THandle;
+
 implementation
-{$ENDIF SL_OMIT_SECTIONS}
 
+function IJwBase_Equals(Obj: TObject): Boolean;
+begin
+  result := false;
+end;
 
+function IJwBase_GetHashCode(self : TObject): Integer;
+begin
+  result := 0;
+end;
 
+function IJwBase_ToString(self : TObject): String;
+begin
+  result := self.ClassName;
+end;
 
-{$IFNDEF SL_OMIT_SECTIONS}
 initialization
-{$ENDIF SL_OMIT_SECTIONS}
 
-{$IFNDEF SL_INITIALIZATION_SECTION}
-{$ENDIF SL_INITIALIZATION_SECTION}
-
-{$IFNDEF SL_OMIT_SECTIONS}
 end.
-{$ENDIF SL_OMIT_SECTIONS}
+

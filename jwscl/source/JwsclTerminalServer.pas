@@ -45,32 +45,32 @@
   domain.
     * TJwTerminalServer.Shutdown Shuts down and optionally restarts the specified
   Terminal Server.
-  
+
   TJwTerminalServer also offers Events to monitor Terminal Server activity such as
   OnSessionConnect, OnSessionCreate, OnSessionLogon and OnSessionLogoff.
-  
+
   A unique feature of TJwTerminalServer is that it's able to return detailled
   information about Terminal Server, Sessions and Processes that is not available
   using the normal Terminal Server API's or Microsoft Tools! This includes
   detailled process memory usage information and extended session information such
   as ShadowMode, ShadowState and Remote Address.
-  
+
   The schema belows shows the relations between TJwTerminalServer, the
   TJwWTSSessionList with TJwWTSSessions and the TJwWTSProcessList with
   TjwWTSSessions.
-  
+
   <image TJwTerminalServer-Hierarchy>                                              }
 
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclTerminalServer;
-{$I Jwscl.inc}
-
+{$INCLUDE ..\includes\Jwscl.inc}
+{$TYPEINFO ON}
 interface
 
 uses
-  Classes, Contnrs, SysUtils,
+  Classes, Contnrs, SysUtils, Registry,
   JwaWindows,
-  JwsclExceptions, JwsclResource, JwsclSid, JwsclTypes,
+  JwsclExceptions, JwsclResource, JwsclKnownSid, JwsclSid, JwsclTypes,
   JwsclUtils, JwsclToken, JwsclVersion, JwsclStrings;
 
 {$ENDIF SL_OMIT_SECTIONS}
@@ -84,10 +84,18 @@ type
   TJwWTSEventThread = class;
   TJwWTSEnumServersThread = class;
   TJwWTSSessionShadow = class;
+  TJwWTSSessionStatistics = class;
   TJwWTSSession = class;
   TJwWTSSessionList = class;
   TJwWTSProcess = class;
   TJwWTSProcessList = class;
+
+  { The <b>CachedUsername</b> record is use internally in the <link TJwTerminalServer.CachedGetUserFromSessionId@DWORD, CachedGetUserFromSessionId>
+    function.                                                                                                                                       }
+  TCachedUser = record
+    SessionId: DWORD;
+    Username: TJwString;
+  end;
 
   TJwSessionsEnumerator = class;
   TJwProcessEnumerator = class;
@@ -128,7 +136,10 @@ type
     <image TJwTerminalServer-Hierarchy>
                                                                                      }
   TJwTerminalServer = class(TObject)
+  private
+    function GetSessionStatistics: TJwWTSSessionStatistics;
   protected
+    CachedUser: TCachedUser;
     {@exclude}
     FComputerName: TJwString;
     {@exclude}
@@ -164,11 +175,17 @@ type
     {@exclude}
     FOnWinStationRename: TNotifyEvent;
     {@exclude}
+    FPhysicalMemory: Int64;
+    {@exclude}
+    FProcessors: Integer;
+    {@exclude}
     FServerHandle: THandle;
     {@exclude}
     FServers: TStringList;
     {@exclude}
     FSessions: TJwWTSSessionList;
+    {@exclude}
+    FSessionStatistics: TJwWTSSessionStatistics;
     {@exclude}
     FProcesses: TJwWTSProcessList;
     {@exclude}
@@ -180,8 +197,12 @@ type
     {@exclude}
     FTag: Integer;
 
+
+    function CachedGetUserFromSessionId(const Sessionid: DWORD): TJwString;
     {@exclude}
     function GetIdleProcessName: TJwString;
+    {@exclude}
+    function GetPhysicalMemory: Int64;
     {@exclude}
     function GetServers: TStringList;
     {@exclude}
@@ -199,6 +220,7 @@ type
     {@exclude}
     procedure OnInternalProcessFound(const Sender: TJwTerminalServer;
       var Process: TJwWTSProcess; var Cancel: Boolean; Data: Pointer); virtual;
+  published
   public
 
     {<B>Connect</B> sets up the connection with the Terminal Server specified in the
@@ -518,7 +540,7 @@ type
 	 	 
 	 
      @Param ADomain name of the Domain to be queried, if empty string is
-     specified the current domain is queried 
+     specified the current domain is queried
      @returns If the function fails you can use GetLastError to get extended
      error information 
      Remarks
@@ -547,11 +569,11 @@ type
      to finish and then terminates it.
 	 
 	 <B>This method is not threadsafe! Do not call or use the instance from
-	  several threads without locking mechanism</B> 
-	 
+	  several threads without locking mechanism</B>
+
 	 <B>Check for a nil property value Servers</B> 
     }
-    function EnumerateServers(ADomain: TJwString):Boolean;
+    function EnumerateServers(const ADomain: TJwString):Boolean;
 
     {<B>EnumerateSessions</B> enumerates all sessions on the Terminal Server and fills the
      Sessions property with a TJwSessionList. This list contains all sessions
@@ -597,16 +619,16 @@ type
        ATerminalServer.Free;
      end;
     </code>
-	 
-	 <B>Check for a nil property value Sessions</B> 
+
+	 <B>Check for a nil property value Sessions</B>
     }
     function EnumerateSessions: boolean;
 
     {<B>FileTime2DateTime</B> can be used to convert a non local (GMT time) FileTime to a
      localised TDateTime var.
-     @param FileTime TFileTime in GMT 
-     @returns TDateTime in local time 
-     
+     @param FileTime TFileTime in GMT
+     @returns TDateTime in local time
+
      Remarks
   A TFileTime can be casted to Int64 (number 100-nanosecond
      intervals since January 1, 1601) and vice versa.
@@ -704,34 +726,36 @@ type
     }
     property OnSessionStateChange: TNotifyEvent read FOnSessionStateChange write FOnSessionStateChange;
 
+    property Processors: Integer read FProcessors;
     {<B>Processes</B> contains a TJwWTSProcessList of which each item contains a
      TJwWTSProcess. This processlist contains all enumerated processes
      and their properties such as Process Name, Process Id, Username, Memory
      Usage and so on.
-     
+
      Remarks
   The Processlist is filled by calling the EnumerateProcesses
      function.
     }
     property Processes: TJwWTSProcessList read FProcesses write FProcesses;
 
+    property PhysicalMemory: Int64 read GetPhysicalMemory write FPhysicalMemory;
     {<B>Server</B> the netbios name of the Terminal Server.
-     
+
      Remarks
   If you want to connect to a Terminal Server locally
      you should not specify the server name. Please note that in the case of a
      local connection this property <B>will return the computername</B> )
-     
+
      Note that Windows XP SP 2 by default does not allow remote
      RPC connection to Terminal Server (enumerating sessions and processes).
      You can change this behaviour by creating the following registry entry
      on the XP machine:
-     
+
      <code lang="Delphi">
      HKLM\SYSTEM\CurrentControlSet\Control\Terminal Server
      "AllowRemoteRPC" = REG_DWORD:1
      </code>
-     
+
      Also make sure that the Windows firewall on the client is configured to
      allow File and Print sharing, as well as Remote Desktop.
     }
@@ -786,6 +810,8 @@ type
       WTS_WSD_FASTREBOOT   This value is not supported currently.
       </table>                                                                                 }
     procedure Shutdown(AShutdownFlag: DWORD);
+
+    property Statistics: TJwWTSSessionStatistics read GetSessionStatistics;
 
     {<B>SystemUserName</B> returns the (localised) name of the system user}
     property SystemUserName: TJwString read GetSystemUserName;
@@ -908,7 +934,7 @@ type
     {Call <B>Create</B> to create a @classname Thread.
      @Param CreateSuspended If CreateSuspended is False, Execute is called
      immediately. If CreateSuspended is True, Execute won't be called until
-     after Resume is called. 
+     after Resume is called.
      @Param Owner Specifies the TJwTerminalServer instance that owns the thread 
     }
     constructor Create(CreateSuspended: Boolean; AOwner: TJwTerminalServer);
@@ -977,7 +1003,7 @@ type
    
    A TJwWTSSession is owned by a JTwWTSSessionList.
    }
-  TJwWTSSession = class(TObject)
+  TJwWTSSession = class(TObjectList)
   protected
     {@exclude}
     FApplicationName: TJwString;
@@ -1009,6 +1035,10 @@ type
     FConnectTime: TDateTime;
     {@exclude}
     FCurrentTime: TDateTime;
+    {@exclude}
+    FCurrentTimeEx: Int64;
+    {@exclude}
+    FData: Integer;
     {@exclude}
     FDisconnectTime: TDateTime;
     {@exclude}
@@ -1087,17 +1117,17 @@ type
     procedure GetWinStationDriver;
 
     {@exclude}
-    function GetToken : TJwSecurityToken;
+    function GetToken: TJwSecurityToken;
     {@exclude}
-    function GetUserSid : TJwSecurityID;
+    function GetUserSid: TJwSecurityID;
   private
-  public
+  published
     {The <B>Create</B> constructor creates a TJwWTSSession instance and allocates memory for it
-     @Param Owner Specifies the TJwTerminalServer instance that owns the session 
-     @Param SessionId The Session Identifier 
-     @Param WinStationName The Session Name 
-     @Param ConnectState The current connection state of the session 
-     
+     @Param Owner Specifies the TJwTerminalServer instance that owns the session
+     @Param SessionId The Session Identifier
+     @Param WinStationName The Session Name
+     @Param ConnectState The current connection state of the session
+
      Remarks
   It's not necessary to manually create a session instance.
      Enumerating sessions with the EnumerateSessions function will create a
@@ -1109,7 +1139,7 @@ type
       const ConnectState: TWtsConnectStateClass);
 
     {The <B>Destroy</B> destructor disposes the Session object.
-     
+
      Remarks
   Since a session is Owned by a SessionList by default
      <B>you should not destroy/free a session manually</B> . The only scenario
@@ -1121,7 +1151,7 @@ type
     {<B>ApplicationName</B> returns the the startup application as specified in the
      Terminal Server client. If no startup application was specified
      an empty string is returned.
-     
+
      Remarks
   Console sessions always returns empty value.
      }
@@ -1129,7 +1159,7 @@ type
 
     {<B>ClientAddress</B> returns the Client IP Address as string. This is the local IP
      address of a client as reported by the Terminal Server Client
-     
+
      Remarks
   Console sessions always returns empty value.
      }
@@ -1143,7 +1173,7 @@ type
      * RemoteAddress
      * RemotePort
      }
-     property ClientBuildNumber: DWORD read FClientBuildNumber;
+     property ClientBuildNumber: DWORD read FClientBuildNumber write FClientBuildNumber;
 
     {<B>ClientDirectory</B> returns the version number of the Terminal Server Client
      
@@ -1232,7 +1262,7 @@ type
      
      You can connect to a session only if it is in either an active or
      disconnected state.
-     
+
      You cannot connect to another session from the console session.
      
      Note that if you connect to another session your existing session will be
@@ -1276,6 +1306,12 @@ type
      }
     property CurrentTime: TDateTime read FCurrentTime;
 
+    property CurrentTimeEx: Int64 read FCurrentTimeEx;
+
+    {<B>Data</B> allows storage of a pointer to user specific data and can be freely
+     used.}
+    property Data: Integer read FData write FData;
+
     {The <B>Disconnect</B> function disconnects the logged-on user from the specified
      Terminal Services session without closing the session. The session remains
      attached to the terminal server in the disconnected state and currently
@@ -1288,10 +1324,10 @@ type
      (starting from Server 2008 this is called TS Session Broker) care of
      redirecting a user to the server where he has a disconnected session.
      @param bWait Indicates whether the operation is synchronous. Specify TRUE
-     to wait for the operation to complete, or FALSE to return immediately. 
+     to wait for the operation to complete, or FALSE to return immediately.
 
      raises
- EJwsclWinCallFailedException:  will be raised if the call fails. 
+ EJwsclWinCallFailedException:  will be raised if the call fails.
      }
     procedure Disconnect(bWait: Boolean);
 
@@ -1396,7 +1432,7 @@ type
     }
     property Owner: TJwWTSSessionList read FOwner write FOwner;
     {<B>OutgoingBytes</B> uncompressed RDP data from the server to the client.
-     
+
      Remarks
   This value is not returned for console sessions.
      @seealso(IncomingBytes)
@@ -1413,7 +1449,7 @@ type
      
      @returns If the function fails you can use GetLastError to get extended
      error information 
-     
+
      Remarks
   PostMessage does not wait for the user to respond.
      See Also
@@ -1428,7 +1464,7 @@ type
     {<B>RemoteAddress</B> returns the real IP Address that is connected to the Terminal Server.
      
      Remarks
-  <B>RemoteAddress</B> returns the IP address that is actually connected
+  <B>RemoteAddress</B> returns the IP address that is currently connected
      to the Terminal Server (as opposed to ClientAddress which returns the
      address as reported by the client which is usually just it's local ip
      address).
@@ -1491,7 +1527,7 @@ type
      
      @returns If the function fails you can use GetLastError to get extended
      error information 
-     
+
      Remarks  If you don't need to wait for the user's response you can
      use the PostMessage function
      See Also
@@ -1500,8 +1536,12 @@ type
     function SendMessage(const AMessage: TJwString; const ACaption: TJwString;
       const uType: DWORD; const ATimeOut: DWORD): DWORD;
 
+    class function SendLocalMessage(const SessionID : TJwSessionId; const AMessage: TJwString;
+  const ACaption: TJwString; const uType: DWORD; const ATimeOut: DWORD): DWORD;
+
+
     {<B>Server</B> the netbios name of the Terminal Server.
-     
+
      Remarks
   If you want to connect to a Terminal Server locally
      you should not specify the server name. Please note that in the case of a
@@ -1510,10 +1550,10 @@ type
     property Server: TJwString read GetServer;
 
     {<B>SessionId</B> the session identifier
-     
+
      There are some reserved SessionId's that serve a special purpose. The
      following table lists the reserved SessionId's:
-     
+
      <table 33c%>
       Value     Meaning
       --------  -----------------
@@ -1555,7 +1595,7 @@ type
       recommended, because doing so <B>resets all sessions that use the same
       Terminal Services connection.</B>  Resetting a user's session without warning
       can result in loss of data at the client.
-      
+
       <B>Idle sessions</B> 
       To optimize the performance of a terminal server, idle sessions are
       initialized by the server before client connections are made.
@@ -1682,7 +1722,7 @@ type
     property WinStationDriverName: TJwString read FWdName;
 
     {<B>WinStationName</B> returns the session name.
-     
+
      Remarks
   Despite its name, specifying this property does not return
      the window station name. Rather, it returns the name of the Terminal
@@ -1700,13 +1740,13 @@ type
   {<B>PJwWTSSessionList</B> is a pointer to a TJwWTSSessionList}
   PJwWTSSessionList = ^TJwWTSSessionList;
   {<B>TJwWTSSessionList</B> is a List of all Sessions running on the Terminal Server
-   and their properties 
+   and their properties
 
    Each item in the list points to a TJwWTSSession object that can be queried
    and manipulated.
    The list is filled by calling the EnumerateSessions function of the owning
    TJwTerminalServer instance.
-   
+
    Example:
    <code lang="Delphi">
    var
@@ -1742,6 +1782,7 @@ type
    end;
    </code>
   }
+
   TJwWTSSessionList = class(TObjectList)
   protected
     {@exclude}
@@ -1775,7 +1816,7 @@ type
      with the requested SessionId.
      @Param SessionId The Session Identifier 
      @Returns TJwWTSSession 
-     
+
      Remarks
   If the SessionId was not found return value will be @nil.
     }
@@ -1910,6 +1951,8 @@ type
    }
   TJwWTSProcess = class(TObject)
   protected
+    {@exlude}
+    FData: Integer;
     {@exclude}
     FOwner: TJwWTSProcessList;
     {@exclude}
@@ -1917,7 +1960,11 @@ type
     {@exclude}
     FProcessAgeStr: TJwString;
     {@exclude}
-    FProcessCreateTime: TJwString;
+    FProcessCreateTime: Int64;
+    {@exclude}
+    FProcessCreateTimeStr: TJwString;
+    {@exclude}
+    FProcessCPU: Integer;
     {@exclude}
     FProcessCPUTime: Int64;
     {@exclude}
@@ -1928,6 +1975,8 @@ type
     FProcessMemUsage: DWORD;
     {@exclude}
     FProcessName: TJwString;
+    {@exclude}
+    FProcessVirtualSize: DWORD;
     {@exclude}
     FProcessVMSize: DWORD;
     {@exclude}
@@ -1960,6 +2009,10 @@ type
       const ProcessName: TJwString; const Username: TJwString);
     destructor Destroy; override;
   public
+    {<B>Data</B> allows storage of a pointer to user specific data and can be freely
+     used.}
+    property Data: Integer read FData write FData;
+
     {The <B>Terminate</B> function terminates the specified process on the specified
      terminal server.
     }
@@ -1998,11 +2051,16 @@ type
     }
     property ProcessAgeStr: TJwString read FProcessAgeStr;
 
+
+    {<B>ProcessCPU</B> can be used to store the relative CPU Time as percentage
+     total. Needs to be calculated by caller... }
+    property ProcessCPU: Integer read FProcessCPU write FProcessCPU;
+
     {<B>ProcessCPUTime</B> the total CPU Time (Usertime + Kerneltime) for the given process
      in 100-nanosecond intervals since January 1, 1601 (TFileTime).
-     
+
      Remarks
-  This value matches the CPU Time column in Task Manager.
+     This value matches the CPU Time column in Task Manager.
      See Also
      * ProcessCPUTimeStr
     }
@@ -2019,9 +2077,11 @@ type
     }
     property ProcessCPUTimeStr: TJwString read FProcessCPUTimeStr;
 
+    {<B>ProcessCreateTime</B> the Process Creation Time }
+    property ProcessCreateTime: Int64 read FProcessCreateTime;
     {<B>ProcessCreateTime</B> the Process Creation Time formatted as localised string.
     }
-    property ProcessCreateTime: TJwString read FProcessCreateTime;
+    property ProcessCreateTimeStr: TJwString read FProcessCreateTimeStr;
 
     {<B>ProcessId</B> the Process Identifier or PID
     }
@@ -2044,6 +2104,8 @@ type
      This value matches the Mem Usage column in Task Manager.
     }
     property ProcessMemUsage: DWORD read FProcessMemUsage;
+
+    property ProcessVirtualSize: DWORD read FProcessVirtualSize;
 
     {<B>ProcessVMSize</B> the Amount of Virtual memory in Bytes used by the process
      
@@ -2143,22 +2205,36 @@ type
    </code>
   }
   TJwWTSProcessList = class(TObjectList)
+  private
   protected
     {@exclude}
     FOwner: TJwTerminalServer;
+    {@exclude}
+    FIdleTime: Int64;
+    {@exclude}
+    FCPUTime: Int64;
+    {@exclude}
+    FCommitSizeTotal: Int64;
+    {@exclude}
+    FPagedPoolTotal: Int64;
+    {@exclude}
+    FNonPagedPoolTotal: Int64;
+    {@exclude}
+    FWorkingSetTotal: Int64;
     {@exclude}
     function GetItem(Index: Integer): TJwWTSProcess;
     {@exclude}
     procedure SetItem(Index: Integer; AProcess: TJwWTSProcess);
     {@exclude}
     procedure SetOwner(const Value: TJwTerminalServer);
+  published
   public
     {<B>Add</B> adds a Process to the end of the Processlist
      @returns returns the index of the inserted object. 
     }
     function Add(AProcess: TJwWTSProcess): Integer;
 
-
+    function FindByPid(const PID: DWORD): TJwWTSProcess;
     {<B>GetEnumerator</B> returns an enumerator that can be used to iterate through
      the image list collection with Delphi's for in loop (Delphi 2005 and
      higher).
@@ -2207,8 +2283,16 @@ type
     }
     function GetEnumerator: TJwProcessEnumerator;
 
+    {@Returns the total IdleTime (sum of UserMode + KernelMode of the Idle Process).
+    }
+    property IdleTime: Int64 read FIdleTime;
 
-    {@Returns the index of the Process object in the ProcessList. 
+    {@Returns the total CPUTime (sum of UserMode + KernelMode of all Processes
+     except the Idle Process).
+    }
+    property CPUTime: Int64 read FCPUTime;
+
+    {@Returns the index of the Process object in the ProcessList.
     }
     function IndexOf(AProcess: TJwWTSProcess): Integer;
 
@@ -2262,9 +2346,13 @@ type
      OwnsObjects is true (default) frees the Session.
      @returns The value returned is the index of the object in the Items array
      before it was removed. If the specified object is not found on the list,
-     Remove returns –1. 
+     Remove returns –1.
     }
     function Remove(AProcess: TJwWTSProcess): Integer;
+    property CommitSizeTotal: Int64 read FCommitSizeTotal;
+    property WorkingSetTotal: Int64 read FWorkingSetTotal;
+    property PagedPoolTotal: Int64 read FPagedPoolTotal;
+    property NonPagedPoolTotal: Int64 read FNonPagedPoolTotal;
   end;
 
   {<B>TJwShadowState</B> indicates the Shadow State of a session}
@@ -2293,14 +2381,14 @@ type
   );
 
   {<B>TJwWTSSessionShadow</B> class gives access to the ShadowState and Shadowmode of a
-   session. 
+   session.
 
    Remarks
   Please note that changing the shadow mode with the SetShadow
    function does not take affect until the sessions has been disconnected
    and reconnected.
    @seealso(TJwShadowMode)
-   @seealso(TJwShadowState) 
+   @seealso(TJwShadowState)
   }
   TJwWTSSessionShadow = class
   private
@@ -2331,7 +2419,41 @@ type
     property ShadowMode: TJwShadowMode read GetShadowMode write SetShadowMode;
   end;
 
+  TJwWTSSessionStatistics = class
+  private
+    function GetLoadIndicatorData: TWinStationLoadIndicatorData;
+    protected
+      FLoadIndicatorData: TWinStationLoadIndicatorData;
+      TSCounterArray: array[1..12] of TTSCounter;
+      FOwner: TJwTerminalServer;
+      function GetCounterValue(const CounterID: Integer): Integer;
+  published
+    public
+      {
+      Raises
+        EJwsclNILParameterException: will be raised if AOwner is nil. 
+      }
+      constructor Create(const AOwner: TJwTerminalServer);
+      property TotalSessionsCreated: Integer index TERMSRV_TOTAL_SESSIONS read GetCounterValue;
+      property TotalSessionsDisconnected: Integer index TERMSRV_DISC_SESSIONS read GetCounterValue;
+      property TotalSessionsReconnected: Integer index TERMSRV_RECON_SESSIONS read GetCounterValue;
+      property CurrentActiveSessions: Integer index TERMSRV_CURRENT_ACTIVE_SESSIONS read GetCounterValue;
+      property CurrentDisconnectedSessions: Integer index TERMSRV_CURRENT_DISC_SESSIONS read GetCounterValue;
+      property PendingSessions: Integer index TERMSRV_PENDING_SESSIONS read GetCounterValue;
+      property TotalLogons: Integer index TERMSRV_SUCC_TOTAL_LOGONS read GetCounterValue;
+      property TotalLocalLogons: Integer index TERMSRV_SUCC_LOCAL_LOGONS read GetCounterValue;
+      property TotalRemoteLogons: Integer index TERMSRV_SUCC_REMOTE_LOGONS read GetCounterValue;
+      property TotalConsoleLogons: Integer index TERMSRV_SUCC_SESSION0_LOGONS read GetCounterValue;
+      property CurrentTerminatingSessions: Integer index TERMSRV_CURRENT_TERMINATING_SESSIONS read GetCounterValue;
+      property CurrentLoggedOnSessions: Integer index TERMSRV_CURRENT_LOGGEDON_SESSIONS read GetCounterValue;
+      property LoadIndicatorData: TWinStationLoadIndicatorData read GetLoadIndicatorData;
+      procedure UpdateCounters;
+  end;
 
+
+
+  { This class is used by TJwWTSSessionList to provide extended enumeration of
+    session using Delphi 2005 and newer "for in" syntax.                       }
   TJwSessionsEnumerator = class
   private
     FIndex: Integer;
@@ -2345,6 +2467,8 @@ type
 
 
 
+  { This class is used by TJwWTSProcessList to provide extended enumeration of
+    processes using Delphi 2005 and newer "for in" syntax.                     }
   TJwProcessEnumerator = class
   private
     FIndex: Integer;
@@ -2390,11 +2514,9 @@ type
   PJwWtsServerInfoWArray = ^TJwWtsServerInfoWArray;
   TJwWtsServerInfoWArray = array[0..ANYSIZE_ARRAY-1] of TWtsServerInfoW;
 
-
 constructor TJwTerminalServer.Create;
 begin
   inherited Create;
-  OutputDebugString('TJwTerminalServer.Create');
   FSessions := TJwWTSSessionList.Create(True);
   FSessions.Owner := Self;
 
@@ -2405,12 +2527,20 @@ begin
   FServers := TStringList.Create;
 
   FOnServersEnumerated := nil;
-//  FServerLis := TStringList.Create;
+
+  FSessionStatistics := nil;
+
+  CachedUser.SessionId := DWORD(-1);
+  FPhysicalMemory := -1;
 end;
+
+//function RpcCancelThread(ThreadHandle: HANDLE): RPC_STATUS; stdcall; external 'rpcrt4.dll';
 
 destructor TJwTerminalServer.Destroy;
 var
   EventFlag: DWORD;
+  ThreadHandle: THandle;
+  dwResult: DWORD;
 begin
   // Close connection
   if Assigned(FEnumServersThread) then
@@ -2421,40 +2551,22 @@ begin
     // Signal Termination to the thread
     FEnumServersThread.Terminate;
 
+    ThreadHandle := FEnumServersThread.Handle;
     // Wait a while, see if thread terminates
-    if WaitForSingleObject(FEnumServersThread.Handle, 1000) = WAIT_TIMEOUT then
+    if WaitForSingleObject(ThreadHandle, 500) = WAIT_TIMEOUT then
     begin
       // it didn't, so kill it (we don't want the user to wait forever)!
       // TSAdmin does it the same way...
-      TerminateThread(FEnumServersThread.Handle, 0);
+      TerminateThread(ThreadHandle, 0);
     end;
 
-//    FEnumServersThread.Wait;
-  end;
-
-  // Terminate the Event Thread before closing the connection.
-  if Assigned(FTerminalServerEventThread) then
-  begin
-    // Terminate Event Thread
-    FTerminalServerEventThread.Terminate;
-
-    // unblock the waiter
-    WTSWaitSystemEvent(FServerHandle, WTS_EVENT_FLUSH, EventFlag);
-
-    // wait for the thread to finish
-    FTerminalServerEventThread.WaitFor;
-
-    // Free
-    FreeAndNil(FTerminalServerEventThread);
-  end;
-
-  if Connected then
-  begin
-    Disconnect;
   end;
 
     // Free the SessionList
     FreeAndNil(FSessions);
+
+    // Free the Statistics
+    FreeAndNil(FSessionStatistics);
 
     // Free the ProcessList
     FreeAndNil(FProcesses);
@@ -2462,10 +2574,48 @@ begin
   // Free the Serverlist
     FreeAndNil(FServers);
 
-  // Free the Serverlist
-//    FreeAndNil(FServerList);
+  // Terminate the Event Thread before closing the connection.
+  if Assigned(FTerminalServerEventThread) then
+  begin
+    ThreadHandle := FTerminalServerEventThread.Handle;
 
-  inherited;
+    // Terminate Event Thread
+    FTerminalServerEventThread.Terminate;
+
+    // unblock the waiter
+    WTSWaitSystemEvent(FServerHandle, WTS_EVENT_FLUSH, EventFlag);
+    // wait for the thread to finish
+
+    // Wait a while, see if thread terminates
+    OutputDebugString('WAITING FOR THREAD TO END.....................');
+    dwResult := WaitForSingleObject(ThreadHandle, 500);
+
+    if dwResult = WAIT_TIMEOUT then
+    begin
+      // The thread didn't close, probably because it doesn't respond to
+      // WTS_EVENT_FLUSH, this is a bug in winsta.dll.
+      // see http://support.microsoft.com/kb/941561
+      //
+      // WORKAROUND: Kill the thread...
+{$IFDEF DEBUG}
+      OutputDebugString('Terminating TJwWTSEnumServersThread thread because WTSWAIT did not return');
+{$ENDIF}
+      TerminateThread(ThreadHandle, 0);
+//      i := RpcCancelThread(FTerminalServerEventThread.Handle);
+//      OutputDebugString(PChar(Format('result=%d', [i])));
+    end;
+
+    // Free Memory
+    FreeAndNil(FTerminalServerEventThread);
+
+  end;
+
+  if Connected then
+  begin
+    Disconnect;
+  end;
+
+  inherited Destroy;
 end;
 
 
@@ -2603,6 +2753,7 @@ begin
   begin
     JwSid := TJwSecurityId.Create('S-1-5-18');
     FSystemUsername := JwSid.GetCachedUserFromSid;
+    if FSystemUsername = '' then FSystemUsername := 'SYSTEM';
     JwSid.Free;
   end;
 
@@ -2610,30 +2761,24 @@ begin
 end;
 
 function TJwTerminalServer.GetWinStationName(const SessionId: DWORD): TJwString;
+const
+  BufferOverrunGuardFactor = 2;
 var
-  WinStationNamePtr: PWideChar;
+  WinStationName: array[0..WINSTATIONNAME_LENGTH*BufferOverrunGuardFactor+1] of WChar;
 begin
-  // Get and zero memory (
-  GetMem(WinStationNamePtr, WINSTATIONNAME_LENGTH * SizeOf(WideChar));
-  try
-    ZeroMemory(WinStationNamePtr, WINSTATIONNAME_LENGTH * SizeOf(WideChar));
+  Result := '';
+  // Only use Unicode version since Ansi version doesn't seem to work on Vista
+  ZeroMemory(@WinStationName, SizeOf(WinStationName));
+  if WinStationNameFromLogonIdW(FServerHandle, SessionId, WinStationName) then
+  begin
+    Result := WinStationName;
+  end;
 
-    if WinStationNameFromLogonIdW(FServerHandle, SessionId,
-      WinStationNamePtr) then
-    begin
-      Result := PWideCharToJwString(WinStationNamePtr);
-    end;
-
-    // Return disconnected if WinStationName = empty
-    if Result = '' then
-    begin
-//      Result := PWideCharToJwString(StrConnectState(WTSDisconnected, False));
-      // Confirm to TSAdmin behaviour and list sessionname as (Idle) (we use
-      // StrConnectState api to localise)
-      Result := '(' + PWideCharToJwString(StrConnectState(WTSIdle, False)) + ')';
-    end;
-  finally
-    FreeMem(WinStationNamePtr);
+  if Result = '' then
+  begin
+    // Confirm to TSAdmin behaviour and list sessionname as (Idle)
+    // (we use StrConnectState api to localise)
+    Result := '(' + JwPWideCharToJwString(StrConnectState(WTSIdle, False)) + ')';
   end;
 end;
 
@@ -2641,7 +2786,6 @@ procedure TJwTerminalServer.OnEnumServersThreadTerminate(Sender: TObject);
 begin
   // nil it!
   FEnumServersThread := nil;
-  OutputDebugString('nil it!');
 end;
 
 procedure TJwTerminalServer.SetServer(const Value: TJwString);
@@ -2662,6 +2806,12 @@ end;
 procedure TJwTerminalServer.EnumerateProcessesEx;
 begin
   FProcesses.Clear;
+  FProcesses.FIdleTime := 0;
+  FProcesses.FCPUTime := 0;
+  FProcesses.FWorkingSetTotal := 0;
+  FProcesses.FCommitSizeTotal := 0;
+  FProcesses.FPagedPoolTotal := 0;
+  FProcesses.FNonPagedPoolTotal := 0;
 
   EnumerateProcessesEx(OnInternalProcessFound, nil);
 end;
@@ -2669,8 +2819,10 @@ end;
 function TJwTerminalServer.EnumerateProcesses: Boolean;
 begin
   FProcesses.Clear;
+  FProcesses.FIdleTime := 0;
+  FProcesses.FCPUTime := 0;
 
-  result := EnumerateProcesses(OnInternalProcessFound, nil);
+  Result := EnumerateProcesses(OnInternalProcessFound, nil);
 end;
 
 procedure TJwTerminalServer.EnumerateProcessesEx(const OnProcessFound : TJwOnProcessFound; Data : Pointer);
@@ -2685,15 +2837,16 @@ function TJwTerminalServer.EnumerateProcesses(const OnProcessFound : TJwOnProces
     Data : Pointer) : Boolean;
 var
   Count: Integer;
-  ProcessInfoPtr: PWINSTA_PROCESS_INFO_ARRAY;
+  ProcessInfoPtr: PTS_ALL_PROCESSES_INFO_ARRAY;
   i: Integer;
   AProcess: TJwWTSProcess;
   strProcessName: TJwString;
   strUsername: TJwString;
   lpBuffer: PWideChar;
   DiffTime: TDiffTime;
-//  strSid: TjwString;
   Cancel : Boolean;
+  LastError: Integer;
+  JwSid: TJwSecurityId;
 begin
   ProcessInfoPtr := nil;
   Count := 0;
@@ -2709,42 +2862,84 @@ begin
   ProcessInfoPtr := nil;
 
   Result := WinStationGetAllProcesses(FServerHandle, 0, Count, ProcessInfoPtr);
+  LastError := GetLastError;
 
+  // Ignore Error 997 Overlapped I/O in progress which somtimes happens but
+  // seems to return correct results...
+  if ((not Result) and (LastError = 997) and (Count > 0)and (ProcessInfoPtr <>  nil)) or
+  // Ignore Error 1753 The sub received bad data which sometimes happen if the
+  // server is under stress...
+    ((not Result) and (LastError = 1783) and (Count > 0) and (ProcessInfoPtr <>  nil)) then Result := True;
 
+  // Ignore Error 997 Overlapped I/O in progress which somtimes happens but
+  // seems to return correct results...
+//  if (not Result) and (LastError = 997) and (Count > 0) then Result := True;
 
   try
     if Result then
     begin
       for i := 0 to Count-1 do
       begin
-        with ProcessInfoPtr^[i], ExtendedInfo^ do
+        strUsername := '';
+
+        with ProcessInfoPtr^[i], pTsProcessInfo^ do
         begin
+
+          Inc(FProcesses.FCPUTime, UserTime.QuadPart + KernelTime.QuadPart);
+          Inc(FProcesses.FWorkingSetTotal, WorkingSetSize);
+          Inc(FProcesses.FCommitSizeTotal, VirtualSize);
+          Inc(FProcesses.FPagedPoolTotal, QuotaPagedPoolUsage);
+          Inc(FProcesses.FNonPagedPoolTotal, QuotaNonPagedPoolUsage);
           // System Idle Process
-          if ProcessId = 0 then
+          if UniqueProcessId = 0 then
           begin
+            FProcessors := NumberOfThreads;
             strProcessName := GetIdleProcessName;
             strUserName := SystemUsername;
+            FProcesses.FIdleTime := UserTime.QuadPart + KernelTime.QuadPart;
           end
-          else
+          else if UniqueProcessId = 4 then
           begin
-            strProcessName := JwUnicodeStringToJwString(ProcessName);
+            strProcessName := JwTSUnicodeStringToJwString(ImageName);
+            strUserName := SystemUsername;
+          end
+          else begin
+            strProcessName := JwTSUnicodeStringToJwString(ImageName);
 
-            if IsValidSid(pUserSid) then
+            if IsValidSid(UserSid) then
             begin
-              with TJwSecurityID.Create(pUserSid) do
-              begin
-                strUsername := GetCachedUserFromSid;
-  //              strSid := StringSID;
-                Free;
+              try
+                try
+                  JwSid := TJwSecurityID.Create(UserSid);
+                  strUsername := JwSid.GetCachedUserFromSid;
+                finally
+                  FreeAndNil(JwSid);
+                end;
+              except
+                strUsername := 'SYSTEM';
               end;
+            end;
+
+            if (strUsername = '') or (CompareText(strUsername, '(unknown)') = 0) then
+            begin
+              // if User is nonadmin WinStationGetAllProcesses returns empty or
+              // invalid SID, in this case we try to obtain the username by
+              // other means...
+              strUsername := CachedGetUserFromSessionId(SessionId);
+
+              // sort of a hack, if we cannot determine the user it is probably SYSTEM
+              if (strUsername = '') or (CompareText(strUsername, '(unknown)') = 0) then
+              begin
+                strUsername := 'SYSTEM';
+              end;
+
             end;
           end;
 
           AProcess := TJwWTSProcess.Create(FProcesses, SessionId,
-            ProcessId, strProcessName, strUsername);
+            UniqueProcessId, strProcessName, strUsername);
           with AProcess do
           begin
-  //          FSidStr := strSid;
             // Calculate Process Age
             CalculateElapsedTime(@CreateTime, DiffTime);
 
@@ -2757,7 +2952,7 @@ begin
               FProcessAge := (DiffTime.wDays * SECONDS_PER_DAY) +
                 (DiffTime.wHours * SECONDS_PER_HOUR) +
                 (DiffTime.wMinutes * SECONDS_PER_MINUTE);
-              FProcessAgeStr := PWideCharToJwString(lpBuffer);
+              FProcessAgeStr := JwPWideCharToJwString(lpBuffer);
             finally
               // Free mem
               FreeMem(lpBuffer);
@@ -2767,8 +2962,13 @@ begin
             // Some of the used counters are explained here:
             // http://msdn2.microsoft.com/en-us/library/aa394372.aspx
 
-            FProcessCreateTime :=
+            FProcessCreateTime := CreateTime.QuadPart;
+            FProcessCreateTimeStr :=
               TimeToStr(FileTime2DateTime(FILETIME(CreateTime)));
+
+            // Set ProcessCPU to -1 (callee has to calculate it...)
+            FProcessCPU := -1;
+
             // The CPU Time column in Taskmgr.exe is Usertime + Kerneltime
             // So we take the sum of it and call it ProcessCPUTime
             FProcessCPUTime := UserTime.QuadPart + KernelTime.QuadPart;
@@ -2778,11 +2978,12 @@ begin
             // Amount of memory in bytes that a process needs to execute
             // efficiently. Maps to Mem Size column in Task Manager.
             // So we call it ProcessMemUsage
-            FProcessMemUsage := VmCounters.WorkingSetSize;
+            FProcessMemUsage := WorkingSetSize;
+            FProcessVirtualSize := VirtualSize;
             // Pagefileusage is the amount of page file space that a process is
             // using currently. This value is consistent with the VMSize value
             // in TaskMgr.exe. So we call it ProcessVMSize
-            FProcessVMSize := VmCounters.PagefileUsage;
+            FProcessVMSize := PagefileUsage;
           end;
 
           try
@@ -2795,6 +2996,12 @@ begin
               break;
         end;
       end;
+
+    end
+    else begin
+      raise EJwsclEnumerateProcessFailed.CreateFmtWinCall(RsWinCallFailed,
+       'EnumerateProcesses', ClassName, RsUNTerminalServer, 0, True,
+          'WinStationGetAllProcesses', ['WinStationGetAllProcesses', FServer]);
     end;
   finally
     // Cleanup
@@ -2823,6 +3030,16 @@ begin
   Result := FServers;
 end;
 
+function TJwTerminalServer.GetSessionStatistics: TJwWTSSessionStatistics;
+begin
+  if not Assigned(FSessionStatistics) then
+  begin
+    FSessionStatistics := TJwWTSSessionStatistics.Create(Self);
+  end;
+
+  Result := FSessionStatistics;
+end;
+
 function TJwTerminalServer.EnumerateSessions: boolean;
 var
   SessionInfoPtr:
@@ -2835,6 +3052,7 @@ var
   i: integer;
   Res: Longbool;
   ASession: TJwWTSSession;
+  LastError: Integer;
 begin
   if not Connected then
   begin
@@ -2843,6 +3061,7 @@ begin
 
   // Clear the sessionslist
   FSessions.Clear;
+  pCount := 0;
 
   Res :=
 {$IFDEF UNICODE}
@@ -2852,11 +3071,18 @@ begin
     WTSEnumerateSessions(FServerHandle, 0, 1, PWTS_SESSION_INFOA(SessionInfoPtr),
       pCount);
 {$ENDIF UNICODE}
+  LastError := GetLastError;
 
+  // Ignore Error 997 Overlapped I/O in progress which somtimes happens but
+  // seems to return correct results...
+  if ((not Res) and (LastError = 997) and (pCount > 0)) or
+  // Ignore Error 1783 The stub received bad data which sometimes happen if the
+  // server is under stress...
+    ((not Res) and (LastError = 1783) and (pCount > 0)) then Res := True;
 
   if not Res then begin
     raise EJwsclWinCallFailedException.CreateFmtWinCall(RsWinCallFailed,
-      'EnumerateSessions', ClassName, RsUNTerminalServer, 923, True,
+      'EnumerateSessions', ClassName, RsUNTerminalServer, 0, True,
           'WTSEnumerateSessions', ['WTSEnumerateSessions']);
   end;
 
@@ -2870,35 +3096,74 @@ begin
   end;
 
   // After enumerating we create an event thread to listen for session changes
-  if FTerminalServerEventThread = nil then
+  if Res and (FTerminalServerEventThread = nil) then
   begin
     FTerminalServerEventThread := TJwWTSEventThread.Create(False, Self);
   end;
 
+  if pCount > 0 then
+  begin
+    WTSFreeMemory(SessionInfoPtr);
+  end;
 
-  WTSFreeMemory(SessionInfoPtr);
   SessionInfoPtr := nil;
 
   // Pass the result
   Result := Res;
 end;
 
-function TJwTerminalServer.EnumerateServers(ADomain: TJwString): Boolean;
+function TJwTerminalServer.EnumerateServers(const ADomain: TJwString): Boolean;
 begin
   // Does the thread exist?
   if Assigned(FEnumServersThread) then
   begin
-    OutputDebugString('thread is already assigned');
     Result := False;
   end
   else
   begin
     // Create the thread
-    OutputDebugString('create thread');
     FEnumServersThread := TJwWTSEnumServersThread.Create(True, Self, ADomain);
     FEnumServersThread.OnTerminate := OnEnumServersThreadTerminate;
     FEnumServersThread.Resume;
     Result := True;
+  end;
+end;
+
+{ this is a workaround for a bug in Vista
+  When opening a server connection with WTSOpenServer it is supposed to return
+  0 if the connection fails but instead it returns a handle to the localmachine.
+  This function tries to open the Ctx_WinStation_API_service Pipe
+}
+function IsConnectionValid(const Servername: String): Boolean;
+const
+  CtxWinStationAPIservice: TJwString = 'Ctx_WinStation_API_service';
+var
+  PipeName: TJwPChar;
+  PipeHandle: THandle;
+begin
+  // Pipename will be \\server\pipe\Ctx_WinStation_API_service
+  // Note that this pipe can be opened only remotely
+  PipeName := TJwPChar(Format('\\%s\pipe\%s', [Servername, CtxWinStationAPIservice]));
+
+  // Try to open the Named Pipe with least possible rights, if the call succeeds
+  // we trust the connection
+  PipeHandle := {$IFDEF UNICODE}CreateFileW{$ELSE}CreateFileA{$ENDIF}(
+    PipeName,       //__in      LPCTSTR lpFileName,
+    SYNCHRONIZE,    //__in      DWORD dwDesiredAccess,
+    0,              //__in      DWORD dwShareMode,
+    nil,            //__in_opt  LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+    OPEN_EXISTING,  //__in      DWORD dwCreationDisposition,
+    0,              //__in      DWORD dwFlagsAndAttributes,
+    0               //__in_opt  HANDLE hTemplateFile
+  );
+
+  // Return False if PipeHandle = INVALID_HANDLE_VALUE
+  Result := PipeHandle <> INVALID_HANDLE_VALUE;
+
+  // Close the Handle
+  if PipeHandle <> INVALID_HANDLE_VALUE then
+  begin
+    CloseHandle(PipeHandle);
   end;
 end;
 
@@ -2920,12 +3185,13 @@ begin
       WTSOpenServerA(PAnsiChar(FServer));
 {$ENDIF}
       // If WTSOpenServer fails the return value is 0
-      if FServerHandle = 0 then
+      // Workaround for (possible) bug, see comments in IsConnectionValid function
+      if (FServerHandle = 0) {or (not IsConnectionValid(FServer)) }then
       begin
         // Mark handle as invalid
         FServerHandle := INVALID_HANDLE_VALUE;
         FConnected := False;
-        
+
         // and raise exception
         raise EJwsclTerminalServerConnectException.CreateFmtWinCall(RsWinCallFailed,
           'WTSOpenServer', ClassName, RsUNTerminalServer, 0, True,
@@ -2960,9 +3226,16 @@ var
   LocalFileTime: TFileTime;
   SystemTime: TSystemTime;
 begin
-  FileTimeToLocalFileTime(FileTime, LocalFileTime);
-  FileTimeToSystemTime(LocalFileTime, SystemTime);
-  Result := SystemTimeToDateTime(SystemTime);
+  // Return 0 in case of failure
+  Result := 0;
+  if not FileTimeToLocalFileTime(FileTime, LocalFileTime) then Exit;
+  if not FileTimeToSystemTime(LocalFileTime, SystemTime) then Exit;
+
+  try
+    Result := SystemTimeToDateTime(SystemTime);
+  except
+    // Ignore Exception
+  end;
 end;
 
 procedure TJwTerminalServer.Shutdown(AShutdownFlag: DWORD);
@@ -2978,9 +3251,6 @@ constructor TJwWTSEventThread.Create(CreateSuspended: Boolean;
 begin
   inherited Create(CreateSuspended, Format('%s (%s)', [ClassName, AOwner.Server]));
   FreeOnTerminate := False;
-
-  //OutputDebugString('creating wtsevent thread');
-
   FOwner := AOwner;
 end;
 
@@ -2992,15 +3262,14 @@ begin
 
   while not Terminated do
   begin
-    // Wait some time to prevent duplicate event dispatch
-    Sleep(500);
-    OutputDebugString('Entering WTSWaitSystemEvent');
-
+    // Wait some time to prevent duplicate event dispatch on Windows 2000
+    // see http://support.microsoft.com/kb/249315
+//    Sleep(50);
     if WTSWaitSystemEvent(FOwner.ServerHandle, WTS_EVENT_ALL, FEventFlag) then
     begin
-      if FEventFlag > WTS_EVENT_FLUSH then
+
+      if FEventFlag > WTS_EVENT_NONE then
       begin
-        OutputDebugString('Dispatching');
         Synchronize(DispatchEvent);
       end;
     end
@@ -3010,7 +3279,6 @@ begin
         'WTSWaitSystemEvent', ClassName, RsUNTerminalServer, 0, True,
         'Server: %s LastEvent: %d', [FOwner.Server, FOwner.LastEventFlag]);
     end;
-    Sleep(0);
   end;
 end;
 
@@ -3027,7 +3295,6 @@ constructor TJwWTSEnumServersThread.Create(CreateSuspended: Boolean;
   Owner: TJwTerminalServer; Domain: TJwString);
 begin
   JwRaiseOnNilParameter(Owner, 'Owner','Create', ClassName, RsUNTerminalServer);
-  OutputDebugString('Creating EnumServers thread');
 
   inherited Create(CreateSuspended, Format('%s (%s)', [ClassName, Owner.Server]));
 
@@ -3039,7 +3306,7 @@ end;
 
 procedure TJwWTSEnumServersThread.Execute;
 type
-  PWTS_SERVER_INFO = {$IFDEF UNICODE}PWTS_SERVER_INFOW{$ELSE}PWTS_SERVER_INFOA{$ENDIF UNICODE};
+  PWTS_SERVER_INFO = PWTS_SERVER_INFOA;
 var
   ServerInfoPtr: PJwWtsServerInfoAArray;
   pCount: DWORD;
@@ -3047,23 +3314,20 @@ var
 begin
   inherited Execute;
 
-  OutputDebugString('thread is executing');
   // Clear the serverlist
   Synchronize(ClearServerList);
 
   ServerInfoPtr := nil;
   // Since we return to a Stringlist (which does not support unicode)
   // we only use WTSEnumerateServersA
-
-  if {$IFDEF UNICODE}WTSEnumerateServersW{$ELSE}WTSEnumerateServersA{$ENDIF UNICODE}
-   (TJwPChar(FDomain), 0, 1, PWTS_SERVER_INFO(ServerInfoPtr),
-    pCount) then
+  if WTSEnumerateServersA(PAnsiChar(AnsiString(FDomain)), 0, 1,
+    PWTS_SERVER_INFOA(ServerInfoPtr), pCount) then
   begin                                      
     for i := 0 to pCount - 1 do
     begin
       // If the thread is terminated then leave the loop
       if Terminated then Break;
-      FServer := String(PWideChar(ServerInfoPtr^[i].pServerName));
+      FServer := String(ServerInfoPtr^[i].pServerName);
       Synchronize(AddToServerList);
     end;
 
@@ -3229,6 +3493,21 @@ begin
   Result := inherited Add(AProcess);
 end;
 
+function TJwWTSProcessList.FindByPid(const PID: Cardinal): TJwWTSProcess;
+var
+  i: Integer;
+begin
+  Result := nil;
+
+  for i := 0 to Self.Count - 1 do
+  begin
+    if Items[i].FProcessId = PID then
+    begin
+      Result := Items[i];
+    end;
+  end;
+end;
+
 function TJwWTSProcessList.GetEnumerator: TJwProcessEnumerator;
 begin
   Result := TJwProcessEnumerator.Create(Self);
@@ -3288,8 +3567,9 @@ var
 begin
   if not Modify then
   begin
+  // WinStationShadowInformation = 26
 {    if not }WinStationQueryInformationW(FOwner.GetServerHandle, FOwner.SessionId,
-     WinStationShadowInformation, @FWinStationShadowInformation,
+     WinStationShadowInfo, @FWinStationShadowInformation,
      SizeOf(FWinstationShadowInformation), ReturnedLength);{ then
       raise EJwsclWinCallFailedException.CreateFmtWinCall(RsWinCallFailed,
        'UpdateShadowInformation', ClassName, RsUNTerminalServer, 0, True,
@@ -3297,11 +3577,97 @@ begin
   end
   else
     if not WinStationSetInformationW(FOwner.GetServerHandle, FOwner.SessionId,
-     WinStationShadowInformation, @FWinStationShadowInformation,
+     WinStationShadowInfo, @FWinStationShadowInformation,
      SizeOf(FWinstationShadowInformation)) then
       raise EJwsclWinCallFailedException.CreateFmtWinCall(RsWinCallFailed,
        'UpdateShadowInformation', ClassName, RsUNTerminalServer, 0, True,
        'WinStationSetInformationW', ['WinStationSetInformationW']);
+end;
+
+constructor TJwWTSSessionStatistics.Create(const AOwner: TJwTerminalServer);
+begin
+  JwRaiseOnNilParameter(AOwner, 'AOwner', 'Create', ClassName, RsUNTerminalServer);
+
+  FOwner := AOwner;
+  UpdateCounters;
+end;
+
+function TJwWTSSessionStatistics.GetCounterValue(const CounterID: Integer): Integer;
+begin
+  with TSCounterArray[CounterID], counterHead do
+  begin
+    if bResult then Result := dwValue else Result := -1;
+  end;
+end;
+
+function TJwWTSSessionStatistics.GetLoadIndicatorData: TWinStationLoadIndicatorData;
+var
+  dwReturnLength: DWORD;
+  bSucceeded: Boolean;
+begin
+  ZeroMemory(@FLoadIndicatorData, SizeOf(FLoadIndicatorData));
+  FOwner.Connect;
+  dwReturnLength := 0;
+  bSucceeded := WinStationQueryInformationW(FOwner.ServerHandle, 0,
+    WinStationLoadIndicator, @FLoadIndicatorData, SizeOf(FLoadIndicatorData),
+    dwReturnLength);
+  if not bSucceeded then
+  begin
+    raise EJwsclWinCallFailedException.CreateFmtWinCall(RsWinCallFailed,
+      'TJwWTSSessionStatistics.GetLoadIndicatorData', ClassName, RsUNTerminalServer, 0, True,
+          'WinStationQueryInformationW', ['WinStationLoadIndicator']);
+  end;
+
+  Result := FLoadIndicatorData;
+end;
+
+procedure TJwWTSSessionStatistics.UpdateCounters;
+var
+  i: Integer;
+begin
+  { Initialize Array }
+  for i := Low(TSCounterArray) to High(TSCounterArray) do
+  begin
+    TSCounterArray[i].counterHead.dwCounterID := i;
+  end;
+
+  { connect to the Terminal Server }
+  FOwner.Connect;
+
+  { retrieve the counters }
+  if not WinStationGetTermSrvCountersValue(FOwner.ServerHandle,
+    Length(TSCounterArray), PTS_COUNTER(@TSCounterArray)) then
+  begin
+    raise EJwsclWinCallFailedException.CreateFmtWinCall(RsWinCallFailed,
+      'TJwWTSSessionStatistics.UpdateCounters', ClassName, RsUNTerminalServer, 0, True,
+          'WinStationGetTermSrvCountersValue', ['WinStationGetTermSrvCountersValue']);
+  end;
+
+
+end;
+
+function TJwTerminalServer.CachedGetUserFromSessionId(const Sessionid: Cardinal): TJwString;
+var
+  WinStationInfo: _WINSTATIONINFORMATIONW;
+  dwReturnLength: DWORD;
+begin
+  Result := '(unknown)';
+
+  if SessionId = CachedUser.SessionId  then
+  begin
+    Result := CachedUser.Username;
+  end
+  else begin
+    ZeroMemory(@WinStationInfo, SizeOf(WinStationInfo));
+
+    if WinStationQueryInformationW(ServerHandle, SessionId,
+      WinStationInformation, @WinStationInfo, SizeOf(WinStationInfo),
+      dwReturnLength) then
+    begin
+      CachedUser.SessionId := SessionId;
+      CachedUser.Username := TJwString(WinStationInfo.UserName);
+    end;
+  end;
 end;
 
 function TJwTerminalServer.GetIdleProcessName: TJwString;
@@ -3324,7 +3690,7 @@ begin
       // taskmgr.exe.mui with same id
       if LoadStringW(hModule, 10005, lpBuffer, nBufferMax) > 0 then
       begin
-        FIdleProcessName := PWideCharToJwString(lpBuffer);
+        FIdleProcessName := JwPWideCharToJwString(lpBuffer);
       end;
       // Cleanup
       FreeMem(lpBuffer);
@@ -3333,6 +3699,154 @@ begin
   end;
 
   Result := FIdleProcessName;
+end;
+
+{ This functions reads out the total amount of Physical Memory in Bytes for
+  local or remote systems using the registry. Locally user rights are needed
+  but for Remote Systems admin righs are needed. If reading the memory fails
+  (eg because of access denied) the returned result is 0, any exceptions are
+  surpressed }
+function TJwTerminalServer.GetPhysicalMemory;
+const
+  EnvKey: String = '\SYSTEM\CurrentControlSet\Control\Session Manager\Environment';
+  EnvVal: String = 'PROCESSOR_ARCHITECTURE';
+  PhysMemKey: String = '\HARDWARE\RESOURCEMAP\System Resources\Physical Memory';
+  PhysMemVal: String = '.Translated';
+var
+  Is64Bit: Boolean;
+  Reg: TRegistry;
+  RootKey: HKEY;
+  cbSize: Integer;
+  ResourceListPtr: PCM_RESOURCE_LIST;
+  PartDescript: PCM_PARTIAL_RESOURCE_DESCRIPTOR;
+  PartDescriptEx: PCM_PARTIAL_RESOURCE_DESCRIPTOR_EX;
+  Index: Integer;
+  Counter: Integer;
+  s: TJwString;
+begin
+  if FPhysicalMemory > -1 then
+  begin
+    Result := FPhysicalMemory;
+    Exit;
+  end;
+
+  // Default result = 0
+  Result := 0;
+  ResourceListPtr := nil;
+
+  // Prepend \\ to machinename if needed
+  s := FServer;
+  if Pos('\\', s) <> 0 then
+  begin
+    s := '\\' + s;
+  end;
+
+  { Connect to (remote) Registry. Please note there is a bug in Windows 2003 SP1
+    from http://support.microsoft.com/kb/906570: After you apply Microsoft
+    Windows Server 2003 Service Pack 1 (SP1) or install an x64-based version of
+    Windows Server 2003, a custom program that uses the RegConnectRegistry
+    function can no longer access the registry of a remote computer.
+    I was not able to test if this bug prevents us from reading the value
+    remotely }
+  if RegConnectRegistry(TJwPChar(s), HKEY_LOCAL_MACHINE, RootKey) <> Integer(ERROR_SUCCESS) then
+  begin
+    Exit;
+  end;
+
+  Reg := TRegistry.Create;
+  try
+    Reg.RootKey := RootKey;
+    { First we read out the Environment variable PROCESSOR_ARCHITECTURE to
+      determine is the system is x86 or x64 }
+    if Reg.OpenKeyReadOnly(EnvKey) then
+    begin
+      try
+        { Both intel and Amd 64 bit systems have the value AMD64 }
+        Is64Bit := CompareText(Reg.ReadString(EnvVal), 'AMD64') = 0;
+
+        // Now open the Physical Memory key
+        if Reg.OpenKeyReadOnly(PhysMemKey) then
+        begin
+
+          { Get Value Size in bytes }
+          cbSize := Reg.GetDataSize(PhysMemVal);
+
+          { Check is Size > 0 }
+          if cbSize > 0 then begin
+
+            { Allocate and zero Memory }
+            ResourceListPtr := AllocMem(cbSize);
+
+            { Read data into ResourceListPtr var }
+            Reg.ReadBinaryData(PhysMemVal, ResourceListPtr^, cbSize);
+
+            { Loop throught the ResourceList(s), usually it's only 1 }
+            for Index := 0 to ResourceListPtr^.Count-1 do
+            begin
+              { x64 systems have a slightly different structure because the
+                memory size parameter is not ULONG but ULONGLONG. To solve this we
+                assign the PartialDescriptors array to 2 pointers. }
+
+              PartDescript := @ResourceListPtr^.List[Index].PartialResourceList.PartialDescriptors;   // x86
+              PartDescriptEx := @ResourceListPtr^.List[Index].PartialResourceList.PartialDescriptors; // x64
+              for Counter := 0 to ResourceListPtr^.List[Index].PartialResourceList.Count - 1 do
+              begin
+                begin
+                  if Is64Bit then { for x64 we use PartDescriptEx }
+
+                  begin
+                    { Check if the Resourcetype = Memory and that the memory is
+                      read/write }
+                    if (PartDescriptEx.ResType = CmResourceTypeMemory) and
+                      (PartDescriptEx.Flags = CM_RESOURCE_MEMORY_READ_WRITE) then
+                    begin
+                      Result := Result + PartDescriptEx.Memory.Length;
+                    end;
+                    { The Inc operator increases the pointer by
+                      SizeOf(PartDescriptEx^) which jumps to the next item in
+                      the array }
+                    Inc(PartDescriptEx);
+                  end
+                  else begin { for x86 we use PartDescript }
+                    { Check if the Resourcetype = Memory and that the memory is
+                      read/write }
+                    if (PartDescript.ResType = CmResourceTypeMemory) and
+                      (PartDescript.Flags = CM_RESOURCE_MEMORY_READ_WRITE) then
+                    begin
+                      Result := Result + PartDescript.Memory.Length;
+                    end;
+                    { The Inc operator increases the pointer by
+                      SizeOf(PartDescriptEx^) which jumps to the next item in
+                      the array }
+                    Inc(PartDescript);
+                  end;
+                end;
+              end;
+            end;
+          end;
+        end;
+      except
+        { Return 0 on any exception }
+        Result := 0;
+      end;
+
+      { Free the memory }
+      if ResourceListPtr <> nil then FreeMem(ResourceListPtr);
+    end;
+
+  finally
+    { Close the key }
+    RegCloseKey(RootKey);
+    FreeAndNil(Reg);
+  end;
+
+  if Result > 0 then
+  begin
+    FPhysicalMemory := Result;
+  end
+  else begin
+    Result := -1;
+  end;
 end;
 
 function TJwTerminalServerList.FindByServer(const ServerName: WideString; const IgnoreCase: boolean = False): TJwTerminalServer;
@@ -3469,11 +3983,12 @@ begin
   // ZeroMemory
   ZeroMemory(@WinStationDriver, SizeOf(WinStationDriver));
 
+  // WdConfig = 3
   if WinStationQueryInformationW(GetServerHandle, FSessionId,
-    WdConfig, @WinStationDriver, SizeOf(WinStationDriver),
+    WinStationWd, @WinStationDriver, SizeOf(WinStationDriver),
     dwReturnLength) then
   begin
-    FWdName := PWideCharToJwString(WinStationDriver.WdName);
+    FWdName := JwPWideCharToJwString(WinStationDriver.WdName);
     FWdFlag := WinStationDriver.WdFlag;
   end;
 end;
@@ -3481,14 +3996,15 @@ end;
 // #todo Remove IdleTime helper from JwaWinsta
 procedure TJwWTSSession.GetWinStationInformation;
 var
-  WinStationInfo: _WINSTATION_INFORMATIONW;
+//  WinStationInfo: _WINSTATION_INFORMATIONW;
+  WinStationInfo: _WINSTATIONINFORMATIONW;
   dwReturnLength: DWORD;
   lpBuffer: PWideChar;
 begin
   // ZeroMemory
   ZeroMemory(@WinStationInfo, SizeOf(WinStationInfo));
   lpBuffer := nil;
-
+  // WinStationInformation = 8
   if WinStationQueryInformationW(GetServerHandle, FSessionId,
     WinStationInformation, @WinStationInfo, SizeOf(WinStationInfo),
     dwReturnLength) then
@@ -3501,7 +4017,7 @@ begin
       try
         // Format LogonTime string
         DateTimeStringSafe(@WinStationInfo.LogonTime, lpBuffer, MAX_PATH);
-        FLogonTimeStr := PWideCharToJwString(lpBuffer);
+        FLogonTimeStr := JwPWideCharToJwString(lpBuffer);
       finally
         FreeMem(lpBuffer);
         lpBuffer := nil;
@@ -3510,20 +4026,21 @@ begin
       if FWdFlag > WD_FLAG_CONSOLE then
       begin
         // Counter values (Status from TSAdmin)
-        FIncomingBytes := WinStationInfo.IncomingBytes;
-        FIncomingCompressedBytes := WinStationInfo.IncomingCompressedBytes;
-        FIncomingFrames := WinStationInfo.IncomingFrames;
+        FIncomingBytes := WinStationInfo.Status.Input.WdBytes;
+        FIncomingCompressedBytes := WinStationInfo.Status.Input.CompressedBytes;
+        FIncomingFrames := WinStationInfo.Status.Input.WdFrames;
 
-        FOutgoingBytes := WinStationInfo.OutgoingBytes;
-        FOutgoingCompressBytes := WinStationInfo.OutgoingCompressBytes;
-        FOutgoingFrames := WinStationInfo.OutgoingFrames;
+
+        FOutgoingBytes := WinStationInfo.Status.Output.WdBytes;
+        FOutgoingCompressBytes := WinStationInfo.Status.Output.CompressedBytes;
+        FOutgoingFrames := WinStationInfo.Status.Output.WdFrames;
 
         // Calculate Compression ratio and store as formatted string
-        if WinStationInfo.OutgoingBytes > 0 then // 0 division check
+        if FOutgoingBytes > 0 then // 0 division check
+
         begin
           FCompressionRatio := Format('%1.2f',
-            [WinStationInfo.OutgoingCompressBytes /
-            WinStationInfo.OutgoingBytes]);
+            [FOutgoingCompressBytes / FOutgoingBytes]);
         end
         else
           FCompressionRatio := '(inf)'; //infinite output
@@ -3535,7 +4052,8 @@ begin
       WinStationInfo.LastInputTime := WinStationInfo.DisconnectTime;
     end;
 
-    if FUsername = '' then
+    //  Vista returns LastInputTime 0
+    if (FUsername = '') or (WinStationInfo.LastInputTime.QuadPart = 0) then
     begin
       // A session without a user is not idle, usually these are special
       // sessions like Listener, Services or console session
@@ -3546,27 +4064,27 @@ begin
     else
     begin
       // Store the IdleTime as elapsed seconds
-      FIdleTime := CalculateDiffTime(Int64(WinStationInfo.LastInputTime),
-        Int64(WinStationInfo.CurrentTime));
+      FIdleTime := CalculateDiffTime(WinStationInfo.LastInputTime.QuadPart,
+        WinStationInfo.CurrentTime.QuadPart);
       // Calculate & Format Idle Time String, DiffTimeString allocates the
       // memory for us
-      DiffTimeString(WinStationInfo.LastInputTime, WinStationInfo.CurrentTime,
+      DiffTimeString(FileTime(WinStationInfo.LastInputTime), FileTime(WinStationInfo.CurrentTime),
         lpBuffer);
       try
-        FIdleTimeStr := PWideCharToJwString(lpBuffer);
+        FIdleTimeStr := JwPWideCharToJwString(lpBuffer);
       finally
         // We free the memory DiffTimeString has allocated for us
         FreeMem(lpBuffer);
       end;
     end;
 
-    FConnectTime := FileTime2DateTime(WinStationInfo.ConnectTime);
-    FDisconnectTime := FileTime2DateTime(WinStationInfo.DisconnectTime);
+    FConnectTime := FileTime2DateTime(FileTime(WinStationInfo.ConnectTime));
+    FDisconnectTime := FileTime2DateTime(FileTime(WinStationInfo.DisconnectTime));
     // for A disconnected session LastInputTime has been set to DisconnectTime
-    FLastInputTime := FileTime2DateTime(WinStationInfo.LastInputTime);
-//    FLogonTime := FileTime2DateTime(WinStationInfo.LogonTime);
-    FLogonTime := Int64(WinStationInfo.LogonTime);
-    FCurrentTime := FileTime2DateTime(WinStationInfo.CurrentTime);
+    FLastInputTime := FileTime2DateTime(FileTime(WinStationInfo.LastInputTime));
+    FLogonTime := WinStationInfo.LogonTime.QuadPart;
+    FCurrentTime := FileTime2DateTime(FileTime(WinStationInfo.CurrentTime));
+    FCurrentTimeEx := WinStationInfo.CurrentTime.QuadPart
   end;
 
 end;
@@ -3616,6 +4134,10 @@ begin
   end;
 end;
 
+{constructor TJwWTSSession.CreateEmpty;
+begin
+  inherited Create;
+end;}
 
 constructor TJwWTSSession.Create(const Owner: TJwWTSSessionList;
   const SessionId: TJwSessionId; const WinStationName: TJwString;
@@ -3631,9 +4153,9 @@ begin
   FOwner := Owner; // Session is owned by the SessionList
   // First store the SessionID
   FSessionId := SessionId;
-  FShadow := TJwWTSSessionShadow.Create(Self); 
+  FShadow := TJwWTSSessionShadow.Create(Self);
   FConnectState := ConnectState;
-  FConnectStateStr := PWideCharToJwString(StrConnectState(FConnectState, False));
+  FConnectStateStr := JwPWideCharToJwString(StrConnectState(FConnectState, False));
   FWinStationName := WinStationName;
   FApplicationName := GetSessionInfoStr(WTSApplicationName);
   FClientAddress := GetClientAddress;
@@ -3670,6 +4192,10 @@ function TJwWTSSession.Connect(const Password: WideString): Boolean;
 begin
   Result := WinStationConnectW(Owner.Owner.FServerHandle, WTS_CURRENT_SESSION,
     FSessionId, PWideChar(WideString(Password)), False);
+  if not Result then raise EJwsclWinCallFailedException.CreateFmtWinCall(RsWinCallFailed,
+      'Connect', ClassName, RsUNTerminalServer, 0, True,
+          'WinStationConnectW', ['WinStationConnectW']);
+
 end;
 
 destructor TJwWTSSession.Destroy;
@@ -3759,6 +4285,22 @@ begin
     Result, ATimeOut <> 0);
 {$ENDIF UNICODE}
 end;
+
+class function TJwWTSSession.SendLocalMessage(const SessionID : TJwSessionId; const AMessage: TJwString;
+  const ACaption: TJwString; const uType: DWORD; const ATimeOut: DWORD): DWORD;
+begin
+{$IFDEF UNICODE}
+  WTSSendMessageW(0, SessionID, PWideChar(ACaption),
+    Length(ACaption) * SizeOf(WCHAR), PWideChar(AMessage),
+    Length(AMessage) * SizeOf(WCHAR), uType, ATimeOut, Result, ATimeOut <> 0);
+{$ELSE}
+  WTSSendMessageA(0, SessionID, PAnsiChar(ACaption),
+    Length(ACaption), PAnsiChar(AMessage), Length(AMessage), uType, ATimeOut,
+    Result, ATimeOut <> 0);
+{$ENDIF UNICODE}
+end;
+
+
 
 function TJwWTSSession.PostMessage(const AMessage: TJwString;
   const ACaption: TJwString; const uType: DWORD): DWORD;
@@ -3877,11 +4419,19 @@ end;
 function TjwWTSProcess.Terminate: Boolean;
 begin
   Result := WTSTerminateProcess(GetServerHandle, ProcessId, 0);
+  if not Result then
+    raise EJwsclWinCallFailedException.CreateFmtWinCall(RsWinCallFailed,
+        'Terminate', ClassName, RsUNTerminalServer, 0, True,
+        '', ['WTSTerminate']);
 end;
 
 function TJwWTSProcess.Terminate(const dwExitCode: DWORD): Boolean;
 begin
   Result := WTSTerminateProcess(GetServerHandle, ProcessId, dwExitCode);
+  if not Result then
+    raise EJwsclWinCallFailedException.CreateFmtWinCall(RsWinCallFailed,
+        'Terminate', ClassName, RsUNTerminalServer, 0, True,
+        '', ['WTSTerminate']);
 end;
 
 

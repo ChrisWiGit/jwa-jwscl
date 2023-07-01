@@ -36,7 +36,7 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 
 }
 unit JwsclResource;
-{$INCLUDE Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
@@ -302,7 +302,16 @@ const
   RsSecureObjectsNotEnoughMemoryForThreadData = 'Not enough memory to alloca' +
     'te thread data.';
 
+  RsPrivilegeLabelBug = 'To obtain the integrity level from a named service object you need to '+
+    ' apply siSaclSecurityInformation and the privilege SE_SECURITY_NAME.';
+    
   RsUnimplementedSACLInheritance = 'Inheritance of SACL.';
+  RsInvalidParameterAccessCheck = 'The parameter DesiredAccess must not contain MAXIMUM_ALLOWED for this method. '+
+    'If you need to retrieve maximum allowed rights you should call the other AccessCheck method with parameter '+
+    'GrantedAccess present.';
+
+  RsInvalidPathPatternForGetFileInheritanceSource = 'The path "%0:s" is invalid. UNC paths are not supported. A pathname must look like X:[\Path]* ';
+
 
 //unit JwsclSid.pas
 
@@ -335,6 +344,7 @@ const
   RsSidUnknownSid    = '(S-1-????)\r\n%s';
   RsSidTextString    = '%0:s %1:s (%2:s) [%3:s]';
   RsInvalidSidAuthorityValue = 'The identifier authority value must not be larger than $FFFFFFFFFFFF.';
+  RsInvalidDomainSid = 'The given SID (%0:s) does not match "S-1-5-21-xx-yy-zz" pattern.';
 
 
 //Unit JwsclToken.pas
@@ -494,6 +504,9 @@ const
 //
   RsElevationRegDeleteError = 'The key %0:s could not be deleted.';
   RsElevationRegCreateError = 'The key %0:s could not be created.';
+  RsElevationAbort          = 'The user aborted the elevation process.';
+  RsSuRunShellExecute       = 'ShellExecute failed while trying to run SuRun.';
+  RsSunRunFailed            = 'SuRun failed and returned status code: %0:d';
 
 //Unit JwsclCryptProvider.pas
 
@@ -534,6 +547,11 @@ const
   RsWinCallFailedWithSecurityStatus = 'Call to %0:s failed. SecurityStatus: %1:d';
   RsWinCallFailed = 'Call to %0:s failed.';
   RsNilParameter  = 'Parameter %0:s must not be nil';
+  RsVistaFeaturesDisabled = 'EJwsclVistaFeaturesDisabled</B> is raised if the JWSCL library'+
+    'was compiled with the compiler directive VISTA deactivated.'+
+    'To use vista features you must activate the directive in file'+
+    'includes\Jwscl.inc and make sure that you also compiled JwaWindows'+
+    'with at least WINVISTA or WIN2008 to enable Vista features.';
   RsInfinite      = '(infinite)';
 
   RsResourceInitFailed = 'Loadstring failed when tried to load first string index %d.';
@@ -610,7 +628,6 @@ const
   RsUNStreams            = 'JwsclStreams.pas';
 
   RsUnLibrary = 'JwscLibrary.pas';
-
 
 
 {<B>GetResourceStringIdentifier</B> converts a Delphi resourcestring into a resource identifier.

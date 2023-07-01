@@ -36,16 +36,21 @@ The Initial Developer of the Original Code is Heiko Adams
 
 }
 unit JwsclFirewall;
+{$INCLUDE ..\includes\Jwscl.inc}
 
 interface
 
-uses ComObj,
-    NetFwTypeLib_TLB, //can be found at \jwapi\trunk\COM
+uses
+    JwaWindows,
+    ComObj,
+    NetFwTypeLib_TLB, //can be found in \jwapi\trunk\COM
     JwsclConstants,
     JwsclExceptions,
     JwsclStrings;
 
 type
+  { TJwsclFirewall implements methods and properties to access, administer, set and
+    get the Microsoft Windows Firewall.                                             }
   TJwsclFirewall = class(TObject)
   protected
     FFWMgr: INetFwMgr;
@@ -57,8 +62,8 @@ type
     procedure SetFirewallState(Value: Boolean); virtual;
     procedure SetExceptionsAllowed(Value: Boolean); virtual;
 
-    function GetIncommingPingAllowed: Boolean; virtual;
-    procedure SetIncommingPingAllowed(Value: Boolean); virtual;
+    function GetIncomingPingAllowed: Boolean; virtual;
+    procedure SetIncomingPingAllowed(Value: Boolean); virtual;
 
     function GetRemoteAdminAllowed(): Boolean; virtual;
     procedure SetRemoteAdminAllowed(Value: Boolean); virtual;
@@ -83,17 +88,18 @@ type
 
      {<B>AddToWinFirewall</B> Creates a firewallrule for specified program.
      @param ApplicationFilename defines the executable of the program
-     @param NameOnExeptionlist defines the string that should be used in the firewall's
+     @param NameOnExceptionList defines the string that should be used in the firewall's
       rules list
      @param EnableRule defines if the new rule should be active or not
      }
-    procedure AddToWinFirewall(ApplicationFilename, NameOnExeptionlist: TJwString;
-      EnableRule: Boolean); virtual;
+    procedure AddToWinFirewall(const ApplicationFilename, NameOnExceptionList: TJwString;
+      const EnableRule: Boolean); virtual;
+
 
     {<B>DeleteFromWinFirewall</B> Removes a program's firewall rule.
      @param ApplicationFilename defines the executable of the program
     }
-    procedure DeleteFromWinFirewall(ApplicationFilename: TJwString); virtual;
+    procedure DeleteFromWinFirewall(const ApplicationFilename: TJwString); virtual;
 
     {<B>AddTcpPortToFirewall</B> Adds a rule for a single tcp port to the firewall.
      @param ProtocollName gives a description of the opened port (e.g. "FTP-Server") 
@@ -105,20 +111,20 @@ type
       ProtocollPort: Integer; const SubnetOnly: Boolean = False;
       const PortRemoteAddresses: TJwString = '*'); virtual;
 
-    {<B>AddUpdPortToFirewall</B> Adds a rule for a single udp port to the firewall.
+    {<B>AddUdpPortToFirewall</B> Adds a rule for a single udp port to the firewall.
      @param ProtocollName gives a description of the opened port (e.g. "FTP-Server")
      @param ProtocollPort defines the port of the protocol
      @param SubnetOnly defines if the rule affects only the pc's subnet or not
      @param PortRemoteAddresses defines which Remoteadress and port should be allowed
     }
-    procedure AddUpdPortToFirewall(ProtocollName: TJwString;
+    procedure AddUdpPortToFirewall(ProtocollName: TJwString;
       ProtocollPort: Integer; const SubnetOnly: Boolean = False;
       const PortRemoteAddresses: TJwString = '*'); virtual;
 
     {<B>IsAppRulePresent</B> Checks if a firewall rule for the specified application is already present
      @param ApplicationFilename defines the executable of the program
     }
-    function IsAppRulePresent(ApplicationFilename: TJwString): Boolean;
+    function IsAppRulePresent(const ApplicationFilename: TJwString): Boolean;
 
     {<B>Active</B> Sets or gets if the windows firewall is active or not}
     property Active: Boolean read GetFirewallState write SetFirewallState;
@@ -127,9 +133,9 @@ type
     property ExceptionsAllowed: Boolean read GetExceptionsAllowed
       write SetExceptionsAllowed;
 
-    {<B>IncommingPingAllowed</B> Sets or gets if the windows firewall allows incomming pings}
-    property IncommingPingAllowed: Boolean read GetIncommingPingAllowed
-      write SetIncommingPingAllowed;
+    {<B>IncomingPingAllowed</B> Sets or gets if the windows firewall allows Incoming pings}
+    property IncomingPingAllowed: Boolean read GetIncomingPingAllowed
+      write SetIncomingPingAllowed;
 
     {<B>RemoteAdminAllowed</B> Sets or gets if the windows firewall allows remote administration}
     property RemoteAdminAllowed: Boolean read GetRemoteAdminAllowed
@@ -243,7 +249,7 @@ begin
 end;
 
 
-function TJwsclFirewall.GetIncommingPingAllowed: Boolean;
+function TJwsclFirewall.GetIncomingPingAllowed: Boolean;
 begin
   try
     Result := FProfile.IcmpSettings.AllowInboundEchoRequest;
@@ -251,15 +257,15 @@ begin
     on e: EOleSysError do
     begin
       SetLastError(E.ErrorCode);
-      raise EJwsclGetIncommingPingAllowedException.CreateFmtEx(e.Message,
-        'GetIncommingPingAllowed', ClassName, RsUNFirewall,
+      raise EJwsclGetIncomingPingAllowedException.CreateFmtEx(e.Message,
+        'GetIncomingPingAllowed', ClassName, RsUNFirewall,
         0, True, []);
     end;
   end;
 end;
 
 
-procedure TJwsclFirewall.SetIncommingPingAllowed(Value: Boolean);
+procedure TJwsclFirewall.SetIncomingPingAllowed(Value: Boolean);
 begin
   try
     FProfile.IcmpSettings.AllowInboundEchoRequest := Value;
@@ -267,8 +273,8 @@ begin
     on e: EOleSysError do
     begin
       SetLastError(E.ErrorCode);
-      raise EJwsclSetIncommingPingAllowedException.CreateFmtEx(e.Message,
-        'SetIncommingPingAllowed', ClassName, RsUNFirewall,
+      raise EJwsclSetIncomingPingAllowedException.CreateFmtEx(e.Message,
+        'SetIncomingPingAllowed', ClassName, RsUNFirewall,
         0, True, []);
     end;
   end;
@@ -351,8 +357,8 @@ begin
 end;
 
 
-procedure TJwsclFirewall.AddToWinFirewall(ApplicationFilename,
-  NameOnExeptionlist: TJwString; EnableRule: Boolean);
+procedure TJwsclFirewall.AddToWinFirewall(const ApplicationFilename,
+  NameOnExceptionList: TJwString; const EnableRule: Boolean);
 var
   App: INetFwAuthorizedApplication;
 begin                
@@ -361,29 +367,24 @@ begin
   begin
     try
       App := CoNetFwAuthorizedApplication.Create;
+	  //Create throws OleException if anything goes wrong
 
-      if Assigned(@App) then
-      begin
-        with App do
-        begin
-          ProcessImageFileName := ApplicationFilename;
-          Name := NameOnExeptionlist;
-          Scope := NET_FW_SCOPE_ALL;
-          IpVersion := NET_FW_IP_VERSION_ANY;
-          Enabled := EnableRule;
-        end;
+	  App.ProcessImageFileName := ApplicationFilename;
+	  App.Name := NameOnExceptionList;
+	  App.Scope := NET_FW_SCOPE_ALL;
+	  App.IpVersion := NET_FW_IP_VERSION_ANY;
+	  App.Enabled := EnableRule;
 
-        try
-          FProfile.AuthorizedApplications.Add(App);
-        except
-          on e: EOleSysError do
-          begin
-            SetLastError(E.ErrorCode);
-            raise EJwsclFirewallAddRuleException.CreateFmtEx(e.Message,
-              'AddToWinFirewall', ClassName, RsUNFirewall,
-              0, True, []);
-          end;
-        end;
+	  try
+	    FProfile.AuthorizedApplications.Add(App);
+	  except
+	    on e: EOleSysError do
+	    begin
+	  	  SetLastError(E.ErrorCode);
+		  raise EJwsclFirewallAddRuleException.CreateFmtEx(e.Message,
+			'AddToWinFirewall', ClassName, RsUNFirewall,
+			0, True, []);
+		end;
       end;
     finally
       App := nil;
@@ -415,18 +416,16 @@ begin
   try
     Port := CoNetFwOpenPort.Create;
 
-    with Port do
-    begin
-      Name := ProtocollName;
-      Protocol := NET_FW_IP_PROTOCOL_TCP;
-      Port := ProtocollPort;
-      if SubnetOnly then
-        Scope := NET_FW_SCOPE_LOCAL_SUBNET
-      else
-        Scope := NET_FW_SCOPE_ALL;
-      RemoteAddresses := PortRemoteAddresses;
-      Enabled := True;
-    end;
+    Port.Name := ProtocollName;
+    Port.Protocol := NET_FW_IP_PROTOCOL_TCP;
+	  
+    Port.Port := ProtocollPort;
+    if SubnetOnly then
+      Port.Scope := NET_FW_SCOPE_LOCAL_SUBNET
+    else
+      Port.Scope := NET_FW_SCOPE_ALL;
+    Port.RemoteAddresses := PortRemoteAddresses;
+    Port.Enabled := True;
 
     try
       FProfile.GloballyOpenPorts.Add(Port);
@@ -445,7 +444,7 @@ begin
 end;
 
 
-procedure TJwsclFirewall.AddUpdPortToFirewall(ProtocollName: TJwString;
+procedure TJwsclFirewall.AddUdpPortToFirewall(ProtocollName: TJwString;
   ProtocollPort: Integer; const SubnetOnly: Boolean = False;
   const PortRemoteAddresses: TJwString = '*');
 var
@@ -454,32 +453,30 @@ begin
   if not GetFirewallState then
   begin
     raise EJwsclFirewallInactiveException.CreateFmtEx(RsFWInactive,
-          'AddUpdPortToFirewall', ClassName, RsUNFirewall,
+          'AddUdpPortToFirewall', ClassName, RsUNFirewall,
           0, false, []);
   end;
 
   if not GetExceptionsAllowed then
   begin
     raise EJwsclFirewallNoExceptionsException.CreateFmtEx(RsFWNoExceptionsAllowed,
-          'AddUpdPortToFirewall', ClassName, RsUNFirewall,
+          'AddUdpPortToFirewall', ClassName, RsUNFirewall,
           0, false, []);
   end;
           
   try
     Port := CoNetFwOpenPort.Create;
 
-    with Port do
-    begin
-      Name := ProtocollName;
-      Protocol := NET_FW_IP_PROTOCOL_UDP;
-      Port := ProtocollPort;
-      if SubnetOnly then
-        Scope := NET_FW_SCOPE_LOCAL_SUBNET
-      else
-        Scope := NET_FW_SCOPE_ALL;
-      RemoteAddresses := PortRemoteAddresses;
-      Enabled := True;
-    end;
+    Port.Name := ProtocollName;
+    Port.Protocol := NET_FW_IP_PROTOCOL_UDP;
+    Port.Port := ProtocollPort;
+    if SubnetOnly then
+      Port.Scope := NET_FW_SCOPE_LOCAL_SUBNET
+    else
+      Port.Scope := NET_FW_SCOPE_ALL;
+    Port.RemoteAddresses := PortRemoteAddresses;
+    Port.Enabled := True;
+    
 
     try
       FProfile.GloballyOpenPorts.Add(Port);
@@ -488,7 +485,7 @@ begin
       begin
         SetLastError(E.ErrorCode);
         raise EJwsclAddTcpPortToFirewallException.CreateFmtEx(e.Message,
-          'AddUpdPortToFirewall', ClassName, RsUNFirewall,
+          'AddUdpPortToFirewall', ClassName, RsUNFirewall,
           0, True, []);
       end;
     end;
@@ -498,9 +495,8 @@ begin
 end;
 
 
-procedure TJwsclFirewall.DeleteFromWinFirewall(ApplicationFilename: TJwString);
+procedure TJwsclFirewall.DeleteFromWinFirewall(const ApplicationFilename: TJwString);
 begin
-
   if GetFirewallState
     and GetExceptionsAllowed then
     try
@@ -517,7 +513,7 @@ begin
 end;
 
 
-function TJwsclFirewall.IsAppRulePresent(ApplicationFilename: TJwString): Boolean;
+function TJwsclFirewall.IsAppRulePresent(const ApplicationFilename: TJwString) : Boolean;
 var
   App: INetFwAuthorizedApplication;
 begin

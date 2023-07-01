@@ -39,32 +39,21 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclVersion;
-{$I Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
 
 uses SysUtils, 
   JwsclUtils, JwsclResource,
-  jwaWindows, JwsclConstants, JwsclExceptions,
+  jwaWindows, JwsclConstants, JwsclExceptions, JwsclTypes,
   JwsclStrings;
 
 {$ENDIF SL_OMIT_SECTIONS}
 
 {$IFNDEF SL_IMPLEMENTATION_SECTION}
 type
-  TFileVersionInfo = record
-    CompanyName: TJwString;
-    FileDescription: TJwString;
-    FileVersion: TJwString;
-    InternalName: TJwString;
-    LegalCopyright: TJwString;
-    LegalTradeMarks: TJwString;
-    OriginalFilename: TJwString;
-    ProductName: TJwString;
-    ProductVersion: TJwString;
-    Comments: TJwString;
-  end;
+
 
   TJwFileVersion = class(TObject)
   private
@@ -73,10 +62,12 @@ type
     {<B>GetFileInfo</B> retrieves a TFileVersionInfo structure for a given Filename.
     }
     class function GetFileInfo(const Filename: TJwString;
-      var FileVersionInfo: TFileVersionInfo): Boolean;
+      var FileVersionInfo: TJwFileVersionInfo): Boolean;
   end;
 
 
+  { <b>TJwServerInfo</b> retrieves Windows Version information on a remote (or
+    local) client.                                                             }
   TJwServerInfo = class(TObject)
   private
   protected
@@ -129,7 +120,7 @@ type
 
     {<B>GetWindowsType</B> returns a constant that defines the windows version the process is running.
      @return The return value can be one of these constants defined in JwsclConstants
-     Actually these items are supported 
+     Currently these items are supported 
      
        #  Spacing(Compact)
        #  cOsUnknown = The system is unknown
@@ -196,7 +187,7 @@ type
      If bOrHigher is <B>true</B> the return value is the result of
      <B>true</B> if (bOrHigher and (GetWindowsType > iVer)) is true;
      <B>false</B> if GetWindowsType < (requested version)
-      
+
     }
     function IsWindowsXP(bOrHigher: boolean = False): boolean;
 
@@ -252,7 +243,7 @@ type
   public
       {<B>GetWindowsType</B> returns a constant that defines the windows version the process is running.
        @return The return value can be one of these constants defined in JwsclConstants
-        Actually these items are supported
+        Currently these items are supported
         
          #  cOsUnknown = The system is unknown
          #  cOsWin95   = running on Windows 95
@@ -272,6 +263,9 @@ type
 
     class function GetWindowsType: integer; virtual;
 
+    class function GetCachedWindowsType: integer;
+    class function SetCachedWindowsType(const WindowsType : Integer; Server : Boolean = False) : Integer; virtual;
+    class procedure ResetCachedWindowsType; virtual;
       {<B>IsWindows95</B> checks if the system has the version given in the function name.
        @param bOrHigher defines if the return value should also be <B>true</B> if the system
               is better/higher than the requested system version. 
@@ -292,7 +286,7 @@ type
                If bOrHigher is <B>true</B> the return value is the result of
                 <B>true</B> if (bOrHigher and (GetWindowsType > iVer)) is true;
                 <B>false</B> if GetWindowsType < (requested version)
-                
+
        }
 
     class function IsWindows98(bOrHigher: boolean = False): boolean;
@@ -454,8 +448,21 @@ type
     // <B>IsWindows64</B> returns true if the process is running on any 64 bit Windows version
     class function IsWindows64 : boolean;
 
-    // <B>IsProcess64</B> returns true if we are currently in a 64 bit process
-    class function IsProcess64 : boolean;
+    class function IsUACEnabled : Boolean;
+
+
+
+    {<B>IsProcess64</B> checks if a process is 64 bit.
+	 param ProcessHandle Defines the process to be checked for 64 bit. If this parameter is zero
+	   the current process is used instead.
+	 return Returns true if the given process is a 64bit process.
+	 
+	 raises
+	   EJwsclWinCallFailedException This exception will be raised if the process handle has not the following rights
+	       XP/2003 : ROCESS_QUERY_INFORMATION
+	       Vista: ROCESS_QUERY_INFORMATION and PROCESS_QUERY_LIMITED_INFORMATION 
+	}
+    class function IsProcess64(ProcessHandle : DWORD = 0) : boolean;
   end;
 
 
@@ -465,7 +472,7 @@ type
 {$IFNDEF SL_OMIT_SECTIONS}
 implementation
 
-uses SysConst;
+uses SysConst, Registry;
 
 
 {$ENDIF SL_OMIT_SECTIONS}
@@ -480,8 +487,9 @@ var
   fWindowsType: integer;
   fIsServer: boolean;
 
+
 class function TJwFileVersion.GetFileInfo(const Filename: TJwString;
-  var FileVersionInfo: TFileVersionInfo): Boolean;
+  var FileVersionInfo: TJwFileVersionInfo): Boolean;
 var VerInfoSize: DWORD;
  DummyVar: DWORD;
  VersionInfo: Pointer;
@@ -509,7 +517,6 @@ begin
 
   VerInfoPtr := nil; // Memory is freed when freeing VersionInfo Pointer
 end;
-
 begin
   Result := False;
   ZeroMemory(@FileVersionInfo, SizeOf(FileVersionInfo));
@@ -901,7 +908,32 @@ begin
 end;
 
 
-  
+
+class function TJwWindowsVersion.IsUACEnabled: Boolean;
+var R : TRegistry;
+begin
+  R := TRegistry.Create;
+  try
+	R.RootKey := HKEY_LOCAL_MACHINE;
+	if R.OpenKeyReadOnly('SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System') then
+	begin
+	  result := R.ReadInteger('EnableLUA') = 1;
+	end
+	else
+	  raise EJwsclWinCallFailedException.CreateFmtWinCall(
+		RsWinCallFailed,
+		'IsUACEnabled',                                //sSourceProc
+		ClassName,                                //sSourceClass
+		RSUnVersion,                          //sSourceFile
+		0,                                           //iSourceLine
+		True,                                  //bShowLastError
+		'OpenKeyReadOnly',                   //sWinCall
+		['OpenKeyReadOnly']);                                  //const Args: array of const
+  finally
+    R.Free;
+  end;
+end;
+
 
 class function TJwWindowsVersion.GetNativeProcessorArchitecture : Cardinal;
 var
@@ -939,17 +971,69 @@ begin
 end;
 
 
-class function TJwWindowsVersion.IsProcess64 : boolean;
+class function TJwWindowsVersion.IsProcess64(ProcessHandle : DWORD = 0) : boolean;
 var
   RunningInsideWOW64 : BOOL;
 begin
+  if ProcessHandle = 0 then
+    ProcessHandle := GetCurrentProcess();
+	
   // If we are on a 64 bit Windows but NOT inside WOW64 we are running natively
-  if IsWindows64 and IsWow64Process(GetCurrentProcess(), RunningInsideWOW64)
-    then
+  if IsWindows64 then
+  begin
+    if IsWow64Process(ProcessHandle, RunningInsideWOW64) then
       result := not RunningInsideWOW64
-    else
-      result := false;
+	else
+	   raise EJwsclWinCallFailedException.CreateFmtWinCall(
+        RsWinCallFailed,
+        'IsProcess64',                                //sSourceProc
+        ClassName,                                //sSourceClass
+        RSUnVersion,                          //sSourceFile
+        0,                                           //iSourceLine
+        True,                                  //bShowLastError
+        'IsWow64Process',                   //sWinCall
+        ['IsWow64Process']);                                  //const Args: array of const
+  end
+  else
+  begin
+    result := false;
+  end;
 end;
+
+
+
+
+
+class function TJwWindowsVersion.GetCachedWindowsType: integer;
+begin
+  result := fWindowsType;
+end;
+
+class procedure TJwWindowsVersion.ResetCachedWindowsType;
+var Srv : TJwServerInfo;
+begin
+  fWindowsType := GetWindowsType;
+
+  try
+    Srv := TJwServerInfo.Create('');
+    try
+      fIsServer := Srv.IsServer;
+    finally
+      Srv.Free;
+    end;
+  except
+    fIsServer := False;  
+  end;
+end;
+
+class function TJwWindowsVersion.SetCachedWindowsType(
+  const WindowsType: Integer; Server: Boolean): Integer;
+begin
+  result := fWindowsType; //returns previous value
+  fWindowsType := WindowsType;
+  fIsServer  := Server;
+end;
+
 class function TJwWindowsVersion.IsWindows7(bOrHigher: Boolean): Boolean;
 const
   iVer = cOsWin7;
@@ -962,11 +1046,13 @@ end;
 {$IFNDEF SL_OMIT_SECTIONS}
 
 
+
+
 initialization
 {$ENDIF SL_OMIT_SECTIONS}
 
 {$IFNDEF SL_INITIALIZATION_SECTION}
-  fWindowsType := TJwWindowsVersion.GetWindowsType;
+  TJwWindowsVersion.ResetCachedWindowsType;
 
 {$ENDIF SL_INITIALIZATION_SECTION}
 

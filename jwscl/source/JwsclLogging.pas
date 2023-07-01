@@ -38,7 +38,7 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 }
 unit JwsclLogging;
 
-{$INCLUDE Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 interface
 uses ActiveX,
      ComServ,
@@ -322,17 +322,17 @@ type
       Each log function is multi thread safe. Different log calls in different threads
       will wait for each other.
      }
-     IJwLogClient = interface (IInterface)
+     IJwLogClient = interface {$IFDEF DELPHI6_UP}(IInterface){$ENDIF}
        ['{B7202309-4766-4D62-9E16-ECE5953C2AEA}']
         {<B>Log</B> creates an ordinary log entry.
          @param LogType defines the type of log entry. See TJwLogType for more information 
-         @param LogMessage defines the message to be shown 
+         @param LogMessage This parameter receives a message string that is shown in the log. 
          }
         procedure Log(const LogType : TJwLogType; const LogMessage : TJwString); overload; safecall;
 
          {<B>Log</B> creates an ordinary log entry.
          @param LogType defines the type of log entry. See TJwLogType for more information 
-         @param LogMessage defines the message to be shown 
+         @param LogMessage This parameter receives a message string that is shown in the log.
          }
         procedure Log(const LogMessage : TJwString; const LogType : TJwLogType = lsMessage); overload; safecall;
 
@@ -343,7 +343,7 @@ type
          @param Methodname defines the name of the method or function 
          @param Filename defines the filename where the method is located. The filename can contain
           a source line at the end of string succeeded by a colon. 
-         @param LogMessage defines the message to be shown 
+         @param LogMessage This parameter receives a message string that is shown in the log.
          }
         procedure Log(const LogType : TJwLogType; const ClassName, MethodName, FileName, LogMessage : TJwString); overload; safecall;
 
@@ -352,7 +352,7 @@ type
          @param SignalType defines the type of signal entry. See TJwSignalType for more information 
          @param Source defines the source of the signal, like another thread or process ID. 
          @param Target defines the target of the signal, like another thread or process ID. 
-         @param LogMessage defines the message to be shown 
+         @param LogMessage This parameter receives a message string that is shown in the log.
          }
         procedure Signal(const SignalType : TJwSignalType; const Source, Target, LogMessage : TJwString); overload; safecall;
 
@@ -366,7 +366,7 @@ type
          @param Methodname defines the name of the method or function 
          @param Filename defines the filename where the method is located. The filename can contain
           a source line at the end of string succeeded by a colon. 
-         @param LogMessage defines the message to be shown 
+         @param LogMessage This parameter receives a message string that is shown in the log.
          }
         procedure Signal(const SignalType : TJwSignalType; const Source, Target, ClassName, MethodName, FileName, LogMessage : TJwString); overload; safecall;
 
@@ -418,7 +418,7 @@ type
         procedure SetEventTypes(const EventTypes : TJwEventTypes); safecall;
      end;
 
-     IJwLogServer = interface (IInterface)
+     IJwLogServer = interface {$IFDEF DELPHI6_UP}(IInterface){$ENDIF}
        ['{1B3EC217-2F6D-4FE2-A9DC-BF7E8C025D4F}']
        {<B>Connect</B> creates a new log client. A log client (IJwLogClient) provides access to logging mechanisms.
         Use this function at the beginning of a process, thread or function start. Obtain an instance
@@ -583,7 +583,8 @@ var //JwStrNewLine : AnsiString = #13#10;
 
 
 implementation
-uses JwaWindows, JwsclExceptions, JwsclUtils;
+uses JwaWindows, JwsclExceptions, JwsclUtils, D5impl;
+
 
 type TJwLogServerImpl = class;
 
@@ -747,7 +748,7 @@ begin
       result := false;
       exit;
     end;
-  end;  
+  end;
 end;
 
 
@@ -987,7 +988,7 @@ begin
 
     AddToList(fWriter.WriteSingleTag(fInd,
         JwXMLTagsString[xtGuid], GUIDToString(JwMapException(E.ClassName)) , Attributes));
-        
+
     if E is EJwsclSecurityException then
     begin
       JE := E as EJwsclSecurityException;
@@ -1396,7 +1397,7 @@ class function TJwLogWriter.FormatString(const Str: TJwString): TJwString;
 var i : Integer;
 begin
   result := Str;
-  for i := Length(Str) downto 0 do
+  for i := Length(Str) downto 1 do
   begin
     if result[i] = #10 then
       System.Delete(result, i,1)

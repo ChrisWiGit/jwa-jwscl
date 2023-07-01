@@ -25,7 +25,8 @@ var Provider: TJwCryptProvider; Key: TJwCryptKey; Hash: TJwHash;
 begin
   //If the default key container has not yet been created, specify
   //[ccfNewKeyset] as the last parameter
-  Provider := TJwCryptProvider.Create('', '', ctRsaFull, []);
+  TJwCryptProvider.DeleteKeyset('');
+  Provider := TJwCryptProvider.Create('', '', ctRsaFull, [ccfNewKeyset]);
   try
     try
       //try to get the user key

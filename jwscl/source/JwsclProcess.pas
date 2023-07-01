@@ -38,13 +38,13 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclProcess;
-{$INCLUDE Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
 
 uses SysUtils, Classes,
-  JwaWindows, 
+  JwaWindows,
   JwsclTypes, JwsclToken, JwsclSid, JwsclTerminalServer, JwsclUtils,
   JwsclSecureObjects, JwsclResource,
   JwsclLogging, JwsclLsa, JwsclDescriptor,JwsclEnumerations, JwsclComUtils,
@@ -55,7 +55,9 @@ uses SysUtils, Classes,
 {$IFNDEF SL_IMPLEMENTATION_SECTION}
 
 const
-  IID_IJwJobObject = '{5F6DBA7A-B8DC-498E-A151-49AD0DCD8CF8}';
+//  IID_IJwJobObject = '{5F6DBA7A-B8DC-498E-A151-49AD0DCD8CF8}';
+
+  //Internal job name prefix
   IOJOBNAME = 'IOJobCompletion\';
 
 type
@@ -238,7 +240,7 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
     destructor Destroy; override;
 
     {<B>IsProcessInJob</B> returns whether a process is assigned to the job.
-    @param hProcess defines any handle to the process that is tested for membership. 
+    @param hProcess defines any handle to the process that is tested for membership.
     @param Returns tre if the process is a member of the job; otherwise false.
     @return Returns true if the given process is assigned to the current job instance; otherwise false. 
     raises
@@ -378,7 +380,7 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
           do sth with Job.JobObject[x]
         finally
           Job.Lock.EndWrite;
-        end;
+        end;                                                                    
     </code>
     }
     property Lock : TMultiReadExclusiveWriteSynchronizer read fLock;
@@ -398,7 +400,7 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
    through parameter NewJobObject. The return value must not be nil.
   The new job object does not need to have a name.
   @param Sender defines the job object list instance that calls this event 
-  @param ProcessHandle defines the process to be assigned to the job 
+  @param ProcessHandle defines the process to be assigned to the job
   @param ProcessSessionID defines the session id that the given process
    belongs to 
   @param CurrentSessionID defines a session index. The event method can
@@ -598,7 +600,7 @@ mostly debugging purposes. If this parameter is nil, no events are logged
 raises
  EJwsclProcessIdNotAvailable:  will be raised if no token could be found
 for the given SessionID 
- EJwsclNilPointer: will be raised if JwInitWellKnownSIDs was not called before 
+ EJwsclNilPointer: will be raised if JwInitWellKnownSIDs was not called before
 }
 procedure JwCreateProcessInSession(
   const ApplicationName : TJwString;
@@ -625,13 +627,13 @@ was found. The callback function determines whether the process should be used
 to return the token. If the process cannot be used to retrieve the token, <B>JwGetTokenFromProcess</B>
 will continue enumerating 
 @param LogServer receives a logging instance where log events are logged to.
- Can be nil if no logging is used 
+ Can be nil if no logging is used
 @param Data may contain user defined data to be assigned to a call to OnProcessFound 
 @return <B>JwGetTokenFromProcess</B> returns the primary token of a process. If no process could be used
 to get a token the return value is nil. 
 
 raises
- EJwsclNILParameterException:  will be raised if parameter OnProcessFound is nil 
+ EJwsclNILParameterException:  will be raised if parameter OnProcessFound is nil
 }
 function JwGetTokenFromProcess (const OnProcessFound : TJwOnProcessFound;
   LogServer : IJwLogServer; Data : Pointer) : TJwSecurityToken;
@@ -640,22 +642,39 @@ function JwGetTokenFromProcess (const OnProcessFound : TJwOnProcessFound;
 
 {<B>GetProcessSessionID</B> returns the session ID of a process given by handle or ID.
 @param ProcessIDorHandle defines the process ID or handle. Which one is
-  used, is defined by parameter ParameterType.
+  used, is defined by parameter ParameterType. Can be zero or -1 to use current process.
 @param ParameterType defines whether parameter ProcessIDorHandle is a process
-  or a handle 
+  or a handle
 @return Returns the session ID (zero based).
 raises
  EJwsclSecurityException:  <B>GetProcessSessionID</B> can raise a child class of this
   exception class. The following functions are used that can fail:
-   
-     # TJwSecurityToken.CreateTokenByProcess 
-     # TJwSecurityToken.CreateTokenByProcessId 
-     # TJwSecurityToken.TokenSessionId 
-    
-}
-function JwGetProcessSessionID(const ProcessIDorHandle : Cardinal;
-  const ParameterType : TJwProcessParameterType) : Cardinal;
 
+     # TJwSecurityToken.CreateTokenByProcess
+     # TJwSecurityToken.CreateTokenByProcessId
+     # TJwSecurityToken.TokenSessionId
+
+}
+function JwGetProcessSessionID(ProcessIDorHandle : TJwProcessId;
+  const ParameterType : TJwProcessParameterType) : TJwSessionId;
+
+
+{<B>JwProcessIdToSessionId</B> returns the session ID of a process.
+This function uses the new API of Vista or otherwise calls just JwGetProcessSessionID.
+It ist faster because it does not create an object if run on Vista or newer.
+
+@param ProcessID defines the process ID. Can be zero or -1 to use current process.
+@return Returns the session ID (zero based).
+raises
+ EJwsclWinCallFailedException: Is raised if ProcessIdToSessionId fails.
+ EJwsclSecurityException: See JwGetProcessSessionID for more information.
+
+remarks
+ If you want to use the WinAPI function ProcessIdToSessionId and you also use JWSCL
+ you should consider this function instead. It works on all Windows NT versions
+ (>=2000).
+}
+function JwProcessIdToSessionId(const ProcessID : TJwProcessId) : TJwSessionId;
 
 
 
@@ -684,18 +703,25 @@ type {<B>TJwCreateProcessParameters</B> contains information supplied to CreateP
         lpCurrentDirectory    : TJwString;
       end;
 
-     {Test} 
+     {<b>TJwCreateProcessInfo</b> contains extra information for JwCreateProcessAsAdminUser}
      TJwCreateProcessInfo = record
        {<B>StartupInfo</B> defines startup info delivered to to CreateProcess parameter with
        same name}
        StartupInfo : {$IFDEF UNICODE}TStartupInfoW{$ELSE}TStartupInfoA{$ENDIF};
 
-       AdditionalGroups : TJwSecurityIdList; //zusätzliche Groups fürs Token
+       {Additional groups for the resulting token. May be nil.
+	    The resulting token will have the groups of Administrator, the given groups here
+		and some more.
+		Logon SIDs are never added.
+	   }
+       AdditionalGroups : TJwSecurityIdList; 
 
 
-       {<B>SourceName</B> defines the source name which is stored in the token}
+       {<B>SourceName</B> defines the source name which is stored in the token. Your name of choice
+	    that identifies the source of this token}
        SourceName : AnsiString;
-       {<B>OriginName</B> defines the initiator name of the token}
+       {<B>OriginName</B> defines the initiator name of the token.  Your name of choice
+	    that identifies the origin of this token}
        OriginName : AnsiString;
 
        {<B>SessionID</B> defines the target session ID of the new process
@@ -719,11 +745,22 @@ type {<B>TJwCreateProcessParameters</B> contains information supplied to CreateP
        {<B>LogonSID</B> can be the logon sid to be used for the new token.
         May be nil. In this case (and LogonToken = nil) the logon sid of the token with the given SessionID
         is used.}
-       LogonSID : TJwSecurityID; //optionales logon SID für Tokengroups - eigenes Token
+       LogonSID : TJwSecurityID; 
 
        {<B>Parameters</B> contains parameters for CreateProcessAsUser}
-       Parameters : TJwCreateProcessParameters; //Parameter für CP
+       Parameters : TJwCreateProcessParameters; 
 
+       {<b>MaximumTryCount</b> defines the maximum try count for CreateProcessAsUser.
+       The call is only repeated if CPAU returns ERROR_PIPE_BUSY which is a known
+       bug in Windows XP.
+       Set this value to INFINITE if CPAU should be called indefinitely on error ERROR_PIPE_BUSY.
+       }
+       MaximumTryCount : Integer;
+
+       {<b>BusyPipeSleep</b> defines the sleep time before CPAU is called again.
+       Values are possible between 100msec and 60 000msec.
+       If the value is out of the bounds the default value of 5sec is used.}
+       BusyPipeSleep : DWORD;
      end;
 
      {<B>TJwCreateProcessOut</B> contains output information after the process has started.
@@ -754,6 +791,15 @@ type {<B>TJwCreateProcessParameters</B> contains information supplied to CreateP
        {<B>ProfInfo</B> receives the profile information from LoadUserProfile.
        Call TJwSecurityToken.UnloadUserProfile to unload the profile when
        process finished.
+
+       Example
+
+       <code>
+         var
+           OutVars : TJwCreateProcessOut;
+         ...
+         OutVars.UserToken.UnloadUserProfile(OutVars.Profinfo);
+       </code>
        }
        ProfInfo: TJwProfileInfo; //LoadUserProfile output -> UnloadUserProfile
 
@@ -784,7 +830,7 @@ type {<B>TJwCreateProcessParameters</B> contains information supplied to CreateP
        {<B>QuotaLimits</B> receives information about quota limits}
        QuotaLimits: QUOTA_LIMITS;
        {<B>SubStatus</B> receives extended error information from LsaLogonUser}
-       SubStatus: integer; //Fehler von LSALogonUser
+       SubStatus: NTSTATUS; //Fehler von LSALogonUser
      end;
 
 {<B>JwCreateProcessAsAdminUser</B> logs on a user and creates a new process under its logon session.
@@ -816,11 +862,12 @@ procedure JwCreateProcessAsAdminUser(
 
 
 
+
 {$ENDIF SL_IMPLEMENTATION_SECTION}
 
 {$IFNDEF SL_OMIT_SECTIONS}
 implementation
-uses Math, JwsclExceptions,
+uses Math, D5impl, JwsclExceptions,
   JwsclKnownSid, JwsclVersion,
   JwsclAcl, JwsclConstants;
 
@@ -828,25 +875,53 @@ uses Math, JwsclExceptions,
 
 {$IFNDEF SL_INTERFACE_SECTION}
 
+function JwProcessIdToSessionId(const ProcessID : TJwProcessId) : TJwSessionId;
+begin
+  if TJwWindowsVersion.IsWindowsVista(true) and
+     TJwWindowsVersion.IsWindows2008(true) then
+  begin
+    if ProcessIdToSessionId(ProcessID, result) then
+      raise EJwsclWinCallFailedException.CreateFmtWinCall(
+          '',
+          'JwProcessIdToSessionId',                                //sSourceProc
+          '',                                //sSourceClass
+          '',                          //sSourceFile
+          0,                                           //iSourceLine
+          True,                                  //bShowLastError
+          'ProcessIdToSessionId',                   //sWinCall
+          ['ProcessIdToSessionId']);                                  //const Args: array of const
+  end
+  else
+    result := JwGetProcessSessionID(ProcessID, pptID);
+end;
 
-function JwGetProcessSessionID(const ProcessIDorHandle : Cardinal;
-  const ParameterType : TJwProcessParameterType) : Cardinal;
+
+function JwGetProcessSessionID(ProcessIDorHandle : TJwProcessId;
+  const ParameterType : TJwProcessParameterType) : TJwSessionId;
 var Token : TJwSecurityToken;
 begin
   Token := nil;
   result := WTS_CURRENT_SESSION;
-  
+
+  //make sure we can access 0 or -1
+  if (ProcessIDorHandle = 0) or
+     (ProcessIDorHandle = GetCurrentProcessId) then
+  case ParameterType of
+    pptHandle : ProcessIDorHandle := 0;
+    pptID     : ProcessIDorHandle := GetCurrentProcessId;
+  end;
+
   case ParameterType of
     pptHandle : Token := TJwSecurityToken.CreateTokenByProcess(ProcessIDorHandle, TOKEN_READ or TOKEN_QUERY);
-    pptID : Token := TJwSecurityToken.CreateTokenByProcessId(ProcessIDorHandle, TOKEN_READ or TOKEN_QUERY);
+    pptID     : Token := TJwSecurityToken.CreateTokenByProcessId(ProcessIDorHandle, TOKEN_READ or TOKEN_QUERY);
   end;
 
   if Assigned(Token) then
-    try
-      result := Token.TokenSessionId;
-    finally
-      Token.Free;
-    end;
+  try
+    result := Token.TokenSessionId;
+  finally
+    Token.Free;
+  end;
 end;
 
 
@@ -858,18 +933,6 @@ begin
   //problem with direct use of Result in this procedure!
   GetProcedureAddress(R, LibName, ProcName);
   Result := R;
-
- { LibHandle := LoadLibraryA(PAnsiChar(LibName));
-  if LibHandle = 0 then
-    Result := nil
-  else
-  begin
-    try
-      Result := GetProcAddress(LibHandle, PAnsiChar(ProcName));
-    finally
-      FreeLibrary(LibHandle); // Free Memory Allocated for the DLL
-    end;
-  end;}
 end;
 
 
@@ -902,6 +965,8 @@ var pLogonData : PMSV1_0_INTERACTIVE_LOGON;
     lpProcAttr, lpThreadAttr :  PSecurityAttributes;
 
     i : Integer;
+
+    CPAUResult : Boolean;
 begin
   JwRaiseOnNilMemoryBlock(JwLocalSystemSID,'JwCreateProcessAsAdminUser','','JwsclProcess.pas');
 
@@ -1133,6 +1198,8 @@ begin
       Log.Log('...successfully.');
       FreeAndNil(Groups);
 
+
+
       //
       // On Vista or server 2008 LsaLogonUser creates a duplicate token
       // if it encounters the administrator group.
@@ -1153,6 +1220,12 @@ begin
           OutVars.LinkedToken := nil;
           UserToken := OutVars.UserToken;
         end;
+      end;
+
+      //The token may be an impersonation token
+      if UserToken.IsThreadToken then
+      begin
+        UserToken.ConvertToPrimaryToken(MAXIMUM_ALLOWED);
       end;
 
       StartupInfo := InVars.StartupInfo;
@@ -1229,28 +1302,60 @@ begin
         // Create new process
         //
         Log.Log('Calling CreateProcessAsUser...');
-        SetLastError(0);
-        if {$IFDEF UNICODE}CreateProcessAsUserW{$ELSE}CreateProcessAsUserA{$ENDIF}(
-              UserToken.TokenHandle,//HANDLE hToken,
-              AppName,//__in_opt     LPCTSTR lpApplicationName,
-              CmdLine, //__inout_opt  LPTSTR lpCommandLine,
-              LPSECURITY_ATTRIBUTES(lpProcAttr),//__in_opt     LPSECURITY_ATTRIBUTES lpProcessAttributes,
-              LPSECURITY_ATTRIBUTES(lpThreadAttr),//LPSECURITY_ATTRIBUTES(InVars.Parameters.lpThreadAttributes),//__in_opt     LPSECURITY_ATTRIBUTES lpThreadAttributes,
-              InVars.Parameters.bInheritHandles,//__in         BOOL bInheritHandles,
-              InVars.Parameters.dwCreationFlags,//__in         DWORD dwCreationFlags,
-              OutVars.EnvironmentBlock,//__in_opt     LPVOID lpEnvironment,
-              CurrentDirectory,//'',//TJwPChar(InVars.Parameters.lpCurrentDirectory),//__in_opt     LPCTSTR lpCurrentDirectory,
-              StartupInfo,//__in         LPSTARTUPINFO lpStartupInfo,
-              OutVars.ProcessInfo //__out        LPPROCESS_INFORMATION lpProcessInformation
-          ) then
+
+        JwEnablePrivilege(SE_ASSIGNPRIMARYTOKEN_NAME, pst_EnableIfAvail);
+
+        //Impersonate the given user so CPAU uses the security context of this user to access the file
+        UserToken.ImpersonateLoggedOnUser;
+        try
+          i := 1; //first try
+          repeat
+            SetLastError(0);
+            CPAUResult := {$IFDEF UNICODE}CreateProcessAsUserW{$ELSE}CreateProcessAsUserA{$ENDIF}(
+                UserToken.TokenHandle,//HANDLE hToken,
+                AppName,//__in_opt     LPCTSTR lpApplicationName,
+                CmdLine, //__inout_opt  LPTSTR lpCommandLine,
+                LPSECURITY_ATTRIBUTES(lpProcAttr),//__in_opt     LPSECURITY_ATTRIBUTES lpProcessAttributes,
+                LPSECURITY_ATTRIBUTES(lpThreadAttr),//LPSECURITY_ATTRIBUTES(InVars.Parameters.lpThreadAttributes),//__in_opt     LPSECURITY_ATTRIBUTES lpThreadAttributes,
+                InVars.Parameters.bInheritHandles,//__in         BOOL bInheritHandles,
+                InVars.Parameters.dwCreationFlags or CREATE_UNICODE_ENVIRONMENT,//__in         DWORD dwCreationFlags,
+                OutVars.EnvironmentBlock,//__in_opt     LPVOID lpEnvironment,
+                CurrentDirectory,//'',//TJwPChar(InVars.Parameters.lpCurrentDirectory),//__in_opt     LPCTSTR lpCurrentDirectory,
+                StartupInfo,//__in         LPSTARTUPINFO lpStartupInfo,
+                OutVars.ProcessInfo //__out        LPPROCESS_INFORMATION lpProcessInformation
+               );
+
+            LastError := GetLastError();
+            {Check for a known XP bug
+            The pipe is not available at some time
+            so wait for it
+            }
+            if GetLastError() = ERROR_PIPE_NOT_CONNECTED then
+            begin
+              if (InVars.MaximumTryCount >= 0) and (i >= InVars.MaximumTryCount) then
+                Break;
+
+              if (InVars.BusyPipeSleep < 100) or (InVars.BusyPipeSleep > 60* 100) then
+                 Sleep(InVars.BusyPipeSleep)
+              else
+                 Sleep(5* 1000); //default 5sec
+
+              Inc(i);
+            end;
+          until (GetLastError() <> ERROR_PIPE_NOT_CONNECTED);
+        finally
+          TJwSecurityToken.RevertToSelf;
+        end;
+
+        if CPAUResult then
         begin
           Log.Log('Call to CreateProcessAsUser succeeded. Returning.');
         end
         else
         begin
-          LastError := GetLastError();
           Log.Log(lsError,'CreateProcessAsUser failed: '+ EJwsclSecurityException.GetLastErrorMessage(LastError));
 
+          SetLastError(LastError);
           raise EJwsclCreateProcessFailed.CreateFmtEx(
              'CreateProcessAsUser failed.',
              'CreateProcessAsAdminUser', '', '0',
@@ -1282,7 +1387,7 @@ begin
       end; //6.
 
     except //2.
-      LocalFree(Cardinal(pLogonData));
+      LocalFree(HLOCAL(pLogonData));
       //pLogonData := nil;
 
       LsaFreeReturnBuffer(OutVars.ProfBuffer);
@@ -1296,7 +1401,7 @@ begin
     //vars that must be freed
     //
     if pLogonData <> nil then
-      LocalFree(Cardinal(pLogonData));
+      LocalFree(HLOCAL(pLogonData));
   except //1.
     on E : Exception do
     begin
@@ -1458,8 +1563,7 @@ begin
       Log.Log(lsMessage, 'Proc count: ' + IntToStr(TSrv.Processes.Count));
       for i := 0 to TSrv.Processes.Count-1 do
       begin
-        Log.Log(lsMessage, Format('Proc: %d, Name= %s SessionID: %d',[TSrv.Processes[i].ProcessId,
-          TSrv.Processes[i].ProcessName, TSrv.Processes[i].SessionId]));
+        Log.Log(lsMessage, Format('Proc: %d, Name= %s SessionID: %d',[TSrv.Processes[i].ProcessId, TSrv.Processes[i].ProcessName, TSrv.Processes[i].SessionId]));
 
 
         Cancel := true;
@@ -1716,23 +1820,29 @@ begin
       if not CreateEnvironmentBlock(@Output.EnvBlock, Output.UserToken.TokenHandle, false) then
         Log.Log(lsMessage, 'CreateEnvironmentBlock failed: '+IntToStr(GetLastError));
 
-      Log.Log(lsMessage, 'Call CreateProcessAsUser');
-      if not {$IFDEF UNICODE}CreateProcessAsUserW{$ELSE}CreateProcessAsUserA{$ENDIF}(
-        Output.UserToken.TokenHandle,//HANDLE hToken,
-        lpApplicationName,//__in_opt     LPCTSTR lpApplicationName,
-        lpCommandLine, //__inout_opt  LPTSTR lpCommandLine,
-        nil,//__in_opt     LPSECURITY_ATTRIBUTES lpProcessAttributes,
-        nil,//__in_opt     LPSECURITY_ATTRIBUTES lpThreadAttributes,
-        false,//__in         BOOL bInheritHandles,
-        CreationFlags or CREATE_UNICODE_ENVIRONMENT,//__in         DWORD dwCreationFlags,
-        Output.EnvBlock,//__in_opt     LPVOID lpEnvironment,
-        lpCurrentDirectory,//__in_opt     LPCTSTR lpCurrentDirectory,
-        StartupInfo,//__in         LPSTARTUPINFO lpStartupInfo,
-        Output.ProcessInfo //__out        LPPROCESS_INFORMATION lpProcessInformation
-      ) then
-      begin
-        Log.Log(lsMessage,'Failed CreateProcessAsUser.');
-        RaiseLastOSError;
+      //Impersonate the given user so CPAU uses the security context of this user to access the file
+      Output.UserToken.ImpersonateLoggedOnUser;
+      try
+        Log.Log(lsMessage, 'Call CreateProcessAsUser');
+        if not {$IFDEF UNICODE}CreateProcessAsUserW{$ELSE}CreateProcessAsUserA{$ENDIF}(
+          Output.UserToken.TokenHandle,//HANDLE hToken,
+          lpApplicationName,//__in_opt     LPCTSTR lpApplicationName,
+          lpCommandLine, //__inout_opt  LPTSTR lpCommandLine,
+          nil,//__in_opt     LPSECURITY_ATTRIBUTES lpProcessAttributes,
+          nil,//__in_opt     LPSECURITY_ATTRIBUTES lpThreadAttributes,
+          false,//__in         BOOL bInheritHandles,
+          CreationFlags or CREATE_UNICODE_ENVIRONMENT,//__in         DWORD dwCreationFlags,
+          Output.EnvBlock,//__in_opt     LPVOID lpEnvironment,
+          lpCurrentDirectory,//__in_opt     LPCTSTR lpCurrentDirectory,
+          StartupInfo,//__in         LPSTARTUPINFO lpStartupInfo,
+          Output.ProcessInfo //__out        LPPROCESS_INFORMATION lpProcessInformation
+        ) then
+        begin
+          Log.Log(lsMessage,'Failed CreateProcessAsUser.');
+          RaiseLastOSError;
+        end;
+      finally
+        TJwSecurityToken.RevertToSelf;
       end;
 
       if WaitForProcess then
@@ -2448,6 +2558,7 @@ end;
 function TJwJobObject.IsProcessInJob(hProcess : TJwProcessHandle) : Boolean;
 var LB : LongBool;
 begin
+  LB := false; 
   if not JwaWindows.IsProcessInJob(hProcess, fHandle, LB) then
      raise EJwsclWinCallFailedException.CreateFmtWinCall(
         '',

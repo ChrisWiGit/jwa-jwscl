@@ -37,7 +37,7 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclWinStations;
-{$I Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 
@@ -89,7 +89,7 @@ type
       aSD: TJwSecurityDescriptor); virtual;
   public
      {<B>Open</B> opens a window station using a name and desired access rights.
-      The window station must be of the actual session.
+      The window station must be of the current session.
      @param sName defines the name of the window station.
      @param bInherit TBD
      @param cDesiredAccess defines winstation access righs
@@ -123,7 +123,7 @@ type
 
     destructor Destroy; override;
 
-     {<B>SetWindowStation</B> changes the actual window station for the process to the given on in the actual instance.
+     {<B>SetWindowStation</B> changes the current window station for the process to the given on in the current instance.
       raises
  EJwsclWinCallFailedException:  if a call to SetProcessWindowStation failed.
      }
@@ -168,7 +168,7 @@ type
       This method raises EJwsclWinCallFailedException if a call to GetUserObjectInformation failed.}
     property UserSID: TJwSecurityId Read GetUserSID;
 
-     {<B>SecurityDescriptor[Info</B> sets or gets the security descriptor of the actual window station.
+     {<B>SecurityDescriptor[Info</B> sets or gets the security descriptor of the current window station.
       This property uses a parameter Info to set which information is to be set or get.
        ex. SecurityDescriptor[[sif_XXXX,sif_XXXX]]
 
@@ -203,7 +203,7 @@ type
     destructor Destroy; override;
 
 
-     {<B>GetWindowStationNames</B> returns a list of window station of the actual session.
+     {<B>GetWindowStationNames</B> returns a list of window station of the current session.
       raises
  EJwsclWinCallFailedException:  if a call to EnumWindowStationsW failed.}
     class function GetWindowStationNames: TJwTJwStringArray; virtual;
@@ -439,8 +439,7 @@ begin
 
   if fHandle = 0 then
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
-      RsWinStationCreateFailed,
-      //const sMsg: AnsiString;
+      RsWinStationCreateFailed,     //const sMsg: TJwString;
       'Create',                               //sSourceProc
       ClassName,                                //sSourceClass
       RsUNWinStation,                          //sSourceFile
@@ -700,8 +699,7 @@ begin
     (TJwPChar(sName), bInherit, cDesiredAccess);
   if fHandle = 0 then
     raise EJwsclOpenWindowStationException.CreateFmtWinCall(
-      RsWinStationOpenFailed,
-      //const sMsg: AnsiString;
+      RsWinStationOpenFailed,      //const sMsg: TJwString;
       'Open',                               //sSourceProc
       ClassName,                                //sSourceClass
       RsUNWinStation,                          //sSourceFile

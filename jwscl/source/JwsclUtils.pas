@@ -16,7 +16,7 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the  
+Alternatively, the contents of this file may be used under the terms of the
 GNU Lesser General Public License (the  "LGPL License"), in which case the   
 provisions of the LGPL License are applicable instead of those above.        
 If you wish to allow use of your version of this file only under the terms   
@@ -37,7 +37,7 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 
 }
 unit JwsclUtils;
-{$I Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 
@@ -51,7 +51,7 @@ unit JwsclUtils;
 //check for Eurekalog
 {$IFDEF EUREKALOG}
   {$DEFINE FullDebugMode}
-{to see if this memory manager catches Local/Global leaks}  
+{to see if this memory manager catches Local/Global leaks}
   {.$UNDEF FASTMM4}
   {.$UNDEF MEMCHECK}
   {.$UNDEF FullDebugMode}
@@ -71,7 +71,6 @@ uses
   JwsclResource,
   //JwsclDescriptor, //do not set!
   JwsclStrings;
-
 
 
 type
@@ -115,6 +114,9 @@ type
     Remarks
       The method does not support waiting with message loop support in the case
        when parameter MsgLoop is true and the current thread is not the main thread.
+
+      Delphi 5 does not support SyncEvent. This event is signaled every time
+      a thread wishes to synchronize with the main thread.
      }
     function WaitWithTimeOut(const TimeOut: DWORD;
       const MsgLoop : Boolean = true) : LongWord;
@@ -338,24 +340,6 @@ procedure JwUNIMPLEMENTED_DEBUG;
 {<B>JwUNIMPLEMENTED</B> raises exception EJwsclUnimplemented}
 procedure JwUNIMPLEMENTED;
 
-{<B>JwRaiseOnNilMemoryBlock</B> raises an exception EJwsclNilPointer if parameter P
- is nil; otherwise nothing happens.
-This function is like Assert but it will not be removed in a release build.
-
-@param P defines a pointer to be validated 
-@param ParameterName defines the name of the parameter which is validated and
- belongs to this pointer 
-@param MethodName defines the name of the method this parameter belongs to
-@param ClassName defines the name of the class the method belongs to. Can be
-  empty if the method does not belong to a class
-@param FileName defines the source file of the call to this procedure.
-
-raises
- EJwsclNilPointer:  will be raised if P is nil
-}
-procedure JwRaiseOnNilMemoryBlock(const P : Pointer;
-  const MethodName, ClassName, FileName : TJwString);
-
 {<B>JwCheckInitKnownSid</B> checks for the call of JwInitWellKnownSIDs
 and raises EJwsclInitWellKnownException if it was not called.
 
@@ -375,42 +359,6 @@ raises
 procedure JwCheckInitKnownSid(const MethodName, ClassName, FileName : TJwString);
 
 
-{<B>JwRaiseOnNilParameter</B> raises an exception EJwsclNILParameterException if parameter P
- is nil; otherwise nothing happens.
-This function is like Assert but it will not be removed in a release build.
-
-@param P defines a pointer to be validated
-@param ParameterName defines the name of the parameter which is validated and
- belongs to this pointer
-@param MethodName defines the name of the method this parameter belongs to
-@param ClassName defines the name of the class the method belongs to. Can be
-  empty if the method does not belong to a class
-@param FileName defines the source file of the call to this procedure.
-
-raises
- EJwsclNILParameterException:  will be raised if P is nil
-}
-procedure JwRaiseOnNilParameter(const P : Pointer;
-  const ParameterName, MethodName, ClassName, FileName : TJwString);
-
-{<B>JwRaiseOnClassTypeMisMatch</B> raises an exception EJwsclClassTypeMismatch if parameter Instance
- is not of type ExpectedClass.
-This function is like Assert but it will not be removed in a release build.
-
-@param Instance defines the class to be tested. If this parameter is nil, the procedure exists without harm.
-@param ExpectedClass defines the class type to be checked for.
-@param MethodName defines the name of the method this parameter belongs to
-@param ClassName defines the name of the class the method belongs to. Can be
-  empty if the method does not belong to a class
-@param FileName defines the source file of the call to this procedure.
-
-raises
- EJwsclNILParameterException:  will be raised if P is nil
-}
-procedure JwRaiseOnClassTypeMisMatch(const Instance : TObject;
-  const ExpectedClass : TClass;
-  const MethodName, ClassName, FileName : TJwString);
-
 {$IFDEF JW_TYPEINFO}
 {<B>GetUnitName</B> returns the name of unit where the given objects was defined in source code.
 }
@@ -427,6 +375,17 @@ identifier for a thread.
   the current thread 
 }
 procedure JwSetThreadName(const Name: TJwString; const ThreadID : Cardinal = Cardinal(-1));
+
+{<b>JwFreeThreadName</b> frees the thread variable allocated by JwSetThreadName.
+This procedure must be call at the end of thread to avoid a memory leak in
+some situation.
+
+Remarks
+This procedure is not always necessary. Although it is told otherwise, it seems that
+Delphi sometimes cleans up the memory. However if you use TJwThread the
+cleanup is done automatically.
+}
+procedure JwFreeThreadName;
 
 {<B>JwGetThreadName</B> returns the name of a thread set by JwSetThreadName.
  This function only returns the name of the current thread. It cannot be used
@@ -458,7 +417,10 @@ windows are responsible. This function returns if such a message is received.
 @return Returns a status code. See MsgWaitForMultipleObjects (http://msdn.microsoft.com/en-us/library/ms684242.aspx) in MSDN for more information.
 }
 function JwMsgWaitForMultipleObjects(const Handles: array of THandle; bWaitAll: LongBool;
-           dwMilliseconds: DWord; dwWakeMask: DWord): DWord;
+           dwMilliseconds: DWord; dwWakeMask: DWord): DWord; overload;
+
+function JwMsgWaitForMultipleObjects(const Handles: TJwHandles; bWaitAll: LongBool;
+           dwMilliseconds: DWord; dwWakeMask: DWord): DWord; overload;
 
 {<B>JwWaitForMultipleObjects</B> encapsulates WaitForMultipleObjects using an open array
 parameter.
@@ -473,8 +435,15 @@ parameter.
 @return Returns a status code. See WaitForMultipleObjects (http://msdn.microsoft.com/en-us/library/aa931008.aspx) in MSDN for more information.
 }
 function JwWaitForMultipleObjects(const Handles: array of THandle; bWaitAll: LongBool;
-           dwMilliseconds: DWord): DWord;
+           dwMilliseconds: DWord): DWord; overload;
 
+
+
+function JwWaitForMultipleObjects(const Handles: TJwHandles; bWaitAll: LongBool;
+           dwMilliseconds: DWord): DWord; overload;
+
+function JwHandlesArray(const Handles: array of THandle) : TJwHandles;
+procedure JwAddHandleToArray(var TargetHandles: TJwHandles; const Handles: array of THandle);
 
 {<B>JwCreateWaitableTimer</B> creates a waitable timer handle.
 
@@ -558,7 +527,7 @@ raise
 remarks
   * This function uses TJwFileStreamEx for getting hash in the fastest way possible.
   * This function uses SHA hashing.
-  
+
 }
 function JwCompareFileHash(const FilePath : WideString;
   const OriginalHash : TJwFileHashData) : Boolean;
@@ -609,8 +578,10 @@ previously saved by JwSaveHashToRegistry.
 TJwFileHashData must be freed by TJwHash.FreeBuffer (unit JwsclCryptProvider.pas).
 
 raise
+  ERegistryException If the given key was not found.
   Exception This procedure may raise exception coming from TRegistry methods.
-  
+
+
 remarks
   The procedure has some characteristics :
   * It does not check for a correct hash value. However the key type of "HashName" must be binary though.
@@ -620,10 +591,93 @@ remarks
 function JwLoadHashFromRegistry(const Hive: Cardinal;
    const Key, HashName, SizeName : String) : TJwFileHashData;
 
-function JwAccesMaskToBits(const Access : DWORD) : TJwString;
+
+function JwAccessMaskToBits(const Access : DWORD) : TJwString;
+
+{<B>JwCheckVISTACompilerSwitch</B> raises an exception EJwsclVistaFeaturesDisabled
+if the current code isn't compiled with the VISTA compiler directive.
+Otherwise it does nothing.
+}
+procedure JwCheckVISTACompilerSwitch(MethodName, ClassName, FileName : TJwString);
+
+{JwCreateClassHash calculates an integer hash value from a memory structure.}
+function JwCreateClassHash(const Data : Pointer; const Size : Cardinal) : Integer;
+
+{JwBeginCreateHash begins a hash calculation and returns an hash handle
+that is used with other hash functions like:
+JwStringHash, JwIntegerHash, JwDataHash, JwObjectHash
+
+@return
+  The untyped returned value must be freed by JwEndCreateHash.
+}
+function JwBeginCreateHash : Pointer;
+
+{JwStringHash hashes a string and adds it to the given hash handle.}
+procedure JwStringHash(const Hash: Pointer; const S : string);
+
+{JwIntegerHash hashes an integer and adds it to the given hash handle.}
+procedure JwIntegerHash(const Hash: Pointer; const I : Integer);
+
+{JwDataHash hashes a data structure and adds it to the given hash handle.}
+procedure JwDataHash(const Hash: Pointer; const P : Pointer; const Size : Cardinal);
+
+{JwObjectHash hashes an object and adds it to the given hash handle.}
+procedure JwObjectHash(const Hash: Pointer; const Obj : IJwBase);
+
+{JwEndCreateHash frees a hash value created by JwBeginCreateHash
+and returns the hash value over all calculated hashes.
+
+@param Hash Receives a hash handle created by JwBeginCreateHash and frees it. The parameter value
+  will be nil afterwards.
+@return
+  Returns a hash value.
+}
+function JwEndCreateHash(var Hash : Pointer) : Integer;
+
+{JwCreateToString creates a comma separated string (compatible to TStringList.CommaText)
+with names and values. This string is used in toString() methods of JWSCL
+classes for property output.
+
+@param Values Contains a single value or tuples for the output.
+  Each value in this parameter can be an Integer, Boolean, Int64, Ansi-&WideString and ShortString;
+  other types are output to '??'. All entries must have a second entry (a so called tuple)
+
+
+Remarks
+  The following example shows the usage
+  <code lang="Delphi">
+   result := JwCreateToString(
+    ['aString','', //simple string
+     'Hash',123, //name='Hash', value=GetHashCode
+  </code>
+  The output looks like:
+  <pre>aString,Hash=123</pre>
+}
+function JwCreateToString(const Values : array of const) : String;
+
+{ <b>JwZeroPassword</b> erases securely a UNICODE or ANSICODE string.
+  
+  
+  
+
+  Parameters
+  S :  Defines the string to be erased securely. The returned string will have a
+       length of 0.
+  
+  
+  
+  Remarks
+  JwZeroPassword writes random data over all characters of the string. In a second
+  step it zeroes all characters and sets the length of the string to zero (0).
+  
+  This function works with UNICODE and ANSICODE.
+  
+  
+                                                                                   }
+procedure JwZeroPassword(var S : TJwString);
 
 implementation
-uses SysUtils, Registry, JwsclToken, JwsclKnownSid, JwsclDescriptor, JwsclAcl,
+uses SysUtils, Registry, Math, D5Impl, JwsclToken, JwsclKnownSid, JwsclDescriptor, JwsclAcl,
      JwsclSecureObjects, JwsclMapping, JwsclStreams, JwsclCryptProvider,
      JwsclConstants
 {$IFDEF JW_TYPEINFO}
@@ -632,8 +686,127 @@ uses SysUtils, Registry, JwsclToken, JwsclKnownSid, JwsclDescriptor, JwsclAcl,
       ;
 
 
+type
+   TLStr = array[0..1] of AnsiChar;
 
-function JwAccesMaskToBits(const Access : DWORD) : TJwString;
+procedure JwZeroPassword(var S : TJwString);
+{$IFOPT O+}
+ {$DEFINE OPT_ON}
+{$ELSE}
+ {$UNDEF OPT_ON}
+{$ENDIF}
+{$O-}
+var i : Integer;
+      Data : ^TLStr;
+      len : Integer;
+begin
+  if Length(S) = 0 then
+    exit;
+
+  randomize;
+  len := Length(S) * sizeof(S[1]); //also get widechar size
+  Data := Pointer(@S[1]); //get first char
+
+  for i := 0 to len-1 do //goes through all chars (even both widechar)
+  begin
+    {$IFOPT O+}
+     Error //: this procedure must not be compiled with optimization
+    {$ENDIF}
+    Data^[i] := AnsiChar(Random(255));
+  end;
+  ZeroMemory(Data, len);
+  SetLength(S, 0);
+end;
+{$IFDEF OPT_ON}
+ {$O+}
+{$ENDIF}
+
+function JwCreateToString(const Values : array of const) : String;
+  function GetValue(I : Integer; const Values : array of const) : String;
+  const B : Array[boolean] of ShortString = ('true','false');
+  begin    
+    case Values[i].VType of
+      vtInteger : result := IntToStr(Values[i].VInteger);
+      vtBoolean : result := String(B[Values[i].VBoolean]);
+      vtInt64 : result := IntToStr(Values[i].VInt64^);
+
+      vtAnsiString : result := String(AnsiString(Values[i].VAnsiString));
+      vtWideString : result := WideString(Values[i].VWideString);
+      vtString : result := String(Values[i].VString^);
+{$IFDEF DELPHI2009_UP}
+      vtUnicodeString : result := UnicodeString(Values[i].VUnicodeString);
+{$ENDIF DELPHI2009_UP}
+    else
+      Result := '<error>';
+    end;
+  end;
+
+var
+  i : Integer;
+  List : TStringList;
+begin
+  List := TStringList.Create;
+
+  result := '';
+  i := low(Values);
+  {i = Vl}
+  while i < High(Values) do
+  begin
+    {i < Vh}
+    if Values[i+1].VString = nil then
+      result := GetValue(i, Values)
+    else
+      result := GetValue(i, Values)+'='+GetValue(i+1, Values);
+    List.Add(result);
+    Inc(i,2);
+    {i = i + 2}
+  end;
+  {i = Vh}
+
+  result := List.CommaText;
+  List.Free;
+end;
+
+
+function JwCreateClassHash(const Data : Pointer; const Size : Cardinal) : Integer;
+{var
+  i: Integer;
+  P : PByte;
+  Hash : TJwHash;
+begin
+  P := Data;
+  result := 0;
+
+  for i := 0 to Size-1 do
+  begin
+    result := result shl 1;
+    result := result xor P^;
+
+    Inc(P);
+  end;
+end; }
+var
+  i, x: Integer;
+  P : PByte;
+begin
+  Result := 0;
+  P := Data;
+
+  //http://www.scalabium.com/faq/dct0136.htm
+  for i := 1 to Size do
+  begin
+    Result := (Result shl 4) + Ord(P^);
+    x := Result and $F0000000;
+    if (x <> 0) then
+      Result := Result xor (x shr 24);
+    Result := Result and (not x);
+
+    Inc(P);
+  end;
+end;
+
+
+function JwAccessMaskToBits(const Access : DWORD) : TJwString;
 var i : byte;
 begin
   result := '';
@@ -648,6 +821,53 @@ begin
     else
       result := '0' + result;
   end;
+end;
+
+
+function JwBeginCreateHash : Pointer;
+begin
+  result := TMemoryStream.Create;
+end;
+
+procedure JwStringHash(const Hash: Pointer; const S : string);
+begin
+  TMemoryStream(Hash).Write(S[1], Length(S) * SizeOf(S[1]));
+end;
+
+procedure JwIntegerHash(const Hash: Pointer; const I : Integer);
+begin
+  TMemoryStream(Hash).Write(I, SizeOf(I));
+end;
+
+procedure JwDataHash(const Hash: Pointer; const P : Pointer; const Size : Cardinal);
+begin
+  TMemoryStream(Hash).Write(P^, Size);
+end;
+
+procedure JwObjectHash(const Hash: Pointer; const Obj : IJwBase);
+begin
+  if Assigned(Obj) then
+    JwIntegerHash(Hash, Obj.GetHashCode);
+end;
+
+function JwEndCreateHash(var Hash : Pointer) : Integer;
+begin
+  result := JwCreateClassHash(TMemoryStream(Hash).Memory, TMemoryStream(Hash).Size);
+
+  TMemoryStream(Hash).Free;
+  Hash := nil;
+end;
+
+
+
+
+procedure JwCheckVISTACompilerSwitch(MethodName, ClassName, FileName : TJwString);
+begin
+{$IFNDEF VISTA}
+  raise EJwsclVistaFeaturesDisabled.CreateFmtEx(
+      RsVistaFeaturesDisabled, MethodName,
+      ClassName, FileName, 0, False, []);
+{$ENDIF VISTA}      
 end;
 
 
@@ -723,23 +943,23 @@ var
 begin
   result.Size := 0;
   result.Hash := nil;
-  
+
+  Reg := TRegistry.Create(KEY_QUERY_VALUE or KEY_READ);
   try
-    Reg := TRegistry.Create(KEY_QUERY_VALUE or KEY_READ);
-    try
-      Reg.RootKey := Hive;
-      if Reg.OpenKey(Key, false)
-	   //don't check for these value since we need an exception to notify the caller 
-       { and Reg.ValueExists(SizeName)
-        and Reg.ValueExists(HashName)}
-        then
+    Reg.RootKey := Hive;
+    if Reg.OpenKey(Key, false)
+   //don't check for these value since we need an exception to notify the caller
+     { and Reg.ValueExists(SizeName)
+      and Reg.ValueExists(HashName)}
+      then
+    begin
       try
         result.Size := Reg.ReadInteger(SizeName);
         if (result.Size > 0) and (result.Size < 1024) then
         begin
-		  // TJwHash uses GetMem; the returned record 
-		  // TJwFileHashData is freed by TJwHash.FreeBuffer
-		  // Change this memory manager when TJwHash is changed.
+      // TJwHash uses GetMem; the returned record
+      // TJwFileHashData is freed by TJwHash.FreeBuffer
+      // Change this memory manager when TJwHash is changed.
           GetMem(result.Hash, result.Size);
 		  
           ZeroMemory(result.Hash, result.Size);
@@ -752,10 +972,11 @@ begin
       finally
         Reg.CloseKey;
       end;
-    finally
-      Reg.Free;
-    end;
-  except
+    end
+    else
+      raise ERegistryException.CreateFmt('Key %s not found/accessible.',[Key]);
+  finally
+    Reg.Free;
   end;
 end;
 
@@ -804,6 +1025,9 @@ begin
   Result := BitMask and Check = Check;
 end;
 
+threadvar
+  InternalThreadName : WideString;
+
 type
   TThreadNameInfo = record
     FType: LongWord;     // must be 0x1000
@@ -830,6 +1054,7 @@ end;
 
 destructor TJwThread.Destroy;
 begin
+  JwFreeThreadName;
   CloseHandle(FTerminatedEvent);
   inherited;
 end;
@@ -845,11 +1070,14 @@ begin
   result := ReturnValue;
 end;
 
-threadvar InternalThreadName : WideString;
-
 function JwGetThreadName : WideString;
 begin
   result := InternalThreadName;
+end;
+
+procedure JwFreeThreadName;
+begin
+  InternalThreadName := '';
 end;
 
 //source http://msdn2.microsoft.com/en-us/library/xcb2z8hs(vs.71).aspx
@@ -878,13 +1106,7 @@ begin
 end;
 
 
-procedure JwRaiseOnNilParameter(const P : Pointer; const ParameterName, MethodName, ClassName, FileName : TJwString);
-begin
-  if not Assigned(P) then
-  raise EJwsclNILParameterException.CreateFmtEx(
-      RsNilParameter, MethodName,
-      ClassName, FileName, 0, False, [ParameterName]);
-end;
+
 
 procedure JwCheckInitKnownSid(const MethodName, ClassName, FileName : TJwString);
 begin
@@ -894,25 +1116,6 @@ begin
       MethodName, ClassName, FileName, 0, false, []);
 end;
 
-procedure JwRaiseOnNilMemoryBlock(const P : Pointer; const MethodName, ClassName, FileName : TJwString);
-begin
-  if P = nil then
-    raise EJwsclNilPointer.CreateFmtEx(
-     RsNilPointer,
-      MethodName, ClassName, FileName, 0, false, []);
-end;
-
-procedure JwRaiseOnClassTypeMisMatch(const Instance : TObject;
-  const ExpectedClass : TClass;
-  const MethodName, ClassName, FileName : TJwString);
-begin
-  if Assigned(Instance) and
-    not (Instance is TJwSecurityDescriptor) then
-      raise EJwsclClassTypeMismatch.CreateFmtEx(
-               RsInvalidClassType,
-               MethodName, ClassName, FileName, 0, false,
-                [Instance.ClassName, ExpectedClass.ClassName]);
-end;
 
 function JwCheckArray(const Objs : TJwObjectTypeArray; out Index : Integer) : Boolean;
 var
@@ -1089,10 +1292,52 @@ end;
 function JwMsgWaitForMultipleObjects(const Handles: array of THandle; bWaitAll: LongBool;
            dwMilliseconds: DWord; dwWakeMask: DWord): DWord;
 begin
-  Result := JwaWindows.MsgWaitForMultipleObjects(Length(Handles), @Handles[0], bWaitAll, dwMilliseconds, dwWakeMask);
+  Result := MsgWaitForMultipleObjects(Length(Handles), @Handles[0], bWaitAll, dwMilliseconds, dwWakeMask);
+end;
+
+function JwMsgWaitForMultipleObjects(const Handles: TJwHandles; bWaitAll: LongBool;
+           dwMilliseconds: DWord; dwWakeMask: DWord): DWord;
+begin
+  Result := MsgWaitForMultipleObjects(Length(Handles), @Handles[0], bWaitAll, dwMilliseconds, dwWakeMask);
 end;
 
 function JwWaitForMultipleObjects(const Handles: array of THandle; bWaitAll: LongBool;
+           dwMilliseconds: DWord): DWord;
+begin
+  Result := WaitForMultipleObjects(Length(Handles), @Handles[0], bWaitAll, dwMilliseconds);
+end;
+
+function JwHandlesArray(const Handles: array of THandle) : TJwHandles;
+var i : Integer;
+begin
+  if Length(Handles) = 0 then
+    result := nil
+  else
+    SetLength(result, Length(Handles));
+  for I := low(Handles) to High(Handles) do
+  begin
+    result[i] := Handles[i];
+  end;
+end;
+
+procedure JwAddHandleToArray(var TargetHandles: TJwHandles; const Handles: array of THandle);
+var i, len, StartI : Integer;
+begin
+  len := Length(TargetHandles);
+  if len < 0 then
+    len := 0;
+
+  StartI := Len;
+  if Length(Handles) > 0 then
+    SetLength(TargetHandles, len+Length(Handles));
+  for I := low(Handles) to High(Handles) do
+  begin
+    TargetHandles[i+StartI] := Handles[i];
+  end;
+end;
+
+
+function JwWaitForMultipleObjects(const Handles: TJwHandles; bWaitAll: LongBool;
            dwMilliseconds: DWord): DWord;
 begin
   Result := WaitForMultipleObjects(Length(Handles), @Handles[0], bWaitAll, dwMilliseconds);
@@ -1154,6 +1399,7 @@ var Index : Integer;
 
 begin
 {$IFDEF FullDebugMode}
+  result := 0;
   if LocalLock(hMem) <> nil then
   begin
     Index := Find;
@@ -1168,10 +1414,10 @@ begin
     InternalMemArray.Delete(Index);
 
     LocalUnlock(hMem);
-{$ENDIF FullDebugMode}
     result := LocalFree(hMem);
-{$IFDEF FullDebugMode}
   end;
+{$ELSE}
+  result := LocalFree(hMem);
 {$ENDIF FullDebugMode}
   hMem := 0;
 end;
@@ -1220,6 +1466,7 @@ var Index : Integer;
 {$ENDIF FullDebugMode}
 begin
 {$IFDEF FullDebugMode}
+  result := 0;
   if GlobalLock(hMem) <> nil then
   begin
     Index := Find;
@@ -1233,12 +1480,11 @@ begin
     FreeMem(PMemTuple(InternalMemArray[Index]));
     InternalMemArray.Delete(Index);
 
-    GlobalUnlock(hMem);
-{$ENDIF FullDebugMode}
-
+    GlobalUnlock(hMem);                
     result := GlobalFree(hMem);
-{$IFDEF FullDebugMode}
   end;
+{$ELSE}
+  result := GlobalFree(hMem);          
 {$ENDIF FullDebugMode}
   hMem := 0;
 end;
@@ -1513,19 +1759,22 @@ begin
         But that's too easy
         }
         if MsgLoop then
-          WaitResult := JwMsgWaitForMultipleObjects([Handle, SyncEvent, hTimer], False, INFINITE, QS_SENDMESSAGE)
+          WaitResult := JwMsgWaitForMultipleObjects([Handle, {$IFDEF DELPHI7_UP}SyncEvent,{$ENDIF} hTimer], False, INFINITE, QS_SENDMESSAGE)
         else
-          WaitResult := JwWaitForMultipleObjects([Handle, SyncEvent, hTimer], False, INFINITE);
-          
-        CheckThreadError(WaitResult <> WAIT_FAILED);
+          WaitResult := JwWaitForMultipleObjects([Handle, {$IFDEF DELPHI7_UP}SyncEvent,{$ENDIF} hTimer], False, INFINITE);
 
+
+        CheckThreadError(WaitResult <> WAIT_FAILED);
         if WaitResult = WAIT_OBJECT_0 + 1 then
-          CheckSynchronize;
+{$IFDEF DELPHI7_UP}
+          CheckSynchronize;         //not supported in D5
+
         if WaitResult = WAIT_OBJECT_0 + 2 then
+{$ENDIF DELPHI7_UP}
         begin
           result := WAIT_TIMEOUT;
           exit;
-        end;         
+        end;
       until WaitResult = WAIT_OBJECT_0;
     finally
       if hTimer <> INVALID_HANDLE_VALUE then
@@ -1534,6 +1783,7 @@ begin
   end
   else
     WaitForSingleObject(Handle, TimeOut);
+
 
   CheckThreadError(GetExitCodeThread(Handle, Result));
 end;

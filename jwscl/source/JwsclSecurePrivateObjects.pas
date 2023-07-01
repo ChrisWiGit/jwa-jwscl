@@ -25,10 +25,10 @@ provisions of the LGPL License are applicable instead of those above.
 If you wish to allow use of your version of this file only under the terms   
 of the LGPL License and not to allow others to use your version of this file 
 under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
+replace  them with the notice and other provisions required by the LGPL
 License.  If you do not delete the provisions above, a recipient may use     
 your version of this file under either the MPL or the LGPL License.          
-                                                                             
+
 For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
 Note
 
@@ -40,7 +40,7 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclSecurePrivateObjects;
-{$INCLUDE Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 // Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 //do not move header comment from above unit declaration!
 
@@ -48,7 +48,7 @@ interface
 
 
 uses
-  SysUtils, 
+  JwaWindows, SysUtils, D5Impl,
   JwsclTypes, JwsclExceptions, JwsclAcl, JwsclMapping, JwsclSid,
   JwsclSecureObjects, JwsclResource,
   JwsclVersion, JwsclConstants, JwsclDescriptor, JwsclToken,
@@ -61,7 +61,7 @@ type
 
   TJwPrivateSecurityInformationArray = Array of IJwPrivateSecurityInformation;
 
-  IJwPrivateSecurityInformation = interface (IInterface)
+  IJwPrivateSecurityInformation = interface {$IFDEF DELPHI6_UP}(IInterface){$ENDIF}
     ['{979EC50C-1111-4239-8FD0-75A8C43C7441}']
 
     {<B>GetObjectInformation</B> retrieves information about the private objec
@@ -74,11 +74,11 @@ type
             TJwSecurityObjectInformationFlagSet): TJwSecurityObjectInformation;
 
     {<B>GetParent</B> is called to retrieve the parent security descriptor of
-     the actual private object. This is used by GetPrivateInheritanceSource and
+     the current private object. This is used by GetPrivateInheritanceSource and
      other inheritance methods)
      @param Parent received a pointer to the parent private object. Return nil
       if no parent exists - e.g. it is on top of a tree structure. 
-     @return Return S_OK if the parameter Parent is valid or the actual object
+     @return Return S_OK if the parameter Parent is valid or the current object
       has no parent.
       Return E_NOTIMPL if the private object does not support tree structures. 
      }
@@ -90,7 +90,7 @@ type
      set or get and SetSecurityDescriptor and SetSecurityDescriptor wants
      to know whether the process should be checked vor validity.
      @param AccessCheckType defines whether the access check shall be performed
-      for a get or set operation. 
+      for a get or set operation.
      @return If the function returns true an access check will prevent unauthorized
      change or retrieving of security information.
      If the function returns false no access check will be done and the user
@@ -115,7 +115,7 @@ type
       The descriptor is already created and contains empty parts. Do not Free it!
       This method should only change the requested security parts
       in SecurityDescriptor defined by SecurityInformation!
-       
+
     }
 
     procedure GetSecurity(const SecurityInformation :
@@ -135,7 +135,7 @@ type
       descriptor parts should be set. No more or less. 
      @param SecurityDescriptor Contains a security descriptor that only contains
       parts which are defined in SecurityInformation. Do not free the
-       the descriptor! 
+       the descriptor!
      )
     }
 
@@ -150,7 +150,7 @@ type
      @param GenericMap receives a classname (not instance) which describes how
        to map generic access rights 
      @return 
-              # Return S_OK if the call succeeded. 
+              # Return S_OK if the call succeeded.
               # Return E_NOTIMPL to use TJwSecurityGenericMapping as standard map. 
               # Any other result will raise EJwsclInvalidObjectException 
              
@@ -225,7 +225,7 @@ type
      To create a secure object that inherits the security descriptor. See CreateInherited.
 
      @param DefaultSecurityDescriptor defines a default security descriptor that will
-       be used by this object. If this parameter is nil the security information of the actual token
+       be used by this object. If this parameter is nil the security information of the current token
        will be used.
        Read warning in description! 
      }
@@ -255,7 +255,7 @@ type
       including inherited ACEs from parent (if DACL is not protected).
 
 
-      @param SecurityObject Defines a secure object which security information is requested. Must not be nil 
+      @param SecurityObject Defines a secure object which security information is requested. Must not be nil
       @param SecurityInformationSet Defines which security information is requested.
               If it contains siSaclSecurityInformation the caller must have enabled the privilege SE_SECURITY_NAME
               if automatic access check is activated. 
@@ -336,7 +336,7 @@ type
 
 {$IFNDEF SL_OMIT_SECTIONS}
 implementation
-uses JwaWindows, JwsclEnumerations, JwsclKnownSid;
+uses JwsclEnumerations, JwsclKnownSid;
 
 
 {$ENDIF SL_OMIT_SECTIONS}

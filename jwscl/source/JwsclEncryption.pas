@@ -1,6 +1,6 @@
 { Project JEDI Windows Security Code Library (JWSCL)
   
-  Actually the Windows Vista Crypt API is not supported by this unit. The direct
+  Currently the Windows Vista Crypt API is not supported by this unit. The direct
   memory encryption is simulated.
   Author
     * Christian Wimmer
@@ -35,7 +35,7 @@
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclEncryption;
 
-{$I Jwscl.inc}
+{$INCLUDE ..\includes\Jwscl.inc}
 
 //do not move header comment from above unit declaration!
 
@@ -97,7 +97,7 @@ type
           # pmSameLogon - defines only the same use can decrypt the data 
          
      @param MemoryType defines which type of memory manager created P.
-       Actually only mtGetMem is supported. 
+       Currently only mtGetMem is supported. 
      raises
  EjwsclCryptUnsupportedException:  if MemoryType is not mtGetMem. 
       EjwsclCryptApiException: if an underlying API function failed. 
@@ -118,7 +118,7 @@ type
        
      @param Flags Must be the same value of Flags specified in a previous call to EncryptMemory.  
      @param MemoryType defines which type of memory manager created P.
-       Actually only mtGetMem is supported. 
+       Currently only mtGetMem is supported. 
      raises
  EjwsclCryptUnsupportedException:  if MemoryType is not mtGetMem. 
       EjwsclCryptApiException: if an underlying API function failed. 
@@ -272,8 +272,8 @@ type
 {<B>JwEncryptString</B> encrypts and protects a string.
 @param S defines a string that must be encrypted. 
 @param Description Defines a string that describes the data. Can be empty. 
-@param Prompt defines a text to be displayed in the prompt dialog. This parameter
-       applies only if NoUi is false. 
+@param Prompt defines a whether a encryption prompt is displayed to confirm
+  the decryption by the user.
 @param LocalMachineOnly Set to true so the data can only be decrypted on the
  same computer; otherwise false. 
 @param Entropy Defines additional data to be used to encrypt the data.
@@ -292,8 +292,8 @@ function JwEncryptString(const S : TJwString;
 
 {<B>JwDecryptString</B> decrypts a string and checks for manipulation.
 @param S defines a string that must be decrypted. 
-@param Prompt defines a text to be displayed in the prompt dialog. This parameter
-       applies only if NoUi is false. 
+@param Prompt defines a whether a encryption prompt is displayed to confirm
+  the decryption by the user.
 @param Entropy Defines additional data to be used to encrypt the data.
 The same Entropy must be specified to the decryption method DecryptPointerWithPrompt.
 Can be nil to use no entropy. 
@@ -344,7 +344,7 @@ begin
       false,//const NoUi : Boolean;
       [cppf_PromptOnProtect,cppf_PromptOnUnprotect],//const PromptFlags : TJwCryptProtectOnPromptFlagSet;
       0,//const WindowParent : HWND;
-      'hallo',//const Prompt : TJwString;
+      '',//const Prompt : TJwString;
       Blob//out Data : TJwGetMemBlob
       );
   try
@@ -376,7 +376,7 @@ begin
       false,//const NoUi : Boolean;
       [],//const PromptFlags : TJwCryptProtectOnPromptFlagSet;
       0,//const WindowParent : HWND;
-      '123',//const Prompt : TJwString;
+      '',//const Prompt : TJwString;
       Blob//out Data : TJwGetMemBlob
       );
   try
@@ -586,7 +586,7 @@ begin
     CopyMemory(Data.Data, Blob.pbData, Data.Size);
   end;
   if Blob.pbData <> nil then
-    LocalFree(Cardinal(Blob.pbData));
+    LocalFree(HLOCAL(Blob.pbData));
 
 end;
 
@@ -635,7 +635,7 @@ begin
     CopyMemory(Data.Data, Blob.pbData, Data.Size);
   end;
   if Blob.pbData <> nil then
-    LocalFree(Cardinal(Blob.pbData));
+    LocalFree(HLOCAL(Blob.pbData));
 end;
 
 { TJwRandomDataGenerator }
@@ -727,14 +727,14 @@ begin
     mtGetMem : ReallocMem(P, Size);
 {    mtLocal  :
      begin
-       //P2 := LocalLock(Cardinal(P));
-       //FillChar(P2^, LocalSize(Cardinal(P)), 0);
-       //LocalUnlock(Cardinal(P));
-       P := Pointer(LocalReAlloc(Cardinal(P), Size, LMEM_ZEROINIT));//LocalFlags(Cardinal(P))));
+       //P2 := LocalLock(HLOCAL(P));
+       //FillChar(P2^, LocalSize(HLOCAL(P)), 0);
+       //LocalUnlock(HLOCAL(P));
+       P := Pointer(LocalReAlloc(HLOCAL(P), Size, LMEM_ZEROINIT));//LocalFlags(HLOCAL(P))));
        ID := GetLastError();
        if ID = 0 then;
      end;
-    mtGlobal : GlobalReAlloc(Cardinal(P), Size, GlobalFlags(Cardinal(P)));}
+    mtGlobal : GlobalReAlloc(HGLOBAL(P), Size, GlobalFlags(HGLOBAL(P)));}
   end;
 
   try
@@ -746,16 +746,16 @@ begin
         end;
      { mtLocal  :
         begin
-          ID := LocalSize(Cardinal(P));
+          ID := LocalSize(HLOCAL(P));
           if ID = 0 then;
-          P2 := LocalLock(Cardinal(P));
+          P2 := LocalLock(HLOCAL(P));
 //          CopyMemory(P, Data.Data, Size);
 //          FillChar(Data.Data^, Data.Size, 0);
           FillChar(P2^, 2, 0);
-          LocalFlags(Cardinal(P));
-          LocalUnlock(Cardinal(P));
+          LocalFlags(HLOCAL(P));
+          LocalUnlock(HLOCAL(P));
 
-          LocalFlags(Cardinal(P));
+          LocalFlags(HLOCAL(P));
         end;
 
       //mtGlobal : GlobalLock(P);      }
@@ -763,7 +763,7 @@ begin
   finally
     FreeMem(Data.Data);
   end;
-  LocalFlags(Cardinal(P));
+  LocalFlags(HLOCAL(P));
 end;
 
 class procedure TJwEncryptMemory.DecryptMemory(var P : Pointer;
@@ -804,8 +804,8 @@ begin
 
   case MemoryType of
     mtGetMem : ReallocMem(P, Size);
-  {  mtLocal  : LocalReAlloc(Cardinal(P), Size, LocalFlags(Cardinal(P)));
-    mtGlobal : GlobalReAlloc(Cardinal(P), Size, GlobalFlags(Cardinal(P)));
+  {  mtLocal  : LocalReAlloc(HLOCAL(P), Size, LocalFlags(HLOCAL(P)));
+    mtGlobal : GlobalReAlloc(HGLOBAL(P), Size, GlobalFlags(HGLOBAL(P)));
     }
   end;
 
@@ -818,10 +818,10 @@ begin
         end;
     {  mtLocal  :
         begin
-          P2 := LocalLock(Cardinal(P));
+          P2 := LocalLock(HLOCAL(P));
           CopyMemory(P2, Data.Data, Size);
           FillChar(Data.Data^, Size, 0);
-          LocalUnlock(Cardinal(P));
+          LocalUnlock(HLOCAL(P));
         end;
 
       //mtGlobal : GlobalLock(P);}
