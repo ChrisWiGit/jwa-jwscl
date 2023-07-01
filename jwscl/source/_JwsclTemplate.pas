@@ -33,10 +33,18 @@ The Original Code is Jwscl<UnitName>.pas.
 
 The Initial Developer of the Original Code is <Author Name>
 
-
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-08-29 14:26:48 +0000 (Sun, 29 Aug 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1006 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/_JwsclTemplate.pas $
+</table>
 }
 unit _JwsclTemplate;
-
 {$INCLUDE ..\includes\Jwscl.inc}
 
 interface

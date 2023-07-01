@@ -35,12 +35,21 @@ The Original Code is JwsclLSA.pas.
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-10-14 14:09:29 +0000 (Thu, 14 Oct 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1025 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/JwsclLsa.pas $
+</table>
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclLsa;
 {$INCLUDE ..\includes\Jwscl.inc}
-// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
+
 
 interface
 
@@ -49,7 +58,8 @@ uses SysUtils,
   JwsclResource,
   JwsclSid, JwsclToken,
   JwsclTypes, JwsclExceptions,
-  JwsclVersion, JwsclConstants, 
+  JwsclVersion, JwsclConstants,
+  JwsclUtils,
   JwsclStrings; //JwsclStrings, must be at the end of uses list!!!
 {$ENDIF SL_OMIT_SECTIONS}
 
@@ -63,35 +73,35 @@ type
     fLsaHandle: THandle;
   public
     {<B>Create</B> creates a new instance of TJwSecurityLsa and
-	registers the current process as a logon process.
-	This call needs TCB privilege!
-   @param LogonProcessName This parameter receives a name in ansi format that
-     does not exceed 127 characters.
+        registers the current process as a logon process.
+        This call needs TCB privilege!
+    @param LogonProcessName This parameter receives a name in ansi format that
+        does not exceed 127 characters.
 
-	@raises
-	  EJwsclWinCallFailedException: This exception will be raised
-	    if the call to LsaRegisterLogonProcess failed.
-	}
+    @raises
+        EJwsclWinCallFailedException: This exception will be raised
+        if the call to LsaRegisterLogonProcess failed.
+    }
     constructor Create(const LogonProcessName: AnsiString);
 
     {<B>CreateUntrusted</B> creates a new instance of TJwSecurityLsa and
-	 creates an untrusted connection to LSA 
-	 
-	 @raises
-	  EJwsclWinCallFailedException: This exception will be raised
-	    if the call to LsaConnectUntrusted failed.
-	}	
-  	constructor CreateUntrusted;
+        creates an untrusted connection to LSA
+
+    @raises
+        EJwsclWinCallFailedException: This exception will be raised
+        if the call to LsaConnectUntrusted failed.
+    }
+    constructor CreateUntrusted;
 
     destructor Destroy; override;
 
     {<B>LsaLogonUser</B> creates a new authentication token where
-	even token groups can be adapted.
-	
-	@param anAuthenticationInformation Use JwCreate_MSV1_0_INTERACTIVE_LOGON for 
-		interactive logondata)
+        even token groups can be adapted.
 
-	}
+    @param anAuthenticationInformation Use JwCreate_MSV1_0_INTERACTIVE_LOGON for
+        interactive logondata)
+
+    }
     procedure LsaLogonUser(
       const anOriginName: AnsiString;
       aLogonType: SECURITY_LOGON_TYPE;
@@ -242,6 +252,7 @@ procedure JWFreeLsaStringW(Lsa : LSA_UNICODE_STRING);
 implementation
 
 
+
 { TJwSecurityLsa }
 
 
@@ -309,7 +320,7 @@ begin
     SetLastError(res);
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsWinCallFailed,
-      'CreateUntrusted', ClassName, 'JwsclLsa.pas',
+      'CreateUntrusted', ClassName, RsUNLSA,
       0, True, 'LsaConnectUntrusted',
       ['LsaRegisterLogonProcess']);
   end;
@@ -338,7 +349,7 @@ begin
     SetLastError(res);
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsWinCallFailed,
-      'Create', ClassName, 'JwsclLsa.pas',
+      'Create', ClassName, RsUNLSA,
       0, True, 'LsaRegisterLogonProcess',
       ['LsaRegisterLogonProcess']);
   end;
@@ -426,7 +437,7 @@ begin
     SetLastError(res);
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsWinCallFailed,
-      'Create', ClassName, 'JwsclLsa.pas',
+      'Create', ClassName, RsUNLSA,
       0, True, 'LsaLookupAuthenticationPackage',
       ['LsaRegisterLogonProcess']);
   end;
@@ -473,14 +484,13 @@ begin
     SetLastError(res);
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsLSALogonUserFailedSubStatus,
-      'Create', ClassName, 'JwsclLsa.pas',
+      'Create', ClassName, RsUNLSA,
       0, True, 'LsaLogonUser', [SubStatus]);
   end;
 
   aToken := nil;
   if (hToken <> 0) and (hToken <> INVALID_HANDLE_VALUE) then
     aToken := TJwSecurityToken.Create(hToken, shOwned, TOKEN_ALL_ACCESS);
-
 end;
 
 { TJwLsaLogonSession }
@@ -499,7 +509,7 @@ begin
     SetLastError(LsaNtStatusToWinError(res));
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsWinCallFailedWithNTStatus,
-      'GetSessionData', ClassName, 'JwsclLsa.pas',
+      'GetSessionData', ClassName, RsUNLSA,
       0, True, 'LsaGetLogonSessionData', ['LsaGetLogonSessionData', res]);
   end;
 
@@ -509,10 +519,11 @@ begin
 end;
 
 class function TJwLsaLogonSession.GetSessions: TJwLogonSessionArray;
-var List,
-    LuidPtr : PLuid;
-    Count : ULONG;
-    res : NTSTATUS;
+var
+  List,
+  LuidPtr : PLuid;
+  Count : ULONG;
+  res : NTSTATUS;
   I: Integer;
 begin
   List := nil;
@@ -524,7 +535,7 @@ begin
     SetLastError(LsaNtStatusToWinError(res));
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsWinCallFailedWithNTStatus,
-      'GetSessionData', ClassName, 'JwsclLsa.pas',
+      'GetSessionData', ClassName, RsUNLSA,
       0, True, 'LsaEnumerateLogonSessions', ['LsaEnumerateLogonSessions', res]);
   end;
 
@@ -581,7 +592,7 @@ end;
 
 destructor TJwLsaLogonSessionData.Destroy;
 begin
-  FreeAndNil(fSid);
+  JwFree(fSid);
   inherited;
 end;
 
@@ -608,7 +619,7 @@ begin
     SetLastError(LsaNtStatusToWinError(ntsResult));
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsWinCallFailed,
-      'EnumerateAccountRights', ClassName, 'JwsclLsa.pas',
+      'EnumerateAccountRights', ClassName, RsUNLSA,
       0, True, 'LsaOpenPolicy',
       ['LsaOpenPolicy']);
   end;
@@ -658,7 +669,7 @@ begin
     SetLastError(LsaNtStatusToWinError(ntsResult));
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
       RsWinCallFailed,
-      'CreateAndOpenPolicy', ClassName, 'JwsclLsa.pas',
+      'CreateAndOpenPolicy', ClassName, RsUNLSA,
       0, True, 'LsaOpenPolicy',
       ['LsaOpenPolicy']);
   end;
@@ -702,7 +713,7 @@ begin
       SetLastError(LsaNtStatusToWinError(ntsResult));
       raise EJwsclWinCallFailedException.CreateFmtWinCall(
         RsWinCallFailed,
-        'CreateAndOpenPolicy', ClassName, 'JwsclLsa.pas',
+        'CreateAndOpenPolicy', ClassName, RsUNLSA,
         0, True, 'LsaAddAccountRights',
         ['LsaAddAccountRights']);
     end;
@@ -767,7 +778,7 @@ begin
       SetLastError(LsaNtStatusToWinError(ntsResult));
       raise EJwsclWinCallFailedException.CreateFmtWinCall(
         RsWinCallFailed,
-        'RemoveAccountRights', ClassName, 'JwsclLsa.pas',
+        'RemoveAccountRights', ClassName, RsUNLSA,
         0, True, 'LsaRemoveAccountRights',
         ['LsaRemoveAccountRights']);
     end;
@@ -824,7 +835,7 @@ begin
       SetLastError(LsaNtStatusToWinError(ntsResult));
       raise EJwsclWinCallFailedException.CreateFmtWinCall(
         RsWinCallFailed,
-        'RemoveAccountRights', ClassName, 'JwsclLsa.pas',
+        'RemoveAccountRights', ClassName, RsUNLSA,
         0, True, 'LsaRemoveAccountRights',
         ['LsaRemoveAccountRights']);
     end;
@@ -859,7 +870,7 @@ begin
       SetLastError(LsaNtStatusToWinError(ntsResult));
       raise EJwsclWinCallFailedException.CreateFmtWinCall(
         RsWinCallFailed,
-        'RemoveAccountRights', ClassName, 'JwsclLsa.pas',
+        'RemoveAccountRights', ClassName, RsUNLSA,
         0, True, 'LsaRemoveAccountRights',
         ['LsaRemoveAccountRights']);
     end;

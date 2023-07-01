@@ -17,17 +17,17 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the  
-GNU Lesser General Public License (the  "LGPL License"), in which case the   
-provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
+Alternatively, the contents of this file may be used under the terms of the
+GNU Lesser General Public License (the  "LGPL License"), in which case the
+provisions of the LGPL License are applicable instead of those above.
+If you wish to allow use of your version of this file only under the terms
+of the LGPL License and not to allow others to use your version of this file
+under the MPL, indicate your decision by deleting  the provisions above and
+replace  them with the notice and other provisions required by the LGPL
+License.  If you do not delete the provisions above, a recipient may use
+your version of this file under either the MPL or the LGPL License.
 
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
 
 Note
 The Original Code is JwsclProcess.pas.
@@ -35,15 +35,29 @@ The Original Code is JwsclProcess.pas.
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
+Remarks
+  If JWSCL_GLOBAL_SAFE_LOAD_LIBRARY is set (within Jwscl.inc) this unit should be included as early as possible
+  in the main project file.
+
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-11-14 15:40:34 +0000 (Sun, 14 Nov 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1059 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/JwsclProcess.pas $
+</table>
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclProcess;
 {$INCLUDE ..\includes\Jwscl.inc}
-// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
+
 
 interface
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, SyncObjs,
   JwaWindows,
   JwsclTypes, JwsclToken, JwsclSid, JwsclTerminalServer, JwsclUtils,
   JwsclSecureObjects, JwsclResource,
@@ -61,20 +75,158 @@ const
   IOJOBNAME = 'IOJobCompletion\';
 
 type
-  {<B>TJwLibraryUtilities</B> contains methods related to libraries.}
+  { ISafeLoadLibrarySection is an interface used by TJwLibraryUtilities.EnterSafeLoadLibrary to retain a section for a
+    safe way of loading a library. Its only intention is to clean up the setup made by EnterSafeLoadLibrary on
+    destruction.                                                                                                       }
+  ISafeLoadLibrarySection = interface
+  ['{CE0185B5-C0CB-4084-BA22-54F504CCA082}']
+    { LeaveSafeLoadLibrary will undo a safe section created by TJwLibraryUtilities.EnterSafeLoadLibrary. All subsequent
+      calls to LoadLibrary may no more be safe to call.
+      Remarks
+      Instead of calling this method you can also destroy the interface directly.
+
+      For more information see TJwLibraryUtilities.EnterSafeLoadLibrary.                                                }
+    procedure LeaveSafeLoadLibrary;
+  end;
+
+  { <b>TJwLibraryUtilities</b> contains methods related to libraries.
+
+    Most of the functions are class methods so you don't need to create an instance of this class. }
   TJwLibraryUtilities = class
   private
   protected
+    { LeaveSafeLoadLibrary will undo a safe section created by EnterSafeLoadLibrary. All subsequent calls to LoadLibrary
+      may no more be safe to call.
+      Remarks
+      The function is internal and instead the method with the same name in ISafeLoadLibrarySection should be called. This
+      interface is returned by EnterSafeLoadLibrary.                                                                       }
+    class procedure LeaveSafeLoadLibrary; virtual;
   public
-    {<B>LoadLibProc</B> tries to get a pointer to a function within a DLL.
-     @return Return value is a function pointer to the specified function.
+    { <b>SecureDLLSearchPath</b> initiates actions to turn off unsecure searching for DLL files wiht LoadLibrary.
+      Remarks
+      This call should be called as early as possible in the process.
 
-     raise
-      EJwaLoadLibraryError This exception is raised if the given library name could not be found.
-      EJwaGetProcAddressError This exception is raised if the given function name could not be found.
-    }
+      Microsoft has added functions to secure the searching for DLL files. However, the system must be patched. On an
+      unpatched system the function only sets the current working directory to Windows system. Otherwise it tries to call
+      SetDllDirectoryW and SetSearchPathMode.
+
+      If the compiler directive <b>JWSCL_LOCAL_SAFE_LOAD_LIBRARY</b> is set, the function will be called by the
+      initialization section of this unit. Make sure you include the unit JwsclProcess.pas as early as possible.
+
+
+
+      Using this method makes calls to EnterSafeLoadLibrary unnecessary but the calls are still valid.                    }
+    class procedure SecureDLLSearchPath;
+
+    { <b>IsFunctionAvailable</b> checks whether a function in a library exists.
+
+      Parameters
+      LibName :       A path to a library (DLL file).
+      FunctionName :  A function name to look for in the library.
+
+      Returns
+      \Returns <b>true</b> if the function could be found in the library; otherwise <b>false</b>.
+
+      Remarks
+      This function uses a safe LoadLibrary call if the compiler switch <b>JWSCL_LOCAL_SAFE_LOAD_LIBRARY</b> is active. }
+    class function IsFunctionAvailable(const LibName : String; const FunctionName : AnsiString) : Boolean;
+
+    { InitSafeLoadLibrary initializes the safe load library algorithm used by the metdho EnterSafeLoadLibrary.
+
+
+      Remarks
+      This function doesn't do anything if the compiler switch <b>JWSCL_LOCAL_SAFE_LOAD_LIBRARY</b> isn't enabled. }
+    class procedure InitSafeLoadLibrary; virtual;
+    { <b>EnterSafeLoadLibrary</b> creates a section for loading a library in a safe way.
+      Returns
+      The function returns an interface that can be used to leave the the section of loading a library the safe way.
+      Remarks
+      <b>EnterSafeLoadLibrary</b> can be used to create a section of code to load libraries in a safe way. A call to this
+      function makes sure that all subsequent calls to LoadLibrary will use a safe way of location the library itself.
+
+      Several nested calls have the intended effect of only the first call will do the work. All other nested calls will
+      do nothing.
+
+      The function works on the current thread in a thread safe way. Thus the function can be called from different
+      threads safely.
+
+      This function does nothing if the compiler switch <b>JWSCL_LOCAL_SAFE_LOAD_LIBRARY</b> isn't enabled.
+
+      You should call this method only when needed and for a short time. Creating a big section will not result in safety
+      because your program may change the environment after the method was called. Furthermore the method will create a
+      section that is only valid for the current thread. If you call this function in your main project in the beginning,
+      other calls to this function in different threads will immediately block their execution and thus create a race
+      condition.
+      Example
+      You can use the function in different way, depending on how long the sections shall last.
+
+      In this example the section will last until the function has ended.
+      <code lang="delphi">
+      procedure ProcName;
+      begin
+        TJwLibraryUtilities.EnterSafeLoadLibrary;
+        //safe calls to LoadLibrary
+      end;
+      </code>
+
+      In this example the section will last until the the interface has been destroyed.
+      <code lang="delphi">
+      procedure ProcName;
+      var
+        SafeSection : ISafeLoadLibrarySection;
+      begin
+        SafeSection := TJwLibraryUtilities.EnterSafeLoadLibrary;
+        //safe calls to LoadLibrary
+        SafeSection := nil;
+        //unsafe calls to LoadLibrary
+      end;
+      </code>
+
+      In this example the section will last until the interface method <link ISafeLoadLibrarySection.LeaveSafeLoadLibrary, LeaveSafeLoadLibrary>
+      has been called.
+      <code lang="delphi">
+      procedure ProcName;
+      var
+        SafeSection : ISafeLoadLibrarySection;
+      begin
+        SafeSection := TJwLibraryUtilities.EnterSafeLoadLibrary;
+        //calls to LoadLibrary
+        SafeSection.LeaveSafeLoadLibrary;
+        //unsafe calls to LoadLibrary
+      end;
+      </code>
+      Although, there might be an exception, it is safe to not use try/finally here (but of course you can use it). The
+      interface will be destroyed in a case of an exception though.                                                                              }
+
+    class function EnterSafeLoadLibrary : ISafeLoadLibrarySection; virtual;
+
+    { <b>LoadLibProc</b> tries to get a pointer to a function within a DLL.
+      Returns
+      \Return value is a function pointer to the specified function.
+      Exceptions
+      EJwaLoadLibraryError :     This exception is raised if the given library name could not be found.
+      EJwaGetProcAddressError :  This exception is raised if the given function name could not be found.
+      Remarks
+      This function uses a safe LoadLibrary call if the compiler switch <b>JWSCL_LOCAL_SAFE_LOAD_LIBRARY</b> is active.
+                                                                                                                        }
     class function LoadLibProc(const LibName: AnsiString;
       const ProcName: AnsiString): Pointer;
+  end;
+
+  {TJwProcessUtilities provides methods to get or set information of a process.
+   Remarks
+      Some methods that provide information about the projess can also be found in class TJwSystemInformation of
+      unit JwsclVersion.pas .
+  }
+  TJwProcessUtilities = class
+  public
+    {GetCommandLineArguments returns all arguments of the application supplied through the command line.
+
+    Remarks
+       The function uses CommandLineToArgvW (http://msdn.microsoft.com/en-us/library/bb776391%28VS.85%29.aspx)
+       and its special parsing.
+    }
+    class function GetCommandLineArguments() : TStrings;
   end;
 {
   IJwJobObject = interface
@@ -93,6 +245,8 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
 
   end;
  }
+
+  {TJwProcessList is an array of process IDs. (DWORD)}
   TJwProcessList = array of TJwProcessId;
 
 
@@ -217,21 +371,21 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
       const ErrorIfAlreadyExists : Boolean;
       const SecurityAttributes : TJwSecurityDescriptor); overload;
 
-    {<B>Create</B> creates a new job object using an existing completition port.}  
+    {<B>Create</B> creates a new job object using an existing completition port.}
     constructor Create(const Name : TJwString;
       const ErrorIfAlreadyExists : Boolean;
       const SecurityAttributes : TJwSecurityDescriptor;
       CompletionKey : Integer; CompletionPort : THandle); overload;
 
     {<B>Create</B> creates a new job object using an existing job object
-    @param Name defines the name of the existing job object 
-    @param DesiredAccess defines the desired access to open the job object 
+    @param Name defines the name of the existing job object
+    @param DesiredAccess defines the desired access to open the job object
     @param InheritHandles defines whether processes created by this process
         will inherit the handle. Otherwise, the processes do not inherit this handle.
     @param CompletionKey defines an existing completion key to be assigned or
-     used by the opened object. It is used for notifications. 
+     used by the opened object. It is used for notifications.
     @param CompletionPort defines an existing completion handle to be assigned or
-     used by the opened object. It is used for notifications. 
+     used by the opened object. It is used for notifications.
 
     }
     constructor Create(const Name : TJwString; const DesiredAccess : TJwAccessMask;
@@ -242,7 +396,7 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
     {<B>IsProcessInJob</B> returns whether a process is assigned to the job.
     @param hProcess defines any handle to the process that is tested for membership.
     @param Returns tre if the process is a member of the job; otherwise false.
-    @return Returns true if the given process is assigned to the current job instance; otherwise false. 
+    @return Returns true if the given process is assigned to the current job instance; otherwise false.
     raises
  EJwsclWinCallFailedException:  can be raised if the call to an winapi function failed.
 
@@ -254,14 +408,14 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
     assigned to a job. The process can be created with the flag CREATE_BREAKAWAY_FROM_JOB
     to be reassignable.
     raises
- EJwsclWinCallFailedException:  can be raised if the call to an winapi function failed. 
+ EJwsclWinCallFailedException:  can be raised if the call to an winapi function failed.
     }
     procedure AssignProcessToJobObject(hProcess : TJwProcessHandle; Data : Pointer);
 
     {<B>TerminateJobObject</B> terminates all processes in the job with a predefined
      exit code.
     raises
- EJwsclWinCallFailedException:  can be raised if the call to an winapi function failed. 
+ EJwsclWinCallFailedException:  can be raised if the call to an winapi function failed.
     }
     procedure TerminateJobObject(const ExitCode : DWORD);
 
@@ -271,9 +425,9 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
        and restarted. If true the thread is shutdown and a new thread is created.
        However the IO port is not replaced. In fact there is no way to reassign a new
        port to the existing job object. If the parameter Force is set to false,
-       the thread is only reset if it is not running. 
+       the thread is only reset if it is not running.
     raises
- EJwsclWinCallFailedException:  can be raised if the call to an winapi function failed. 
+ EJwsclWinCallFailedException:  can be raised if the call to an winapi function failed.
     }
     procedure ResetIOThread(const Force : Boolean);
 
@@ -380,7 +534,7 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
           do sth with Job.JobObject[x]
         finally
           Job.Lock.EndWrite;
-        end;                                                                    
+        end;
     </code>
     }
     property Lock : TMultiReadExclusiveWriteSynchronizer read fLock;
@@ -399,24 +553,24 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
   The callback event must create a new job object and return it
    through parameter NewJobObject. The return value must not be nil.
   The new job object does not need to have a name.
-  @param Sender defines the job object list instance that calls this event 
+  @param Sender defines the job object list instance that calls this event
   @param ProcessHandle defines the process to be assigned to the job
   @param ProcessSessionID defines the session id that the given process
-   belongs to 
+   belongs to
   @param CurrentSessionID defines a session index. The event method can
    be called several times for one call of AssignProcessToJob. This happens
    when the job list contains a lot less job objects than the process session ID.
    E.g. if the job object list contains no
     jobs (Count = 0) and a job with session ID 2 is to be assigned, the
     event method is called 3 times (session 0,1,2) and the process
-    is assigned to the job object with index 2.  
+    is assigned to the job object with index 2.
   @param NewJobObject receives a valid instance of a job object.
-    Must not be nil; otherwise AssignProcessToJob will fail. 
+    Must not be nil; otherwise AssignProcessToJob will fail.
   }
   TJwOnNewJobObject = procedure (Sender : TJwJobObjectSessionList;
       ProcessHandle : TJwProcessHandle;
       ProcessSessionID,
-      CurrentSessionID : Cardinal;
+      CurrentSessionID : TJwSessionId;
       var NewJobObject : TJwJobObject) of object;
 
   {<B>TJwJobObjectSessionList</B> manages a list of job objects threadsafe.
@@ -441,12 +595,12 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
     {<B>Create</B> creates a new instance of @Classname.
      @param NewJobObjectEvent defines an event that is called in
        AssignProcessToJob. It must not be nil; otherwise EJwsclNILParameterException
-       will be raised 
+       will be raised
       raises EJwsclNILParameterException will be raised if parameter NewJobObjectEvent
-       is nil 
+       is nil
     }
     constructor Create(const NewJobObjectEvent: TJwOnNewJobObject);
-    
+
     destructor Destroy; override;
 
     {<B>Clear</B> removes all job objects in the list.
@@ -469,12 +623,12 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
 
     The assignment is threadsafe to avoid complication with other methods.
 
-    @param Process defines a process handle to be added to an job object 
+    @param Process defines a process handle to be added to an job object
     raises
- EJwsclMissingEvent:  will be raised if event OnNewJobObject is nil 
+ EJwsclMissingEvent:  will be raised if event OnNewJobObject is nil
      EJwsclInvalidParameterException: will be raised if the job object
-      pointer returned by OnNewJobObject is nil 
-     EJwsclWinCallFailedException: can be raised if the call to an winapi function failed. 
+      pointer returned by OnNewJobObject is nil
+     EJwsclWinCallFailedException: can be raised if the call to an winapi function failed.
     }
     procedure AssignProcessToJob(Process : TJwProcessHandle; Data : Pointer); overload; virtual;
 
@@ -489,14 +643,14 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
 
     The assignment is threadsafe to avoid complication with other methods.
 
-    @param Process defines a process handle to be added to an job object 
+    @param Process defines a process handle to be added to an job object
     @param JobObjectIndex returns the session ID (or job object index) of the
-      process wherein it was assigned to 
+      process wherein it was assigned to
     raises
- EJwsclMissingEvent:  will be raised if event OnNewJobObject is nil 
+ EJwsclMissingEvent:  will be raised if event OnNewJobObject is nil
      EJwsclInvalidParameterException: will be raised if the job object
-      pointer returned by OnNewJobObject is nil 
-     EJwsclWinCallFailedException: can be raised if the call to an winapi function failed. 
+      pointer returned by OnNewJobObject is nil
+     EJwsclWinCallFailedException: can be raised if the call to an winapi function failed.
     }
     procedure AssignProcessToJob(Process : TJwProcessHandle; Data : Pointer; out JobObjectIndex : Cardinal); overload; virtual;
 
@@ -522,7 +676,7 @@ BOOL WINAPI TerminateJobObject(HANDLE hJob, UINT uExitCode);
     {<B>TerminateJobsOnFree</B> defines whether all or no processes in all job objects
      should be terminated. This property has no read value because
      it just goes through all job objects and sets TJwJobObject.TerminateOnDestroy
-     to the given value. 
+     to the given value.
     }
     property TerminateJobsOnFree : Boolean write SetTerminateJobsOnFree;
 
@@ -575,14 +729,14 @@ token. Otherwise the CreateProcessAsUser function fails with bad error explanati
 (like "A call to an OS function failed").
 However the procedure won't stop you from doing this!
 
-@param ApplicationName defines the application to be run in the session 
-@param CommandLine defines the parameters for the application 
-@param CurrentDirectory defines the start folder of the app.  
-@param SessionID defines the target session where the new application is to be started. 
+@param ApplicationName defines the application to be run in the session
+@param CommandLine defines the parameters for the application
+@param CurrentDirectory defines the start folder of the app.
+@param SessionID defines the target session where the new application is to be started.
 @param CreationFlags defines creation flags that are delivered to CreateProcess parameter with
- same name 
+ same name
 @param Desktop defines the target windowstation and desktop name. If empty
-the default target is "winsta0\default" 
+the default target is "winsta0\default"
 @param StartupInfo defines startup info delivered to to CreateProcess parameter with
  same name. Don't forget to initialize the structure first before calling this procedure.
 <code lang="delphi>
@@ -591,15 +745,15 @@ ZeroMemory(@StartupInfo, sizeof(StartupInfo));
 @param WaitForProcess defines whether the procedure should wait for the process to end
 and clean up all allocated resources or just return to the caller. In last case
 the caller is responsible to free the returned token, the environment block and
-the users profile 
+the users profile
 @param Output contains returned data in case parameter WaitForProcess is false.
-The caller is responsible to free the contained member allocation 
+The caller is responsible to free the contained member allocation
 @param LogServer receives a log server instance. It is used to log events for
-mostly debugging purposes. If this parameter is nil, no events are logged   
+mostly debugging purposes. If this parameter is nil, no events are logged
 
 raises
  EJwsclProcessIdNotAvailable:  will be raised if no token could be found
-for the given SessionID 
+for the given SessionID
  EJwsclNilPointer: will be raised if JwInitWellKnownSIDs was not called before
 }
 procedure JwCreateProcessInSession(
@@ -607,7 +761,7 @@ procedure JwCreateProcessInSession(
   const CommandLine : TJwString;
   const CurrentDirectory : TJwString;
 
-  const SessionID : DWORD;
+  const SessionID : TJwSessionId;
   const CreationFlags : DWORD;
   const Desktop: TJwString;
 
@@ -625,12 +779,12 @@ whether the given process should be used to return the token.
 @param OnProcessFound is a callback method that is called each time a process
 was found. The callback function determines whether the process should be used
 to return the token. If the process cannot be used to retrieve the token, <B>JwGetTokenFromProcess</B>
-will continue enumerating 
+will continue enumerating
 @param LogServer receives a logging instance where log events are logged to.
  Can be nil if no logging is used
-@param Data may contain user defined data to be assigned to a call to OnProcessFound 
+@param Data may contain user defined data to be assigned to a call to OnProcessFound
 @return <B>JwGetTokenFromProcess</B> returns the primary token of a process. If no process could be used
-to get a token the return value is nil. 
+to get a token the return value is nil.
 
 raises
  EJwsclNILParameterException:  will be raised if parameter OnProcessFound is nil
@@ -710,18 +864,18 @@ type {<B>TJwCreateProcessParameters</B> contains information supplied to CreateP
        StartupInfo : {$IFDEF UNICODE}TStartupInfoW{$ELSE}TStartupInfoA{$ENDIF};
 
        {Additional groups for the resulting token. May be nil.
-	    The resulting token will have the groups of Administrator, the given groups here
-		and some more.
-		Logon SIDs are never added.
-	   }
-       AdditionalGroups : TJwSecurityIdList; 
+      The resulting token will have the groups of Administrator, the given groups here
+    and some more.
+    Logon SIDs are never added.
+     }
+       AdditionalGroups : TJwSecurityIdList;
 
 
        {<B>SourceName</B> defines the source name which is stored in the token. Your name of choice
-	    that identifies the source of this token}
+      that identifies the source of this token}
        SourceName : AnsiString;
        {<B>OriginName</B> defines the initiator name of the token.  Your name of choice
-	    that identifies the origin of this token}
+      that identifies the origin of this token}
        OriginName : AnsiString;
 
        {<B>SessionID</B> defines the target session ID of the new process
@@ -745,10 +899,10 @@ type {<B>TJwCreateProcessParameters</B> contains information supplied to CreateP
        {<B>LogonSID</B> can be the logon sid to be used for the new token.
         May be nil. In this case (and LogonToken = nil) the logon sid of the token with the given SessionID
         is used.}
-       LogonSID : TJwSecurityID; 
+       LogonSID : TJwSecurityID;
 
        {<B>Parameters</B> contains parameters for CreateProcessAsUser}
-       Parameters : TJwCreateProcessParameters; 
+       Parameters : TJwCreateProcessParameters;
 
        {<b>MaximumTryCount</b> defines the maximum try count for CreateProcessAsUser.
        The call is only repeated if CPAU returns ERROR_PIPE_BUSY which is a known
@@ -843,13 +997,13 @@ Remarks
  This procedure needs JwInitWellKnownSIDs to be called.
 <B>JwCreateProcessAsAdminUser</B> can only run within a SYSTEM account and with TCB privilege available.
 
-<B>BETA: This function has not been tested thoroughly!</B>  
+<B>BETA: This function has not been tested thoroughly!</B>
 
 @param LogServer receives a logging instance where log events are logged to.
- Can be nil if no logging is used 
+ Can be nil if no logging is used
 raises
- EJwsclNilPointer:  will be raised if JwInitWellKnownSIDs was not called before 
- EJwsclPrivilegeException: will be raised if the TCB privilege is not available 
+ EJwsclNilPointer:  will be raised if JwInitWellKnownSIDs was not called before
+ EJwsclPrivilegeException: will be raised if the TCB privilege is not available
 }
 
 procedure JwCreateProcessAsAdminUser(
@@ -867,7 +1021,7 @@ procedure JwCreateProcessAsAdminUser(
 
 {$IFNDEF SL_OMIT_SECTIONS}
 implementation
-uses Math, D5impl, JwsclExceptions,
+uses Math, JwsclExceptions,
   JwsclKnownSid, JwsclVersion,
   JwsclAcl, JwsclConstants;
 
@@ -875,14 +1029,52 @@ uses Math, D5impl, JwsclExceptions,
 
 {$IFNDEF SL_INTERFACE_SECTION}
 
+
+{$IFDEF JWSCL_GLOBAL_SAFE_LOAD_LIBRARY}
+  {$UNDEF JWSCL_LOCAL_SAFE_LOAD_LIBRARY}
+{$ENDIF}
+
+{$IFDEF JWSCL_LOCAL_SAFE_LOAD_LIBRARY}
+type
+  TSafeLoadLibrarySectionImpl = class(TInterfacedObject, ISafeLoadLibrarySection)
+  protected
+    Count : Integer;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure LeaveSafeLoadLibrary; virtual;
+  end;
+
+constructor TSafeLoadLibrarySectionImpl.Create;
+begin
+  Count := 1;
+end;
+
+destructor TSafeLoadLibrarySectionImpl.Destroy;
+begin
+  LeaveSafeLoadLibrary;
+end;
+
+procedure TSafeLoadLibrarySectionImpl.LeaveSafeLoadLibrary;
+var Value : Integer;
+begin
+  Value := InterlockedDecrement(Count);
+  ASSERT(Value = 0, Format(RsLeaveSafeLoadLibraryInvalidCountValue, [Value]));
+
+  if Value = 0 then
+    TJwLibraryUtilities.LeaveSafeLoadLibrary;
+end;
+{$ENDIF JWSCL_LOCAL_SAFE_LOAD_LIBRARY}
+
+
 function JwProcessIdToSessionId(const ProcessID : TJwProcessId) : TJwSessionId;
 begin
   if TJwWindowsVersion.IsWindowsVista(true) and
      TJwWindowsVersion.IsWindows2008(true) then
   begin
-    if ProcessIdToSessionId(ProcessID, result) then
+    if ProcessIdToSessionId(ProcessID, DWORD(result)) then
       raise EJwsclWinCallFailedException.CreateFmtWinCall(
-          '',
+          RsWinCallFailed,
           'JwProcessIdToSessionId',                                //sSourceProc
           '',                                //sSourceClass
           '',                          //sSourceFile
@@ -925,18 +1117,143 @@ begin
 end;
 
 
+var
+  //Critical section for  TJwLibraryUtilities.EnterSafeLoadLibrary
+  LoadLibCS : SyncObjs.TCriticalSection = nil;
+
+  //current dir before LoadLibrary was called
+  LastLibCurrDir : PChar = nil;
+
+class procedure TJwLibraryUtilities.InitSafeLoadLibrary;
+begin
+{$IFDEF JWSCL_LOCAL_SAFE_LOAD_LIBRARY}
+  LoadLibCS := SyncObjs.TCriticalSection.Create;
+{$ENDIF}
+end;
+
+class function TJwLibraryUtilities.EnterSafeLoadLibrary : ISafeLoadLibrarySection;
+{$IFDEF JWSCL_LOCAL_SAFE_LOAD_LIBRARY}
+var
+  Len : DWORD;
+  SystemDir : TJwString;
+{$ENDIF JWSCL_LOCAL_SAFE_LOAD_LIBRARY}
+begin
+  result := nil;
+{$IFDEF JWSCL_LOCAL_SAFE_LOAD_LIBRARY}
+  Assert(Assigned(LoadLibCS),RsLoadLibProcUninitialized);
+
+  LoadLibCS.Enter;
+  try
+    if LastLibCurrDir <> nil then
+      exit; //nested call
+
+    Len := GetCurrentDirectory(0, nil);
+    if Len = 0 then
+      JwRaiseLastOSError('GetCurrentDirectory', 'LoadLibProc', ClassName, RsUNProcess);
+
+    GetMem(LastLibCurrDir, (Len+2) * TJwCharSize);
+    try
+      Len := GetCurrentDirectory(Len, LastLibCurrDir);
+      if Len = 0 then
+        JwRaiseLastOSError('GetCurrentDirectory', 'LoadLibProc', ClassName, RsUNProcess);
+
+      SystemDir := TJwShellInformation.GetFolderPath(0, CSIDL_SYSTEM, nil, sftCurrent);
+      {$IFDEF UNICODE}SetCurrentDirectoryW(PWideChar(SystemDir));{$ELSE}SetCurrentDirectoryA(PAnsiChar(SystemDir));{$ENDIF}
+
+      result := TSafeLoadLibrarySectionImpl.Create();
+    except
+      FreeMem(LastLibCurrDir);
+      LastLibCurrDir := nil;
+      raise;
+    end;
+  except
+    LoadLibCS.Leave;
+    raise;
+  end;
+{$ENDIF}
+end;
+
+class procedure TJwLibraryUtilities.LeaveSafeLoadLibrary;
+begin
+{$IFDEF JWSCL_LOCAL_SAFE_LOAD_LIBRARY}
+  try
+    if LastLibCurrDir <> nil then
+    begin
+      if not SetCurrentDirectory(LastLibCurrDir) then
+        {$IFDEF DEBUG}RaiseLastOSError{$ENDIF};
+      FreeMem(LastLibCurrDir);
+      LastLibCurrDir := nil;
+    end;
+  finally
+    LoadLibCS.Leave;
+  end;
+{$ENDIF}
+end;
+
+
 class function TJwLibraryUtilities.LoadLibProc(const LibName: AnsiString; const ProcName: AnsiString): Pointer;
 var
   R : Pointer;
 begin
-  R := nil;
-  //problem with direct use of Result in this procedure!
-  GetProcedureAddress(R, LibName, ProcName);
-  Result := R;
+  EnterSafeLoadLibrary;
+  try
+    R := nil;
+    //problem with direct use of Result in this procedure!
+    GetProcedureAddress(R, LibName, ProcName);
+    Result := R;
+  finally
+    LeaveSafeLoadLibrary;
+  end;
 end;
 
 
+class function TJwLibraryUtilities.IsFunctionAvailable(const LibName : String; const FunctionName : AnsiString) : Boolean;
+var
+  hLib : HANDLE;
+  P : Pointer;
+begin
+  result := false;
 
+  EnterSafeLoadLibrary;
+
+  hLib := LoadLibrary(PChar(LibName));
+  try
+    if hLib = 0 then
+    begin
+      exit;
+    end;
+
+    P := GetProcAddress(hLib, PAnsiChar(FunctionName));
+    result := P <> nil;
+  finally
+    FreeLibrary(hLib);
+  end;
+  //auto destruct: LeaveSafeLoadLibrary
+end;
+
+
+class procedure TJwLibraryUtilities.SecureDLLSearchPath;
+var
+  SystemDir : TJwString;
+begin
+  //>= Windows 2000
+  SystemDir := TJwShellInformation.GetFolderPath(0, CSIDL_SYSTEM, nil, sftCurrent);
+  {$IFDEF UNICODE}SetCurrentDirectoryW(PWideChar(SystemDir));{$ELSE}SetCurrentDirectoryA(PAnsiChar(SystemDir));{$ENDIF}
+
+  //>= Vista or >= XP SP1
+  if IsFunctionAvailable(kernel32, 'SetDllDirectoryW') then
+  begin
+    if not SetDllDirectoryW(PWideChar(JwSafeDLLDirectory)) then
+      {$IFDEF DEBUG}RaiseLastOSError{$ENDIF};
+  end;
+
+  //>= Windows 7 or >= XP SP1
+  if IsFunctionAvailable(kernel32, 'SetSearchPathMode') then
+  begin
+    if not SetSearchPathMode(JwSafeSearchDLLFlags) then
+      {$IFDEF DEBUG}RaiseLastOSError{$ENDIF};
+  end;
+end;
 
 procedure JwCreateProcessAsAdminUser(
    const UserName, Domain, Password : TJwString;
@@ -997,6 +1314,8 @@ begin
     AllocateLocallyUniqueID(OutVars.Source.SourceIdentifier);
 
     SessionLogonToken := nil;
+
+
     //
     // Init LSALogonUser parameters
     //
@@ -1004,6 +1323,8 @@ begin
                       MsV1_0InteractiveLogon, Domain, UserName, Password, Authlen);
 
     Groups := TJwSecurityIDList.Create(True);
+
+
     try //2.
 
       //
@@ -1022,14 +1343,14 @@ begin
       else
       // ...otherwise
       // Either use the callers token from InVars.LogonToken
-      // or get the token from a specified SessionID. 
+      // or get the token from a specified SessionID.
       //
       begin
         //
         // The user did not provide use with a token
         // so we must get the logon sid ourselves.
         //
-        if not Assigned(InVars.LogonToken) then 
+        if not Assigned(InVars.LogonToken) then
         try //3.
           Log.Log('Checking Windows Version...');
 
@@ -1165,7 +1486,7 @@ begin
           Sid := TJwSecurityId.Create(InVars.AdditionalGroups[i]);
 
           //
-          // we do not want a foreign logon ID to be in it 
+          // we do not want a foreign logon ID to be in it
           //
           if (sidaGroupLogonId in Sid.AttributesType) then
             Sid.AttributesType := Sid.AttributesType - [sidaGroupLogonId];
@@ -1279,9 +1600,9 @@ begin
         lpThreadAttr := nil;
 
         //
-        // Copy variables to memory for CreateProcessAsUserX 
+        // Copy variables to memory for CreateProcessAsUserX
         //  CreateProcessAsUser behaves different for
-        //    nil and empty strings. 
+        //    nil and empty strings.
 
         if Length(InVars.Parameters.lpApplicationName) > 0 then
           AppName := TJwPChar(InVars.Parameters.lpApplicationName);
@@ -1307,6 +1628,7 @@ begin
 
         //Impersonate the given user so CPAU uses the security context of this user to access the file
         UserToken.ImpersonateLoggedOnUser;
+
         try
           i := 1; //first try
           repeat
@@ -1453,7 +1775,7 @@ begin
       //don't bother about the problem
       Cancel := false;
     end;
-  end;      
+  end;
 end;
 
 
@@ -1503,7 +1825,7 @@ function JwGetTokenFromProcess (const OnProcessFound : TJwOnProcessFound; LogSer
         if not Assigned(SrvProcess) then
           SrvProcess := TJwWTSProcess.Create(Srv.Processes, WTS_CURRENT_SESSION,
             ProcEntry.th32ProcessID, TJwString(ProcEntry.szExeFile), '');
-                          
+
         Inc(result);
         Srv.Processes.Add(SrvProcess);
 
@@ -1576,20 +1898,20 @@ begin
 
           try
             Succ := true;
-            
+
             Log.Log(lsMessage,'call CreateDuplicateExistingToken');
             {
               Get token by process handle and duplicate it
-              
+
               TSrv.Processes[i].Token may be nil if the token could not be retrieved.
               That may happen for processes in other session or constrained tokens (adapted DACL).
               We skip it into the except branch!
-            }            
+            }
             result := TJwSecurityToken.CreateDuplicateExistingToken(TSrv.Processes[i].Token.TokenHandle,
                 TOKEN_ASSIGN_PRIMARY or
                 TOKEN_QUERY or TOKEN_IMPERSONATE or TOKEN_DUPLICATE or TOKEN_READ);
 
-            
+
           except
             On E : Exception do
             begin
@@ -1639,7 +1961,7 @@ begin
     end;
 
     if ProcessID = 0 then
-      Log.Log(lsMessage,'Could not find any process ID.');         
+      Log.Log(lsMessage,'Could not find any process ID.');
   finally
     TSrv.Free;
 //    Log.Log(lsMessage,'Exiting CreateTokenByProcessAndSession.');
@@ -1652,7 +1974,7 @@ procedure JwCreateProcessInSession(
   const CommandLine : TJwString;
   const CurrentDirectory : TJwString;
 
-  const SessionID : DWORD;
+  const SessionID : TJwSessionId;
   const CreationFlags : DWORD;
   const Desktop: TJwString;
 
@@ -1760,7 +2082,7 @@ begin
         except
           on E : Exception do
           begin
-            Log.Exception(E); 
+            Log.Exception(E);
 
             raise;
           end;
@@ -1953,7 +2275,7 @@ begin
     if (GetLastError() <> 0) and (fHandle <> 0) then
       CloseHandle(fHandle);
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
-      '',
+      RsWinCallFailed,
       'Create',                                //sSourceProc
       ClassName,                                //sSourceClass
       '',                          //sSourceFile
@@ -1967,7 +2289,11 @@ begin
   fDataList := TJwIntTupleList.Create;
 
 
+{$IFDEF DELPHI2010_UP}
+  fThread.Start;
+{$ELSE}
   fThread.Resume;
+{$ENDIF}
 
   SetObjectAssociateCompletionPortInformation(Pointer(fIOUniqueID),
     fThread.IOHandle);
@@ -2020,7 +2346,7 @@ begin
     if (GetLastError() <> 0) and (fHandle <> 0) then
       CloseHandle(fHandle);
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
-      '',
+      RsWinCallFailed,
       'Create',                                //sSourceProc
       ClassName,                                //sSourceClass
       '',                          //sSourceFile
@@ -2060,7 +2386,7 @@ begin
     if fHandle <> 0 then
       CloseHandle(fHandle);
     raise EJwsclWinCallFailedException.CreateFmtWinCall(
-      '',
+      RsWinCallFailed,
       'Create',                                //sSourceProc
       ClassName,                                //sSourceClass
       '',                          //sSourceFile
@@ -2121,24 +2447,21 @@ begin
 
   fLock.BeginWrite;
   try
-    FreeAndNil(fDataList);
+    JwFree(fDataList);
   finally
     fLock.EndWrite;
   end;
-  FreeAndNil(fLock);
+  JwFree(fLock);
 
   if Assigned(fThread) then
   begin
     fThread.Terminate;
     fThread.WaitFor;
-    FreeAndNil(fThread);
+    JwFree(fThread);
   end;
 
   if (fHandle <> 0) then
     CloseHandle(fHandle);
-
-
-
 end;
 
 function TJwJobObject.GetAllotedCPUTimeSignalState : Boolean;
@@ -2179,7 +2502,7 @@ begin
       @rlen//__out_opt  LPDWORD lpReturnLength
       ) then
      raise EJwsclWinCallFailedException.CreateFmtWinCall(
-          '',
+          RsWinCallFailed,
           'GetJobObjectInformation',                                //sSourceProc
           ClassName,                                //sSourceClass
           '',                          //sSourceFile
@@ -2228,7 +2551,7 @@ begin
       nil//__out_opt  LPDWORD lpReturnLength
       ) then
      raise EJwsclWinCallFailedException.CreateFmtWinCall(
-          '',
+          RsWinCallFailed,
           'GetBasicInformation',                                //sSourceProc
           ClassName,                                //sSourceClass
           '',                          //sSourceFile
@@ -2255,7 +2578,7 @@ begin
       nil//__out_opt  LPDWORD lpReturnLength
       ) then
      raise EJwsclWinCallFailedException.CreateFmtWinCall(
-          '',
+          RsWinCallFailed,
           'GetBasicLimitInformation',                                //sSourceProc
           ClassName,                                //sSourceClass
           '',                          //sSourceFile
@@ -2284,7 +2607,7 @@ begin
       nil//__out_opt  LPDWORD lpReturnLength
       ) then
      raise EJwsclWinCallFailedException.CreateFmtWinCall(
-          '',
+          RsWinCallFailed,
           'GetBasicUIRestrictions',                                //sSourceProc
           ClassName,                                //sSourceClass
           '',                          //sSourceFile
@@ -2306,7 +2629,7 @@ begin
       sizeof(Info)//__in  DWORD cbJobObjectInfoLength
     ) then
      raise EJwsclWinCallFailedException.CreateFmtWinCall(
-          '',
+          RsWinCallFailed,
           'GetBasicUIRestrictions',                                //sSourceProc
           ClassName,                                //sSourceClass
           '',                          //sSourceFile
@@ -2325,7 +2648,7 @@ begin
       sizeof(Info)//__in  DWORD cbJobObjectInfoLength
     ) then
      raise EJwsclWinCallFailedException.CreateFmtWinCall(
-          '',
+          RsWinCallFailed,
           'GetBasicUIRestrictions',                                //sSourceProc
           ClassName,                                //sSourceClass
           '',                          //sSourceFile
@@ -2352,7 +2675,7 @@ begin
       nil//__out_opt  LPDWORD lpReturnLength
       ) then
      raise EJwsclWinCallFailedException.CreateFmtWinCall(
-          '',
+          RsWinCallFailed,
           'GetBasicUIRestrictions',                                //sSourceProc
           ClassName,                                //sSourceClass
           '',                          //sSourceFile
@@ -2393,7 +2716,7 @@ begin
       len//__in  DWORD cbJobObjectInfoLength
     ) then
      raise EJwsclWinCallFailedException.CreateFmtWinCall(
-          '',
+          RsWinCallFailed,
           'SetObjectAssociateCompletionPortInformation',                                //sSourceProc
           ClassName,                                //sSourceClass
           '',                          //sSourceFile
@@ -2420,7 +2743,7 @@ begin
       nil//__out_opt  LPDWORD lpReturnLength
       ) then
      raise EJwsclWinCallFailedException.CreateFmtWinCall(
-          '',
+          RsWinCallFailed,
           'GetBasicUIRestrictions',                                //sSourceProc
           ClassName,                                //sSourceClass
           '',                          //sSourceFile
@@ -2443,7 +2766,7 @@ begin
       i//__in  DWORD cbJobObjectInfoLength
     ) then
      raise EJwsclWinCallFailedException.CreateFmtWinCall(
-          '',
+          RsWinCallFailed,
           'SetExtendedLimitInformation',                                //sSourceProc
           ClassName,                                //sSourceClass
           '',                          //sSourceFile
@@ -2493,7 +2816,7 @@ begin
         and (GetLastError <> ERROR_MORE_DATA) then
 
        raise EJwsclWinCallFailedException.CreateFmtWinCall(
-            '',
+            RsWinCallFailed,
             'GetJobObjectInformationLength',                                //sSourceProc
             ClassName,                                //sSourceClass
             '',                          //sSourceFile
@@ -2545,7 +2868,7 @@ begin
     @rlen//__out_opt  LPDWORD lpReturnLength
     ) then
    raise EJwsclWinCallFailedException.CreateFmtWinCall(
-        '',
+        RsWinCallFailed,
         'GetJobObjectInformation',                                //sSourceProc
         ClassName,                                //sSourceClass
         '',                          //sSourceFile
@@ -2558,10 +2881,10 @@ end;
 function TJwJobObject.IsProcessInJob(hProcess : TJwProcessHandle) : Boolean;
 var LB : LongBool;
 begin
-  LB := false; 
+  LB := false;
   if not JwaWindows.IsProcessInJob(hProcess, fHandle, LB) then
      raise EJwsclWinCallFailedException.CreateFmtWinCall(
-        '',
+        RsWinCallFailed,
         'IsProcessInJob',                                //sSourceProc
         ClassName,                                //sSourceClass
         '',                          //sSourceFile
@@ -2581,7 +2904,7 @@ begin
     try
       if not JwaWindows.AssignProcessToJobObject(fHandle, hProcess) then
          raise EJwsclWinCallFailedException.CreateFmtWinCall(
-            '',
+            RsWinCallFailed,
             'AssignProcessToJobObject',                                //sSourceProc
             ClassName,                                //sSourceClass
             '',                          //sSourceFile
@@ -2602,7 +2925,7 @@ procedure TJwJobObject.TerminateJobObject(const ExitCode : DWORD);
 begin
   if not JwaWindows.TerminateJobObject(fHandle, ExitCode) then
      raise EJwsclWinCallFailedException.CreateFmtWinCall(
-        '',
+        RsWinCallFailed,
         'TerminateJobObject',                                //sSourceProc
         ClassName,                                //sSourceClass
         '',                          //sSourceFile
@@ -2660,7 +2983,7 @@ begin
   begin
     fThread := TJwInternalJobObjectIOCompletitionThread.Create(Self, false,IOJOBNAME+Name);
   end
-  else 
+  else
   begin
     if not Force and not fThread.Terminated then
       exit;
@@ -2678,7 +3001,7 @@ begin
       FreeAndNil(fThread);
     except
     end;
-    
+
     fThread := TJwInternalJobObjectIOCompletitionThread.CreateWithIOPort(Self, IOPort,false,IOJOBNAME+Name);
   end;
 end;
@@ -2745,12 +3068,12 @@ var
   L : DWORD;
   //ID : DWORD;
   Data : Pointer;
-  
+
 const ERROR_ABANDONED_WAIT_0 = 735;
 
 begin
   inherited; //sets thread name
-  
+
   fRemainPort := false;
   pOV := nil;
   ReturnValue := 0;
@@ -2910,10 +3233,10 @@ begin
 
   fLock.BeginWrite;
   try
-    FreeAndNil(fList);
+    JwFree(fList);
   finally
     fLock.EndWrite;
-    FreeAndNil(fLock);
+    JwFree(fLock);
   end;
 
   inherited;
@@ -2987,6 +3310,54 @@ end;
 
 
 
+{ TJwProcessUtilities }
+
+class function TJwProcessUtilities.GetCommandLineArguments: TStrings;
+type
+  PWideStrings = ^TWideStrings;
+  TWideStrings = array[0..0] of PWideChar;
+var
+  ArgsCount : Integer;
+  Args: PWideStrings;
+  I : Integer;
+begin
+  result := TStringList.Create;
+
+  Args := PWideStrings(CommandLineToArgvW(GetCommandLineW(), ArgsCount));
+  if Args = nil then
+     raise EJwsclWinCallFailedException.CreateFmtWinCall(
+          RsWinCallFailed,
+          'GetCommandLineArguments',                                //sSourceProc
+          ClassName,                                //sSourceClass
+          '',                          //sSourceFile
+          0,                                           //iSourceLine
+          True,                                  //bShowLastError
+          'CommandLineToArgvW',                   //sWinCall
+          ['CommandLineToArgvW']);
+
+
+  try
+    for I := 0 to ArgsCount - 1 do
+    begin
+      result.Add(String(PChar(Args[i])));
+    end;
+  finally
+    LocalFree(LONG_PTR(Args));
+  end;
+end;
+
+initialization
+{$IFDEF JWSCL_GLOBAL_SAFE_LOAD_LIBRARY}
+  TJwLibraryUtilities.SecureDLLSearchPath;
+{$ENDIF}
+
+{$IFDEF JWSCL_LOCAL_SAFE_LOAD_LIBRARY}
+  TJwLibraryUtilities.InitSafeLoadLibrary;
+{$ENDIF}
+finalization
+{$IFDEF JWSCL_LOCAL_SAFE_LOAD_LIBRARY}
+  FreeAndNil(LoadLibCS);
+{$ENDIF}
 
 {$ENDIF SL_INTERFACE_SECTION}
 

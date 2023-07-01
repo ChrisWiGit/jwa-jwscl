@@ -16,12 +16,12 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the  
-GNU Lesser General Public License (the  "LGPL License"), in which case the   
-provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
+Alternatively, the contents of this file may be used under the terms of the
+GNU Lesser General Public License (the  "LGPL License"), in which case the
+provisions of the LGPL License are applicable instead of those above.
+If you wish to allow use of your version of this file only under the terms
+of the LGPL License and not to allow others to use your version of this file
+under the MPL, indicate your decision by deleting  the provisions above and
 replace  them with the notice and other provisions required by the LGPL
 License.  If you do not delete the provisions above, a recipient may use
 your version of this file under either the MPL or the LGPL License.
@@ -38,21 +38,32 @@ Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rig
 Link List
 Secure object types:
   http://msdn2.microsoft.com/en-us/library/aa379593.aspx
+
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-11-14 15:40:34 +0000 (Sun, 14 Nov 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1059 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/JwsclSecurityDialogs.pas $
+</table>
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclSecurityDialogs;
 {$INCLUDE ..\includes\Jwscl.inc}
-// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
 
 uses
-  SysUtils, Classes, 
+  SysUtils, Classes,
   JwaWindows, ActiveX,
   JwsclResource,
   JwsclTypes, JwsclExceptions, JwsclSid, JwsclAcl, JwsclToken,
   JwsclMapping, JwsclKnownSid, JwsclSecureObjects, JwsclComUtils,
-  JwsclVersion, JwsclConstants, JwsclDescriptor,
+  JwsclVersion, JwsclConstants, JwsclDescriptor, JwsclUtils,
+
   JwsclStrings; //JwsclStrings, must be at the end of uses list!!!
 {$ENDIF SL_OMIT_SECTIONS}
 
@@ -103,9 +114,9 @@ type
              If the AncestorName is empty the ACL editor automatically sets the display string to
                1. inherited from superior object (if the ACE contains afInheritedAce in its flags)
                2. not inherited (if the ACE does not contain afInheritedAce)
-              
+
       @return The function must return S_OK if the inheritance source could be retrieved. Otherwise
-            S_FALSE. 
+            S_FALSE.
       }
   TJwOnGetInheriteSource = function(Sender: TJwSecurityDescriptorDialog;
     const Info: TJwSecurityInformationFlagSet;
@@ -121,13 +132,13 @@ type
       @param sServerName defines the name of the server.
       @param SD defines the security descriptor that is used to check against the permissions
       @param ObjectTypeList defines a list of objects types that are used for the check.
-              It can be ignored to use default object type list. 
+              It can be ignored to use default object type list.
       @param GrantedAccessList defines an array of granted access. It is automatically set to count of 1
             if the call to GetEffectiveRightsFromAcl was sucessfull. However it can be changed.
             If the size of the array is zero the effective permissions are not display. Instead an error message
-            is shown 
+            is shown
       @return The return value defines the sucess of the operation. If it is set to any other value than S_OK
-            the effective permissions are not shown in the ACL editor. 
+            the effective permissions are not shown in the ACL editor.
      }
   TJwOnGetEffectivePermissions = function(Sender: TJwSecurityDescriptorDialog;
     const GuidObjectType: TGUID;
@@ -136,7 +147,26 @@ type
     var ObjectTypeList: TJwObjectTypeArray;
     var GrantedAccessList: TJwAccessMaskArray): Cardinal of object;
 
-  {Not supported}
+  {<B>TJwOnLookupSIDs</B> defines a callback event that is called by
+  TJwSecurityDescriptorDialog.LookupSids for all SIDs that are unknown to Windows.
+  You can set OnLookupSIDs to call back a function for retrieving the names of a list of SIDs.
+
+  Parameters
+    Sender : Class instance of TJwSecurityDescriptorDialog which called the method.
+    SIDList : A list of SIDs that corresponds to the array stored in parameter SIDInfoList.
+    SIDInfoList : A list of information about the SIDs in parameter SIDList. You can change its information
+        but you must not add to, delete from or free the list or otherwise TJwSecurityDescriptorDialog.LookupSids will fail.
+
+  Remarks
+    By default (If you don't setup the event or leave alone SIDInfoList) JWSCL will format the display name of an unknown SID in the format "SIDName (S-1-XXXXX)" (without quotes).
+    The display name is stored in the member sCommonName of the TJwSidInfoRecord  structure.
+    The member pSID (TObject) of TJwSidInfoRecord will contain a reference to the TJwSecurityID instance stored in SIDList. Do not free it.
+
+    Because JWSCL tries to find the name of a SID, this process may fail with an exception that won't be shown (since it is catched). This information is available
+    through the member Exception of TJwSidInfoRecord. It contains a copy of the exception raised by JWSCL methods TJwSecurityID.AccountName or TJwSecurityID.StringSID .
+    By examining this member you can act accordingly. If not error occured, the value will be nil.
+
+  }
   TJwOnLookupSIDs = function(Sender: TJwSecurityDescriptorDialog;
     const SIDList: TJwSecurityIdList;
     var SIDInfoList: TJwSidInfoRecordArray): Cardinal of object;
@@ -146,7 +176,7 @@ type
       @param ACL defines the access control list which must be checked.
       @param IsCanonical defines the result of the process that checks the ACL. Set it to true if the order of the ACL is correct,
               otherwise false. If it set to false the ACL editor shows a message that informs the user about the incorrect order.
-              The ACL is automatically checked for correct order and the result value is predefined in IsCanonical. 
+              The ACL is automatically checked for correct order and the result value is predefined in IsCanonical.
       }
   TOnJwIsDaclCanonical = procedure(Sender: TJwSecurityDescriptorDialog;
     const ACL: TJwSecurityAccessControlList; var IsCanonical: boolean) of object;
@@ -156,10 +186,10 @@ type
       the parameter SD is used instead. If it is nil the property SecurityDescriptor is used.
 
       @param Sender Contains the dialog instance that called this callback message.
-      @param Information defines a set of security information flags that have to be stored in the security descriptor 
-      @param bDefault TBD 
+      @param Information defines a set of security information flags that have to be stored in the security descriptor
+      @param bDefault TBD
       @param SD defines a security descriptor that provides information for the ACL editor. It can be nil to use
-              the property SecurityDescriptor of Sender is used 
+              the property SecurityDescriptor of Sender is used
 
       }
   TJwOnGetSecurity = procedure(Sender: TJwSecurityDescriptorDialog;
@@ -178,7 +208,7 @@ type
       @param ParamW Contains additional information about the message.
       @param ParamL Contains additional information about the message.
       @param ProcessDefaultProc defines whether message is forwarded to the default window proc (true) or not (false).
-      @return The return value is used to return the status of the window message. The return value is only used if ProcessDefaultProc is false. 
+      @return The return value is used to return the status of the window message. The return value is only used if ProcessDefaultProc is false.
      }
   TJwOnWindowProcCallBack = function(Sender: TJwSecurityDescriptorDialog;
     PageType: TJwSecurityPageType;
@@ -271,7 +301,7 @@ type
     function GetCanonicalFormatEtc(const formatetc: TFormatEtc;
       out formatetcOut: TFormatEtc): HResult; stdcall;
 
-      
+
     function SetData(const formatetc: TFormatEtc;
       var medium: TStgMedium; fRelease: BOOL): HResult; stdcall;
 
@@ -296,17 +326,17 @@ type
       @param Sender Sender contains the TJwSecurityDescriptorDialog implementation.
       @param SecurityType contains information which part of the SD is changed.
       @param SecurityDialogFlags contains information about flags, states and checkboxes states
-              in the dialog that are set 
+              in the dialog that are set
       @param SecurityResetTypes defines what parts the SD must be recursively assigned to the objects.
       @param Settings contains the SD control bits of the parameter NewSecurityDescriptor.
       @param NewSecurityDescriptor is the security descriptor which contains the security information
-               that was changed in the dialog 
+               that was changed in the dialog. Be aware that the DACL of the SD can be nil.
       @param MergedSecurityDescriptor contains the merged security information from
-              NewSecurityDescriptor and the property SecurityDescriptor 
+              NewSecurityDescriptor and the property SecurityDescriptor. Be aware that the DACL of the SD can be nil.
       @param bSuccess Defines whether the security information could be set. Its default value is false.
             If true, the property SecurityDescriptor is to MergedSecurityDescriptor and the ACL editor updates its data.
             If false the ACL editor resets its data.
-             
+
 
       }
   TJwOnSetSecurity = procedure(Sender: TJwSecurityDescriptorDialog;
@@ -344,7 +374,7 @@ type
   end;
 
 
-  
+
 
      {<B>TJwSecurityDescriptorDialog</B> is a easy to use class to show a security ACL editor.
       It is generic, so many types of secure objects can be shown (not only files).
@@ -513,7 +543,9 @@ type
     {see TJwOnInitSecurityPageDestroy }
     property OnInitSecurityPageDestroy: TJwOnInitSecurityPageDestroy
       Read fOnInitSecurityPageDestroy Write fOnInitSecurityPageDestroy;
-    {see TJwOnSetSecurity }
+    {see TJwOnSetSecurity.
+     You have to set this property; otherwise the user won't be able to hit the Ok button.
+     }
     property OnSetSecurity: TJwOnSetSecurity
       Read fOnSetSecurity Write fOnSetSecurity;
     {see TJwOnGetInheriteSource }
@@ -678,7 +710,7 @@ begin
   //
   // If you find strange chars there too, this must be changed too.
   //
-  // Of course we could also just recylcle the last pointer
+  // Of course we could also just recycle the last pointer
   // but this cannot be used with GetMem imho.
   sObjectName.Add(pObjectInfo.pszObjectName);
 
@@ -694,7 +726,7 @@ var
   ipSDSize: Cardinal;
   pSD: PSECURITY_DESCRIPTOR;
 
-  
+
   aSD: TJwSecurityDescriptor;
 begin
 {  result := S_FALSE; //!!!!!
@@ -906,10 +938,13 @@ begin
             if (SIDInfoList[i].sClass <> scnNone) then
             begin
               case SIDInfoList[i].sClass of
-                scnComputer: s := 'Computer'; //Do not localize!!
-                scnUser: s  := 'User';        //Do not localize!!
-                scnGroup: s := 'Group';       //Do not localize!!
-                scnUnknown:
+                scnComputer  : s := 'Computer'; //Do not localize!!
+                scnUser      : s := 'User';        //Do not localize!!
+                scnGroup     : s := 'Group';       //Do not localize!!
+                scnDomain    : s := 'Group';       //Do not localize!!
+                scnAlias     : s := 'Alias';       //Do not localize!!
+                scnWellKnown : s := 'WellKnown';       //Do not localize!!
+                scnUnknown   :
                 begin
                   s := 'Unknown'; //Do not localize!!
                   //Not working!
@@ -1370,14 +1405,14 @@ destructor TJwSecurityDescriptorDialog.Destroy;
       if sObjectName[i] <> nil then
         FreeMem(sObjectName[i]);
     end;
-    FreeAndNil(sObjectName);
+    JwFree(sObjectName);
   end;
 
 begin
   Mapping.FreeAccessNames(pTempAccess, iTempAccess);
-  FreeAndNil(fSD);
-  FreeAndNil(fInheritTypeList);
-  FreeAndNil(ProcList);
+  JwFree(fSD);
+  JwFree(fInheritTypeList);
+  JwFree(ProcList);
   SetLength(fObjectTypeList, 0);
 
   DoneStringPool;
@@ -1453,7 +1488,7 @@ procedure TJwSecurityDescriptorDialog.SetInheritTypeList(aList: TJwInheritTypeLi
 {.$UNDEF DELPHI6_UP}
 {$IFNDEF DELPHI6_UP}
 var
-   i : Integer;         
+   i : Integer;
    G : TGuid;
 {$ENDIF DELPHI6_UP}
 begin
@@ -1520,7 +1555,7 @@ begin
     if (Assigned(SD.DACL)) then
     begin
       UserSID := TJwSecurityId.Create(pUserSid);
-       
+
       pDACL := SD.DACL.Create_PACL;
       aTrustee := UserSID.Trustee;
 
@@ -1541,7 +1576,7 @@ begin
         // since this error makes GetEffectiveRightsFromAcl fail
         // This function calls LookupAccountSid which fails with
         // lasterror 1332 (sid name cannot be resolved)
-    
+
         tempDACL := TJwDAccessControlList.Create;
           TJwAutoPointer.Wrap(tempDACL); //auto destroy
         tempDACL.Assign(SD.DACL);
@@ -1713,8 +1748,8 @@ begin
         (Cardinal(ACL.Count) + 1) * sizeof(TInheritedFromW) +
         iSize * SizeOf(WideChar)));
 
-      //lots of pointer hacking frome here on!   
-      //string block    
+      //lots of pointer hacking frome here on!
+      //string block
       DataPtr := Pointer(DWORD_PTR(ppInheritArray) +
         Cardinal(ACL.Count) * sizeof(TInheritedFromW));
 
@@ -1919,7 +1954,7 @@ begin
     p2 := aPSidList.aSidInfo[i].pwzClass;
   end;}
 
-  GlobalUnLock(medium.hGlobal); //TODO: 1st Sept 2008@CW : is this necessary?
+  //GlobalUnLock(medium.hGlobal);
 
   Result := S_OK;
 end;
@@ -1959,7 +1994,7 @@ begin
       FreeMem(p);
       fSidStrings[i] := nil;
     end;
-  FreeAndNil(fSidStrings);
+  JwFree(fSidStrings);
 
 
   inherited;
@@ -1971,6 +2006,7 @@ end;
 function TJwSidInfoDataObject.GetDataHere(const formatetc: TFormatEtc;
   out medium: TStgMedium): HRESULT; stdcall;
 begin
+  ZeroMemory(@medium, SizeOf(medium));
   Result := E_NOTIMPL;
 end;
 
@@ -1983,18 +2019,21 @@ end;
 function TJwSidInfoDataObject.GetCanonicalFormatEtc(const formatetc: TFormatEtc;
   out formatetcOut: TFormatEtc): HRESULT; stdcall;
 begin
+  ZeroMemory(@formatetcOut, SizeOf(formatetcOut));
   Result := E_NOTIMPL;
 end;
 
 function TJwSidInfoDataObject.SetData(const formatetc: TFormatEtc;
   var medium: TStgMedium; fRelease: BOOL): HRESULT; stdcall;
 begin
+  ZeroMemory(@medium, SizeOf(medium));
   Result := E_NOTIMPL;
 end;
 
 function TJwSidInfoDataObject.EnumFormatEtc(dwDirection: {$IFDEF FPC}DWORD{$ELSE}Longint{$ENDIF FPC};
   out enumFormatEtc: IEnumFORMATETC): HRESULT; stdcall;
 begin
+  enumFormatEtc := nil;
   Result := E_NOTIMPL;
 end;
 
@@ -2002,6 +2041,7 @@ function TJwSidInfoDataObject.DAdvise(const formatetc: TFormatEtc;
   advf: {$IFDEF FPC}DWORD{$ELSE}Longint{$ENDIF FPC}; const advSink: IAdviseSink;
   out dwConnection: {$IFDEF FPC}DWORD{$ELSE}Longint{$ENDIF FPC}): HRESULT; stdcall;
 begin
+  dwConnection := 0;
   Result := E_NOTIMPL;
 end;
 
@@ -2014,6 +2054,7 @@ end;
 function TJwSidInfoDataObject.EnumDAdvise(
   out enumAdvise: IEnumSTATDATA): HRESULT; stdcall;
 begin
+  enumAdvise := nil;
   Result := E_NOTIMPL;
 end;
 
@@ -2029,9 +2070,6 @@ end;
 initialization
 {$ENDIF SL_OMIT_SECTIONS}
 {$IFNDEF SL_INITIALIZATION_SECTION}
-
-
-  //x := TJwSidInfoDataObject.Create();
 
 {$ENDIF SL_INITIALIZATION_SECTION}
 

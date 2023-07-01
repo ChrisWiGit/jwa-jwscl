@@ -16,11 +16,11 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the  
-GNU Lesser General Public License (the  "LGPL License"), in which case the   
-provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
+Alternatively, the contents of this file may be used under the terms of the
+GNU Lesser General Public License (the  "LGPL License"), in which case the
+provisions of the LGPL License are applicable instead of those above.
+If you wish to allow use of your version of this file only under the terms
+of the LGPL License and not to allow others to use your version of this file
 under the MPL, indicate your decision by deleting  the provisions above and
 replace  them with the notice and other provisions required by the LGPL
 License.  If you do not delete the provisions above, a recipient may use
@@ -35,11 +35,21 @@ The Original Code is JwsclMapping.pas.
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-11-14 13:50:07 +0000 (Sun, 14 Nov 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1055 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/JwsclMapping.pas $
+</table>
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclMapping;
 {$INCLUDE ..\includes\Jwscl.inc}
-// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
+
 
 
 interface
@@ -86,9 +96,9 @@ type
   public
     {<B>GetBitMappingString</B> returns an description of a specific bit value given in Idx.
      This function only supports one bit per call.
-     @param Idx Defines a bit position between 0 and 31 
+     @param Idx Defines a bit position between 0 and 31
      @return Returns the name and description of the given bit or an empty string
-       if the bit is invalid. 
+       if the bit is invalid.
      }
     class function GetBitMappingString(Idx: Cardinal): TJwString; virtual;
 
@@ -142,6 +152,18 @@ type
       out iCount: Cardinal): PSI_ACCESS; reintroduce; virtual;
   end;
 
+  {A null mapping defines a map from generic access rights to 0.}
+  TJwNullMapping = class(TJwSecurityGenericMapping)
+  public
+   {<B>GetMapping</B> returns the generic mapping for file objects.}
+    class function GetMapping: TGenericMapping; override;
+    class function MapAccessMaskToString(Access: TJwAccessMask): TJwString;
+      override;
+
+    class function GetAccessNames(out iCount: Cardinal): PSI_ACCESS;
+      override;
+  end;
+
   {<B>TJwSecurityFileMapping</B> defines a generic mapping for file access rights}
   TJwSecurityFileMapping = class(TJwSecurityGenericMapping)
   public
@@ -189,7 +211,7 @@ type
   end;
 
   {-------}
-  {<B>TJwSecurityFileFolderMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecurityFileFolderMapping</B> defines a generic mapping for file and folder access rights}
   TJwSecurityFileFolderMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
@@ -201,7 +223,7 @@ type
   end;
 
 
-  {<B>TJwSecurityServiceMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecurityServiceMapping</B> defines a generic mapping for service access rights}
   TJwSecurityServiceMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
@@ -212,7 +234,7 @@ type
       override;
   end;
 
-  {<B>TJwSecurityServiceManagerMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecurityServiceManagerMapping</B> defines a generic mapping for service manager access rights}
   TJwSecurityServiceManagerMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
@@ -223,7 +245,7 @@ type
       override;
   end;
 
-  {<B>TJwSecurityPrinterMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecurityPrinterMapping</B> defines a generic mapping for printer access rights}
   TJwSecurityPrinterMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
@@ -234,7 +256,7 @@ type
       override;
   end;
 
-  {<B>TJwSecurityShareMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecurityShareMapping</B> defines a generic mapping for shared memory access rights}
   TJwSecurityShareMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
@@ -245,7 +267,7 @@ type
       override;
   end;
 
-  {<B>TJwSecurityProcessMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecurityProcessMapping</B> defines a generic mapping for process access rights}
   TJwSecurityProcessMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
@@ -257,7 +279,7 @@ type
   end;
 
 
-  {<B>TJwSecurityThreadMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecurityThreadMapping</B> defines a generic mapping for thread access rights}
   TJwSecurityThreadMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
@@ -268,7 +290,7 @@ type
       override;
   end;
 
-  {<B>TJwSecurityJobMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecurityJobMapping</B> defines a generic mapping for job access rights}
   TJwSecurityJobMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
@@ -280,7 +302,7 @@ type
   end;
 
 
-  {<B>TJwSecuritySemaphoreMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecuritySemaphoreMapping</B> defines a generic mapping for semaphore access rights}
   TJwSecuritySemaphoreMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
@@ -292,7 +314,7 @@ type
   end;
 
 
-  {<B>TJwSecurityEventMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecurityEventMapping</B> defines a generic mapping for event access rights}
   TJwSecurityEventMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
@@ -304,7 +326,7 @@ type
   end;
 
 
-  {<B>TJwSecurityMutexMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecurityMutexMapping</B> defines a generic mapping for mutex access rights}
   TJwSecurityMutexMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
@@ -328,7 +350,7 @@ type
       override;
   end;
 
-  {<B>TJwSecurityTimerMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecurityTimerMapping</B> defines a generic mapping for timer access rights}
   TJwSecurityTimerMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
@@ -339,7 +361,7 @@ type
       override;
   end;
 
-  {<B>TJwSecurityTokenMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecurityTokenMapping</B> defines a generic mapping for token access rights}
   TJwSecurityTokenMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
@@ -350,8 +372,30 @@ type
       override;
   end;
 
-  {<B>TJwSecurityPipeMapping</B> defines a generic mapping for file access rights}
+  {<B>TJwSecurityPipeMapping</B> defines a generic mapping for pipe access rights}
   TJwSecurityPipeMapping = class(TJwSecurityGenericMapping)
+  public
+    {<B>GetMapping</B> returns the generic mapping for file objects.}
+    class function GetMapping: TGenericMapping; override;
+    class function MapAccessMaskToString(Access: TJwAccessMask): TJwString;
+      override;
+    class function GetAccessNames(out iCount: Cardinal): PSI_ACCESS;
+      override;
+  end;
+
+  {<B>TJwSecurityWTSMapping</B> defines a generic mapping for Windows Terminal Server rights}
+  TJwSecurityWTSMapping = class(TJwSecurityGenericMapping)
+  public
+    {<B>GetMapping</B> returns the generic mapping for file objects.}
+    class function GetMapping: TGenericMapping; override;
+    class function MapAccessMaskToString(Access: TJwAccessMask): TJwString;
+      override;
+    class function GetAccessNames(out iCount: Cardinal): PSI_ACCESS;
+      override;
+  end;
+
+  {<B>TJwSecurityCOMMapping</B> defines a generic mapping for COM access rights}
+  TJwSecurityCOMMapping = class(TJwSecurityGenericMapping)
   public
     {<B>GetMapping</B> returns the generic mapping for file objects.}
     class function GetMapping: TGenericMapping; override;
@@ -544,7 +588,7 @@ begin
 
     //iPos := 4;
     //iStart := iPos;
-  end;         
+  end;
 
 
   for i := iStart to high(Maps) do
@@ -631,7 +675,7 @@ begin
     else
       raise EJwsclInvalidGenericAccessMask.CreateFmtEx(
         RsMappingNotAGenericMask,
-        'Map', ClassName, 'JwsclMapping.pas', 0, False, []);
+        'Map', ClassName, RsUNMapping, 0, False, []);
   end;
 end;
 
@@ -1066,11 +1110,70 @@ begin
   Result := TJwSecurityUserMapping.MapAccessMaskToString(Access, PipeMapping);
 end;
 
+{ TJwNullMapping }
+
+class function TJwNullMapping.GetAccessNames(out iCount: Cardinal): PSI_ACCESS;
+begin
+  raise EJwsclNotImplementedException.CreateFmtEx(
+        RsUnapplicableGetAccessName,
+        'GetAccessNames', ClassName, RsUNMapping, 0, False, []);
+end;
 
 
+
+class function TJwNullMapping.GetMapping: TGenericMapping;
+begin
+  Result := TJwSecurityUserMapping.GetMapping(NullGenericMapping);
+end;
+
+class function TJwNullMapping.MapAccessMaskToString(Access: TJwAccessMask): TJwString;
+begin
+  result := '';
+end;
+
+{ TJwSecurityWTSMapping }
+
+class function TJwSecurityWTSMapping.GetAccessNames(
+  out iCount: Cardinal): PSI_ACCESS;
+begin
+  Result := GetAccessNamesEx(iCount, WTSMapping);
+end;
+
+class function TJwSecurityWTSMapping.GetMapping: TGenericMapping;
+begin
+  Result := TJwSecurityUserMapping.GetMapping(WTSGenericMapping);
+end;
+
+class function TJwSecurityWTSMapping.MapAccessMaskToString(
+  Access: TJwAccessMask): TJwString;
+begin
+  Result := TJwSecurityUserMapping.MapAccessMaskToString(Access, WTSMapping);
+end;
+
+
+{ TJwSecurityCOMMapping }
+
+class function TJwSecurityCOMMapping.GetAccessNames(
+  out iCount: Cardinal): PSI_ACCESS;
+begin
+  Result := GetAccessNamesEx(iCount, COMMapping);
+end;
+
+class function TJwSecurityCOMMapping.GetMapping: TGenericMapping;
+begin
+  Result := TJwSecurityUserMapping.GetMapping(COMGenericMapping);
+end;
+
+class function TJwSecurityCOMMapping.MapAccessMaskToString(
+  Access: TJwAccessMask): TJwString;
+begin
+  Result := TJwSecurityUserMapping.MapAccessMaskToString(Access, COMMapping);
+end;
 {$ENDIF SL_INTERFACE_SECTION}
 
 
 {$IFNDEF SL_OMIT_SECTIONS}
+
+
 end.
 {$ENDIF SL_OMIT_SECTIONS}

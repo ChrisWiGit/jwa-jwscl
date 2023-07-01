@@ -33,7 +33,16 @@ The Original Code is JwsclFirewall.pas.
 
 The Initial Developer of the Original Code is Heiko Adams
 
-
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-08-29 14:26:48 +0000 (Sun, 29 Aug 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1006 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/JwsclFirewall.pas $
+</table>
 }
 unit JwsclFirewall;
 {$INCLUDE ..\includes\Jwscl.inc}
@@ -73,10 +82,10 @@ type
   public
     { Create creates a new TJwsclFirewall instance and connects to the firewall
       manager COM interface.
-      
-      
-      
-      
+
+
+
+
       Exceptions
       EJwsclFirewallProfileInitException :  This exception is raised if the connection
                                             to the firewall COM interface failed. The
@@ -102,7 +111,7 @@ type
     procedure DeleteFromWinFirewall(const ApplicationFilename: TJwString); virtual;
 
     {<B>AddTcpPortToFirewall</B> Adds a rule for a single tcp port to the firewall.
-     @param ProtocollName gives a description of the opened port (e.g. "FTP-Server") 
+     @param ProtocollName gives a description of the opened port (e.g. "FTP-Server")
      @param ProtocollPort defines the port of the protocol
      @param SubnetOnly defines if the rule affects only the pc's subnet or not
      @param PortRemoteAddresses defines which Remoteadress and port should be allowed
@@ -361,30 +370,30 @@ procedure TJwsclFirewall.AddToWinFirewall(const ApplicationFilename,
   NameOnExceptionList: TJwString; const EnableRule: Boolean);
 var
   App: INetFwAuthorizedApplication;
-begin                
+begin
   if GetFirewallState
     and GetExceptionsAllowed then
   begin
     try
       App := CoNetFwAuthorizedApplication.Create;
-	  //Create throws OleException if anything goes wrong
+      //Create throws OleException if anything goes wrong
 
-	  App.ProcessImageFileName := ApplicationFilename;
-	  App.Name := NameOnExceptionList;
-	  App.Scope := NET_FW_SCOPE_ALL;
-	  App.IpVersion := NET_FW_IP_VERSION_ANY;
-	  App.Enabled := EnableRule;
+      App.ProcessImageFileName := ApplicationFilename;
+      App.Name := NameOnExceptionList;
+      App.Scope := NET_FW_SCOPE_ALL;
+      App.IpVersion := NET_FW_IP_VERSION_ANY;
+      App.Enabled := EnableRule;
 
-	  try
-	    FProfile.AuthorizedApplications.Add(App);
-	  except
-	    on e: EOleSysError do
-	    begin
-	  	  SetLastError(E.ErrorCode);
-		  raise EJwsclFirewallAddRuleException.CreateFmtEx(e.Message,
-			'AddToWinFirewall', ClassName, RsUNFirewall,
-			0, True, []);
-		end;
+      try
+        FProfile.AuthorizedApplications.Add(App);
+      except
+        on e: EOleSysError do
+        begin
+          SetLastError(E.ErrorCode);
+          raise EJwsclFirewallAddRuleException.CreateFmtEx(e.Message,
+          'AddToWinFirewall', ClassName, RsUNFirewall,
+          0, True, []);
+        end;
       end;
     finally
       App := nil;
@@ -418,7 +427,7 @@ begin
 
     Port.Name := ProtocollName;
     Port.Protocol := NET_FW_IP_PROTOCOL_TCP;
-	  
+
     Port.Port := ProtocollPort;
     if SubnetOnly then
       Port.Scope := NET_FW_SCOPE_LOCAL_SUBNET
@@ -463,7 +472,7 @@ begin
           'AddUdpPortToFirewall', ClassName, RsUNFirewall,
           0, false, []);
   end;
-          
+
   try
     Port := CoNetFwOpenPort.Create;
 
@@ -476,7 +485,7 @@ begin
       Port.Scope := NET_FW_SCOPE_ALL;
     Port.RemoteAddresses := PortRemoteAddresses;
     Port.Enabled := True;
-    
+
 
     try
       FProfile.GloballyOpenPorts.Add(Port);
@@ -530,4 +539,3 @@ begin
 end;
 
 end.
-

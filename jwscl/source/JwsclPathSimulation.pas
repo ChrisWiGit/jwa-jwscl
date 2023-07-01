@@ -33,9 +33,36 @@ The Original Code is JwsclPathSimulation.pas.
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
+Requirement: Delphi 2009 or newer
 
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-10-15 20:12:04 +0000 (Fri, 15 Oct 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1029 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/JwsclPathSimulation.pas $
+</table>
 }
 unit JwsclPathSimulation;
+{$INCLUDE ..\includes\Jwscl.inc}
+
+
+{$WARNINGS ON}
+
+{$IFNDEF DELPHI2009_UP}
+  {$MESSAGE WARN 'This file is only for Delphi 2009 and newer'}
+{$ENDIF}
+
+
+
+{$IFNDEF DEBUG}
+  {$MESSAGE FAIL 'File JwsclPathSimulation.pas is not intended for production. It is intended for simulation security descriptor inheritance.'}
+{$ELSE}
+  {$MESSAGE WARN 'File JwsclPathSimulation.pas is not intended for production. It is intended for simulation security descriptor inheritance.'}
+{$ENDIF}
 
 interface
 uses
@@ -52,6 +79,7 @@ uses
   Classes,
   SysUtils;
 
+{$IFDEF DELPHI2009_UP}
 type
   {TJwInheritancePath splits the entries of a path into
    the root drive and its folder.
@@ -72,10 +100,12 @@ type
     property Path : String read fPath;
   end;
 
+{$ENDIF DELPHI2009_UP}
 implementation
 
 { TJwInheritancePath }
 
+{$IFDEF DELPHI2009_UP}
 constructor TJwInheritancePath.Create(const Path: string);
   function ReversStr(const S : string) : String;
   var i : Integer;
@@ -121,5 +151,7 @@ function TJwInheritancePath.GetSDIdx(Index: Integer): TJwSecurityDescriptor;
 begin
   result :=  TJwSecurityDescriptor(fSD.Objects[Index])
 end;
+
+{$ENDIF DELPHI2009_UP}
 
 end.

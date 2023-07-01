@@ -16,7 +16,7 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the  
+Alternatively, the contents of this file may be used under the terms of the
 GNU Lesser General Public License (the  "LGPL License"), in which case the
 provisions of the LGPL License are applicable instead of those above.
 If you wish to allow use of your version of this file only under the terms
@@ -35,14 +35,20 @@ The Original Code is JwsclConstants.pas.
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-
-
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-11-14 13:50:07 +0000 (Sun, 14 Nov 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1055 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/JwsclConstants.pas $
+</table>
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclConstants;
 {$INCLUDE ..\includes\Jwscl.inc}
-// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
-
 
 interface
 
@@ -78,6 +84,7 @@ http://qc.codegear.com/wc/qcmain.aspx?d=57701
 
 
 const
+  {TAceTypeString maps different types of ace types to strings.}
   TAceTypeString : array[TJwAceType] of TJwString =
     (
     RsAceTypeStringAudit,//actAudit,
@@ -105,15 +112,20 @@ const
   IDAPPLY = 33;
   FILE_DELETE = Delete; //{0x00010000L}
 
+  {This constant defines a security mask that contains access rights
+   necessary for reading and writing from/to a security descriptor}
   JwAllSecurityAccess = READ_CONTROL or WRITE_DAC or WRITE_OWNER or SYNCHRONIZE;
 
-    {<B>SM_SERVERR2</B> is used as an additional constant for GetSystemMetrics
-     to detect the second release of Win2003
-    }
-  SM_SERVERR2 = 89;
 
 
-  { operating system (OS)constants }
+
+  {Operating system (OS)constants defined by JWSCL.
+   The constants are in order of the appearance of Windows, so
+   the greater operator can be used easily.
+   Also make sure that server versions succeed workstations.
+
+   cOsWinXXX  = cOsWin7; //use this to set proper name for this OS!
+  }
   cOsUnknown = -1; //The system is unknown
   cOsWin95   = 0;  //The system is a Windows 95
   cOsWin98   = 1;  //The system is a Windows 98
@@ -128,11 +140,28 @@ const
   cOsVista   = 10; //The system is a Vista
   cOsWin2008 = 11; //The system is a 2008 Server (tested with RC)
   cOsWin7    = 12; //The system is a Win7
-  //cOsWinXXX  = cOsWin7; //use this to set proper name for this OS!
+  cOsWin2008R2 = 13; //The system is a 2008 R2 Server (untested)
 
-  {<B>sOSVerString</B> contains the windows version as text}
-  sOSVerString: array[-1..15] of TJwString =
-    ('Unknown',
+
+  {This value defines an unknown but new Windows version.
+   It is computed by JWSCL by making sure that the current windows version
+   has a version than the highest supported one.
+  }
+  cOsWinUnknownNew = high(Integer) - 20;
+
+  {<B>sOSVerString</B> contains the windows version as text.
+
+  Remarks
+  Be aware that on newer and thus unknown Windows versions
+  the value could be cOsWinUnknownNew. However, it is out of range
+  so you need to convert it to -2 first.
+
+  Instead of using this constant, use the function JwGetOsVerString.
+  }
+  sOSVerString: array[-2..15] of TJwString =
+    (
+    RsNewUnknownWindows, //'New unknown Windows',
+    RsUnknownWindows, //'Unknown',
     'Windows 95',
     'Windows 98',
     'Windows 98 Second Edition',
@@ -146,17 +175,23 @@ const
     'Windows Vista',
     'Windows 2008',
     'Windows 7',
-    '',
+    'Windows 2008 Release 2',
     '',
     ''
     );
+{<b>JwGetOsVerString</b> converts a cOSxxxx constant to a human readable string.
 
+Remarks
+  This function supports cOsWinUnknownNew.
+  This function return sOSVerString[-1] ("Unknown") if the index is not supported by sOSVerString.
+}
+function JwGetOsVerString(OSIndex : Integer) : TJwString;
 
-
+const
 
   {<B>ALL_SECURITY_INFORMATION</B> can be used in TJwSecurityDescriptor.getStringSid as the parameter value to
    get all SID information at once.
-   This value is defined as zero and also as a or combination of the given values.
+   This value is defined as zero and also as an OR combination of the given values.
   }
   ALL_SECURITY_INFORMATION = {= 0 =}
     OWNER_SECURITY_INFORMATION or
@@ -179,7 +214,7 @@ const
     (Luid: (LowPart: 0; HighPart: 0); Attributes: 0);
 
 
- 
+
 const
   JwSecurityInformationAllFlags =
     [siOwnerSecurityInformation,
@@ -217,6 +252,7 @@ const
 
 
 var
+
   FileMapping: array[1..22] of TJwRightsMapping =
     ((Right: STANDARD_RIGHTS_REQUIRED;
     Name: 'STANDARD_RIGHTS_REQUIRED'; Flags: 0),
@@ -264,7 +300,7 @@ var
     Flags: SI_ACCESS_SPECIFIC),
     (Right: SYNCHRONIZE; Name: 'SYNCHRONIZE';
     Flags: SI_ACCESS_SPECIFIC)
-    );           
+    );
 
 
   FileGenericMapping: TGenericMapping =
@@ -1361,7 +1397,7 @@ var
     GenericAll: TOKEN_ALL_ACCESS;
     );
 
-var
+
   PipeMapping: array[1..16 - 2] of TJwRightsMapping =
     (
     (Right: STANDARD_RIGHTS_ALL; Name: 'STANDARD_RIGHTS_ALL';
@@ -1410,6 +1446,82 @@ var
     GenericExecute: {STANDARD_RIGHTS_EXECUTE or SYNCHRONIZE}0;
     GenericAll: FILE_ALL_ACCESS;
     );
+
+
+var
+  WTSMapping: array[1..20 -2] of TJwRightsMapping =
+    (
+    (Right: STANDARD_RIGHTS_ALL; Name: 'STANDARD_RIGHTS_ALL';
+    Flags: 0; StringId : -50008),
+    (Right: STANDARD_RIGHTS_READ; Name: 'STANDARD_RIGHTS_READ';
+    Flags: 0),
+    (Right: STANDARD_RIGHTS_WRITE; Name: 'STANDARD_RIGHTS_WRITE';
+    Flags: 0),
+    (Right: STANDARD_RIGHTS_EXECUTE; Name: 'STANDARD_RIGHTS_EXECUTE';
+    Flags: 0),
+
+    (Right: WTS_SECURITY_QUERY_INFORMATION; Name: 'WTS_SECURITY_QUERY_INFORMATION';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: WTS_SECURITY_SET_INFORMATION; Name: 'WTS_SECURITY_SET_INFORMATION';
+    Flags: SI_ACCESS_SPECIFIC),
+
+    (Right: WTS_SECURITY_RESET; Name: 'WTS_SECURITY_RESET';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: WTS_SECURITY_VIRTUAL_CHANNELS; Name: 'WTS_SECURITY_VIRTUAL_CHANNELS';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: WTS_SECURITY_REMOTE_CONTROL; Name: 'WTS_SECURITY_REMOTE_CONTROL';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: WTS_SECURITY_LOGON or WTS_SECURITY_GUEST_ACCESS; Name: 'WTS_SECURITY_LOGON/WTS_SECURITY_GUEST_ACCESS';
+    Flags: SI_ACCESS_SPECIFIC),
+
+    (Right: WTS_SECURITY_LOGOFF; Name: 'WTS_SECURITY_LOGOFF';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: WTS_SECURITY_MESSAGE; Name: 'WTS_SECURITY_MESSAGE';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: WTS_SECURITY_CONNECT; Name: 'WTS_SECURITY_CONNECT';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: WTS_SECURITY_DISCONNECT; Name: 'WTS_SECURITY_DISCONNECT';
+    Flags: SI_ACCESS_SPECIFIC),
+
+    (Right: WRITE_DAC; Name: 'WRITE_DAC';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: WRITE_OWNER; Name: 'WRITE_OWNER';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: READ_CONTROL; Name: 'READ_CONTROL';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: Delete; Name: 'DELETE';
+    Flags: SI_ACCESS_SPECIFIC)
+  );
+
+  WTSGenericMapping: TGenericMapping =
+    (GenericRead: READ_CONTROL or WTS_SECURITY_QUERY_INFORMATION;
+    GenericWrite: WRITE_DAC or  WRITE_OWNER or Delete;
+    GenericExecute: {STANDARD_RIGHTS_EXECUTE or SYNCHRONIZE}0;
+    GenericAll: WTS_SECURITY_ALL_ACCESS;
+    );
+
+  COMMapping: array[1..5] of TJwRightsMapping =
+    (
+    (Right: COM_RIGHTS_EXECUTE; Name: 'COM_RIGHTS_EXECUTE';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: COM_RIGHTS_EXECUTE_LOCAL; Name: 'COM_RIGHTS_EXECUTE_LOCAL';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: COM_RIGHTS_EXECUTE_REMOTE; Name: 'COM_RIGHTS_EXECUTE_REMOTE';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: COM_RIGHTS_ACTIVATE_LOCAL; Name: 'COM_RIGHTS_ACTIVATE_LOCAL';
+    Flags: SI_ACCESS_SPECIFIC),
+    (Right: COM_RIGHTS_ACTIVATE_REMOTE; Name: 'COM_RIGHTS_ACTIVATE_REMOTE';
+    Flags: SI_ACCESS_SPECIFIC)
+  );
+
+  COMGenericMapping: TGenericMapping =
+    (GenericRead: 0;
+    GenericWrite: COM_RIGHTS_ACTIVATE_LOCAL or COM_RIGHTS_ACTIVATE_REMOTE;
+    GenericExecute: COM_RIGHTS_EXECUTE or COM_RIGHTS_EXECUTE_LOCAL or COM_RIGHTS_EXECUTE_REMOTE;
+    GenericAll: 0;
+    );
+
+
 
   JwNullSecurityAttributes: TSECURITYATTRIBUTES =
    (nLength: 0;
@@ -1483,7 +1595,7 @@ const
     RsAttributeHumanString13,//'pad3',
     RsAttributeHumanString14,//'pad4',
     RsAttributeHumanString15//'pad5'
-    );    
+    );
 
 
 
@@ -1511,7 +1623,7 @@ const
   IgnoreEJwsclResourceNotFound = true;
 
   {These values defines the first resource string for the given
-  mapping resource strings. 
+  mapping resource strings.
   }
 
   //
@@ -1553,6 +1665,24 @@ const
   FW_AUTHORIZEDAPPLICATION_CLASS_NAME = 'HNetCfg.FwAuthorizedApplication';
   FW_OPENPORT_CLASS = 'HNetCfg.FWOpenPort';
 
+  //Maximum size of an ACL, officially documented but not defined
+  MAX_ACL_SIZE = $10000; //64k
+
+  //Maximum size of a relative security descriptor unofficial and not defined
+  MAX_SECURITY_DESCRIPTOR_SIZE =
+    SizeOf(SECURITY_DESCRIPTOR_RELATIVE)  //revision, control and such
+      - 4 * sizeof(DWORD) //2*SID + 2*DACL dword entries in the SD_relative structure replaced by actual data
+    + 2 * MAX_ACL_SIZE  //2 * 64k
+    + 2 * MAX_SID_SIZE; //2 * FF
+  //20 - 16 + 2 * 65536 + 2 * 256 = $20204 = 131588 bytes
+
+
+  {Default value of how many times TJwSecurityToken.LookupPrivilegeValue will retry before it fails.
+   This value must be greater than 0.
+  }
+  DEFAULT_LUID_TRY_COUNT = 5;
+  DEFAULT_LUID_NULL : TLUID = (LowPart:0;HighPart:0);
+
 {<B>JwInitLocalizedMappings</B> translate all the rights mapping arrays using the resource.
 
  user language or neutral if not found
@@ -1570,9 +1700,9 @@ const
   JwInitLocalizedMappings(LANG_NEUTRAL, SUBLANG_SYS_DEFAULT);
   JwInitLocalizedMappings(0,0);
 
-@param PrimaryLanguage defines the primary language id 
-@param SubLanguage defines the primary language id 
-@param Inst defines the resource source 
+@param PrimaryLanguage defines the primary language id
+@param SubLanguage defines the primary language id
+@param Inst defines the resource source
 
 }
 procedure JwInitLocalizedMappings(PrimaryLanguage,
@@ -1605,6 +1735,29 @@ const
   Integer version. Contains only code part of HRESULT.
   }
   E_CLASS_IS_NOT_SETUPint = 23;
+
+  {JwSafeSearchDLLFlags is used by
+     TJwLibraryUtilities.SecureDLLSearchPath()
+   to be put into the call of SetSearchPathMode.
+  }
+  JwSafeSearchDLLFlags : DWORD = BASE_SEARCH_PATH_ENABLE_SAFE_SEARCHMODE or BASE_SEARCH_PATH_PERMANENT;
+
+  {JwSafeDLLDirectory is used by
+    TJwLibraryUtilities.SecureDLLSearchPath()
+   to be put into the call of SetDllDirectoryW
+
+   Defaults to empty string.
+   }
+  JwSafeDLLDirectory : WideString = '';
+
+
+  JwLowIL = 'S-1-16-4096';
+  JwMediumIL = 'S-1-16-8192';
+  JwHighIL = 'S-1-16-12288';
+  JwSystemIL = 'S-1-16-16384';
+  JwProtectedProcessIL = 'S-1-16-20480';
+  JwIntegrityLevel = 'S-1-16-%u';
+
 
 {$ENDIF SL_IMPLEMENTATION_SECTION}
 
@@ -1768,12 +1921,17 @@ begin
     IgnoreEJwsclResourceNotFound,//const UseDefaultOnError : Boolean = true;
     Inst//ModuleInstance : HINST = 0
   );
+end;
 
+function JwGetOsVerString(OSIndex : Integer) : TJwString;
+begin
+  if OSIndex = cOsWinUnknownNew then
+    OSIndex := -2
+  else
+  if (OSIndex < Low(sOSVerString)) or (OSIndex > high(sOSVerString)) then
+    OSIndex := -1;
 
-
-
-
-
+  result := sOSVerString[OSIndex];
 end;
 
 initialization
@@ -1781,7 +1939,6 @@ initialization
 // user language or neutral if not found
 // JwInitLocalizedMappings(PRIMARYLANGID(GetUserDefaultUILanguage),
 //   SUBLANGID(GetUserDefaultUILanguage));
-
 
 
 {$IFDEF JWSCL_INCLUDE_RES}

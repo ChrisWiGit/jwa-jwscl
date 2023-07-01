@@ -16,17 +16,17 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the  
-GNU Lesser General Public License (the  "LGPL License"), in which case the   
-provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
-                                                                             
-For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html 
+Alternatively, the contents of this file may be used under the terms of the
+GNU Lesser General Public License (the  "LGPL License"), in which case the
+provisions of the LGPL License are applicable instead of those above.
+If you wish to allow use of your version of this file only under the terms
+of the LGPL License and not to allow others to use your version of this file
+under the MPL, indicate your decision by deleting  the provisions above and
+replace  them with the notice and other provisions required by the LGPL
+License.  If you do not delete the provisions above, a recipient may use
+your version of this file under either the MPL or the LGPL License.
+
+For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
 Note
 
 The Original Code is JwsclResource.pas.
@@ -34,10 +34,19 @@ The Original Code is JwsclResource.pas.
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-12-02 21:06:15 +0000 (Thu, 02 Dec 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1084 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/JwsclResource.pas $
+</table>
 }
 unit JwsclResource;
 {$INCLUDE ..\includes\Jwscl.inc}
-// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
 
@@ -126,33 +135,71 @@ const
   RsRightStandard = '[Standard]';
   RsRightSpecific = '[Specific]';
 
+//Unit JwsclComSecurity.pas
+  RsAuthenticationMustBeWinNT = 'Only AuthenticationService = asWinNT and as GSSKerberos are supported.';
+  RsCOMImpersonatingPrivilegeNecessary = 'Impersonating another user for COM needs the SE_IMPERSONATE_NAME privileges. '+
+  'Otherwise all subsequent COM calls will fail (access denied).';
+  RsInvalidImpersonationLevel = 'The client does not have a token if ImpersonationLevel is cilAnonymous.';
+  RsAlreadyImpersonating = 'The call cannot be made with an impersonated token. Revert to self first.';
+  RsPropertyIsReadOnly = 'Property %0:s is readonly.';
+  RsKeyNotFoundOrZero = 'Key %0:s\%1:s not found or value has zero size';
+  RsInvalidParameter = 'Invalid Parameter';
+  RsInitializeSecurityInSharedProcess = 'InitializeSecurity cannot be called in a shared process with other COM servers.';
+  RsCoInitializeNotCalled = 'CoInitializeSecurity has been called already or CoInitialize has not been called at first. (HRESULT= RPC_E_TOO_LATE)';
+  RsInvalidAuthService = 'The value azsDefault is not allowed if used in the AuthenticationList and AuthenticationList[%0:d].AuthorizationService is asWinNT or asGSSKerberos. Use instead azsNone, azsDCE or azsName.';
+  RsInvalidComSecurityDescriptor = 'The supplied security descriptor does not allow COM to work properly. You need to add an allow ACE for SYSTEM.';
+  RsInvalidCombinationAccessControlAndAppID = 'acAccessControl and acAppId cannot be used at the same time in parameter Capabilities.';
+  RsInvalidAuthLevel = 'The parameter AuthenticationLevel cannot be calNone if a security information (AppID, IAccessControl or security descriptor) is supplied.';
+  RsAuthServiceMustNotBeDefault = 'The value azsDefault is not allowed if AuthorizationService is asWinNT or asGSSKerberos. Use instead azsNone, azsDCE or azsName.';
+  RsOnIsAccessAllowedFailed = 'Method assigned to OnIsAccessAllowed failed with %0:d';
+  RsTooSmallMemBlock = 'Memory block too small';
+  RsValidOnlyAllowDenyACE = 'The ACL must only contain Allow and Deny ACEs.';
+  RsIncompatibleCOMRight = 'The member Access of AccessEntry (PACTRL_ACCESS_ENTRYW) #%0:d is not conform to implementation of IAccessControl. Only COM_RIGHTS_EXECUTE is valid.';
+  RsIncompatibleCOMACETrusteeMember = 'The member Trustee of AccessEntry (PACTRL_ACCESS_ENTRYW) #%0:d is not compatible/valid to IAccessControl. ';
+  RsInvalidPAccessListParameter = 'The parameter pAccessList or one of its member is not valid.';
+  RsIncompatibleCOMTrusteeParameter = 'The member parameter %0:s is not compatible/valid to implementation of IAccessControl. (StrictACLVerify is true)';
+  RsInvalidPAccessList = 'The parameter pAccessList or one of its member is not valid.';
+  RsIncompatibleCOMOwnerOrGroup = 'Either pOwner or pGroup Trustee is not compatible/valid to MS implementation of IAccessControl. ';
+  RsInvalidDACLReadFromStream = 'The DACL read from stream is invalid.';
+  RsInvalidSDStreamSize = 'The stream size of the security descriptor is invalid. The size %d read from stream is either too big (%0:d) or too small (%1:d).';
+  RsInvalidSDReadFromStream = 'The security descriptor read from stream is invalid.';
+  RsInvalidSDMagicHeaderSize = 'Size of TMagicHeaderRecord and SD_HEADER_SIZE differs.';
+  RsStreamDataCopyingFailed = 'The stream data could not be copied to internal memory.';
+  RsDefaultCOMKeyNotFound = 'Default COM key not available/found.';
+  RsCOMAppIDNotFound = 'AppID "%0:s" could not be found.';
+  RsLogonSidNameText = 'Logon SID (%0:s)';
+
 //Unit  JwsclCredentials.pas
 
 //
   RsCredentialsLocalName = 'local';
-  RsUNCredentialsInvalidParameters = 'One or more parameters of CredUIParseU' +
-  'serName are invalid!';
+  RsUNCredentialsInvalidParameters = 'One or more parameters of CredUIParseUserName are invalid!';
   RsUNCredentialsInvalidUserName = 'The user name is not valid.';
   RsUNCredentialsTooSmallBuffer = 'One of the buffers is too small.';
   RsUNCredentialsMessageTextDefault = 'Messagetext';
   RsUNCredentialsCaptionDefault = 'Caption';
   RsUNCredentialsLocalServerNameDefault = 'local';
-  RsUNCredentialsUnsupported = 'The operating system does not support creden' +
-  'tials prompt!';
+  RsUNCredentialsUnsupported = 'The operating system does not support credentials prompt!';
   RsUNCredentialsInvalidEmptyServerName = 'ServerName must not be empty!';
-  RsUNCredentialsInvalidUseOfCredFlags = 'The Flag cf_CREDUI_FLAGS_EXPECT_CO' +
-  'NFIRMATION is set but the property OnConfirmCredential is nil!';
-  RsUNCredentialsTooLongServerName = 'Length of property ServerName is to lo' +
-  'ng.!';
-  RsUNCredentialsEmptyServerName = 'Length of property ServerName must not b' +
-  'e zero.!';
+  RsUNCredentialsInvalidUseOfCredFlags = 'The Flag cf_CREDUI_FLAGS_EXPECT_CONFIRMATION is set but the property OnConfirmCredential is nil!';
+  RsUNCredentialsTooLongServerName = 'Length of property ServerName is to long.!';
+  RsUNCredentialsEmptyServerName = 'Length of property ServerName must not be zero.!';
   RsUNCredentialsInvalidPropertyFlags = 'The property Flags is invalid!';
-  RsUNCredentialsInvalidParametersCUIPFC = 'One or more parameters of CredUI' +
-  'PromptForCredentials are invalid!';
+  RsUNCredentialsInvalidParametersCUIPFC = 'One or more parameters of CredUIPromptForCredentials are invalid!';
   RsUNCredentialsInvalidLogonSession = 'There is no such logon session!';
 
 
+//Unit JwsclExceptions.pas
 
+  RSConfirmation = 'Confirmation';
+  RSConfirmOpeningUrl = 'Do you want to open the URL "%0:s" in your browser?';
+  RSExceptionDialogTitle = 'Exception Dialog';
+  RSJwsclExceptionRaised = 'The JWSCL Exception "%0:s" was raised with the following message';
+  RSHideDetails = 'Click to hide details';
+  RSShowDetails = 'Click for more details';
+  RSVisitJwscl = 'Visit <a href="http://blog.delphi-jedi.net">JWSCL</a> at home.'#13#10'Press Ctrl+C to copy content to clipboard.';
+  RSExceptionDetailInfo =
+  'Source Information:\r\n  Procedure: %0:s\r\n  Class : %1:s\r\n  File: %2:s\r\n  Line: %3:d\r\nWin32 Error Information:\r\n  Function: %4:s\r\n  LastError: %5:d [$%5:x] (%6:s)';
 
 //Unit JwsclTypes.pas
 
@@ -179,7 +226,7 @@ const
    RsAceTypeStringAudit = 'Audit';
    RsAceMandatory = 'Mandatory';
    RsAceAllowObject = 'Allow object';
-   RsAceDenyObject = 'Deny object'; 
+   RsAceDenyObject = 'Deny object';
    RsAceAllowCallbackObject = 'Allow callback object';
    RsAceDenyCallbackObject = 'Deny callback object';
    RsAceAuditCallback = 'Audit callback';
@@ -226,6 +273,7 @@ const
 
 //Unit JwsclMapping.pas
 
+  RsUnapplicableGetAccessName = 'The GetAccessNames method is not applicable for TJwNullMapping and therefore not defined.';
 //
   RsStringOr = 'or';
   RsMappingNotAGenericMask = 'The specified AccessMask is not one of the gen' +
@@ -258,12 +306,12 @@ const
     'Server Requires Windows Server 2008 or Windows Server 2003\r\n' +
     'Client Requires Windows Vista or Windows XP.';
   RsSecureObjectsNoCopyOfObjectHandle = 'Object handle could not be copied.';
-  RsSecureObjectsFileFolderNotFound = 'File or directory not found: %s';
+  RsSecureObjectsFileFolderNotFound = 'File or directory not found: %1:s';
   RsSecureObjectsInvalidFileNameHandle = 'Filename and handle is invalid';
   RsSecureObjectsDaclAdaptionFailed = 'The function failed to adapt the DACL of the secured object. You must have either WRITE_DAC access rights or be the owner.';
   RsSecureObjectsInvalidFileOrFolder = 'The instance must be created with a file or folder name. GetFileInheritanceSource cannot be used with a handle! ';
     RsSecureObjectsNilSdParameter = 'The security descriptor must not be nil. ' +
-    '(path: %s)';
+    '(path: %1:s)';
   RsSecureObjectsCallFailedRegSetKeySecurity = 'Call to RegSetKeySecurity fa' +
     'iled. Tried to get security information.';
   RsSecureObjectsRegOpenKeyEx = 'Call to RegOpenKeyEx failed. Could not open' +
@@ -277,7 +325,7 @@ const
   RsSecureObjectsMissingDaclOrSaclInSiParameter = 'Parameter aSecurityInfo m' +
     'ust be [siDaclSecurityInformation] or [siSaclSecurityInformation]' +
     '. ';
-  RsSecureObjectsEmptyRootKey = 'The KeyName "%s" does not contain a valid r' +
+  RsSecureObjectsEmptyRootKey = 'The KeyName "%1:s" does not contain a valid r' +
     'oot key (e.g. CURRENT_USER))! ';
   RsSecureObjectsInvalidKeyPathMissingRootElement = 'The key path "%s" is in' +
     'valid. Missing root element (e.h. current_user)';
@@ -304,7 +352,7 @@ const
 
   RsPrivilegeLabelBug = 'To obtain the integrity level from a named service object you need to '+
     ' apply siSaclSecurityInformation and the privilege SE_SECURITY_NAME.';
-    
+
   RsUnimplementedSACLInheritance = 'Inheritance of SACL.';
   RsInvalidParameterAccessCheck = 'The parameter DesiredAccess must not contain MAXIMUM_ALLOWED for this method. '+
     'If you need to retrieve maximum allowed rights you should call the other AccessCheck method with parameter '+
@@ -326,6 +374,8 @@ const
     's"';
   RsSidSubAuthorityOutOfBound = 'Sub authority (%d) index out of bounds.';
   RsSidAlreadyInList = 'SID already in list';
+  RsInvalidSidStructure = 'The given PSidAndAttributesArray structure was not created by Create_PSID_Array.';
+
   RsSidListGetText = 'Class : %0:s\r\nCount : %1:d';
   RsAccountNameUseLabel = 'AccountNameUse: ';
   RsSidAccountDomainNameLabel = 'AccountDomainName: ';
@@ -345,6 +395,7 @@ const
   RsSidTextString    = '%0:s %1:s (%2:s) [%3:s]';
   RsInvalidSidAuthorityValue = 'The identifier authority value must not be larger than $FFFFFFFFFFFF.';
   RsInvalidDomainSid = 'The given SID (%0:s) does not match "S-1-5-21-xx-yy-zz" pattern.';
+
 
 
 //Unit JwsclToken.pas
@@ -428,27 +479,42 @@ const
   RsTokenFailedRevertSelf = 'Could not revert to self.';
   RsTokenFailedImpPipe = 'Could not impersonate pipe client.';
   RsTokenCheckAccessTypeText = 'The desired access mask is not included in t' +
-    'he token access mask!\r\nyour  mask: \r\ntoken mask: \r\n%0:s (%1:s)\r\%2' +
-    ':s\r\nCheckTokenAccessType called by %3:s'+#13#10+
-    'Token access rights:\r%4:s\rYour requested rights:\r%5:s';
-	
-  RsTokenStatisticsText = 'TokenID: %0:s\r\AuthenticationId: %1:s\r\nExpirat' +
-    'ionTime: %2:s\r\nToken type: %3:d\r\nImpersonation level: 0x%4:x\r\nDynam' +
-    'ic charged: 0x%5:x\r\nDynamic available: 0x%6:x\r\nGroup count: %7:d\r\nP' +
-    'rivilege count: %8:d\r\nModified ID: %9:s\r\n';
-  RsPrivilegeCallAdjustTokenFailed1 = 'Call to AdjustToken failed with privilege ' +
-    '%s.';
+    'he token access mask!'+
+    '\r\nCheckTokenAccessType called by %3:s\r\n\r\n:'+
+    '\r\nDesired Access Mask: \r\nActual Token access Mask: \r\n%0:s (%1:s)\r\n%2:s'+
+    '\rDesired Access Mask:\r%5:s\r\nActual Token access Mask:\r%4:s';
+
+  RsTokenStatisticsText = 'TokenID: %0:s\r\AuthenticationId: %1:s\r\nExpirationTime: %2:s\r\nToken type: %3:d\r\nImpersonation level: 0x%4:x\r\nDynamic charged: 0x%5:x\r\nDynamic available: 0x%6:x\r\nGroup count: %7:d\r\nPrivilege count: %8:d\r\nModified ID: %9:s\r\n';
+  RsPrivilegeCallAdjustTokenFailed1 = 'Call to AdjustToken failed with privilege %s.';
   RsPrivilegeLuidText = 'hi: 0x%0:x, lo: 0x%1:x (0x%2:x)';
   RsTokenInvalidClass = 'The token instance "%s" is not a TJwSecurityToken.';
-  RsProcessNotFound = 'The process "%0:s" could not be found.';  
+  RsProcessNotFound = 'The process "%0:s" could not be found.';
+  RsInvalidRestrictedSids = 'All attributes of the restricted SIDs must be zero.';
 
+//Unit JwsclTerminalServer.pas
+
+  RsTypeInet6 = 'IPv6 address not yet supported';
+  RsTypeIPX = 'IPX is no longer supported';
+  RsTypeNETBIOS = 'NETBIOS is not supported';
+  RsTypeUnspecified = 'Address family is not specifed.';
+  RsTypeInvalid = 'Unsupported address family type.';
 //Unit JwsclVersion.pas
 
 //
   RsVersionOrHigher = 'or higher';
-  RsVersionUnsupportedVersion = 'Unsupported version "%0:s". Need "%1:s" %2:' +
-    's';
+  RsVersionUnsupportedVersion = 'Unsupported version "%0:s". Need "%1:s" %2:s';
   RsUnknownSuppliedOS = '(The supplied WindowsVersion to CheckWindowsVersion is unknown. Add it to JwsclResource.pas::sOSVerString)';
+
+  RsInvalidSystemMetric = 'The GetSystemMetrics value %0:d could not be converted to a TJwSystemBootType enum. The value %0:d is not supported by JWSCL. '+
+          'Furthermore, it was stored in the LastError property of this exception.';
+
+  RsCsidlCorrectButFolderNotFound = 'The CSIDL is correct but the folder does not exist.';
+  RsInvalidCSIDLPath = 'The supplied CSIDL is not valid.';
+  RsDepEnabledRequiresPermanent = 'If Parameter NewPolicy contains "depEnabled", it also must contain "depPermanent".';
+  RsInvalidValueInVersionParameter = 'One or more values in parameter Version are not supported.';
+
+  RsUnsupportedCallByWindowsVersion = 'The current Windows version does not support this call.';
+  RsUnsupportedCallByWindowsVersionWithMinVersion = 'The current Windows version does not support this call. Minimum Version must be equal or greater to %0:d.%1:d (%2:s)';
 
 //Unit JwsclDesktop.pas
 
@@ -482,9 +548,25 @@ const
 //Unit JwsclUtils.pas
 
 //
-  RsInvalidLocalPointer  = 'Given pointer was not created by JwLocalAllocMem.'; 
+  RsInvalidLocalPointer  = 'Given pointer was not created by JwLocalAllocMem.';
   RsInvalidGlobalPointer = 'Given pointer was not created by JwGlobalAllocMem.';
   RsInvalidClassType = 'The given class type %0:s is invalid. Should be %1:s or derivates.';
+
+  RsInvalidFormatMessageArgumentType = 'Parameter %0:d has type %1:s but it should have been %2:s.';
+  RsUnsupportedFormatMessageArgumentType = 'The argument %0:d contains an unsupported type: %1:s';
+  RsInvalidResourceLanguage = 'The given resource language id %0:d could not be found in the message table.';
+  RsMessageTableNotFound = 'A message table could not be found it the given module.';
+
+  RsUnimplemented = 'This function is not implemented.';
+
+  RsInvalidObjectTypeAtIndex = 'Invalid object type %0:d at index %1:d';
+  RsInvalidObjectValueNilTypeAtIndex  = 'Invalid object type value (nil) at index %0:d';
+  RsInvalidHandleTypeAtIndex = 'Invalid handle type %0:d at index %1:d';
+
+  RsInvalidDevicePath = 'The supplied device path "%0:s" is invalid. Is must start with "\DEVICE\"';
+  RsKeyNotFoundAccessible = 'Key %0:s not found/accessible.';
+  RsValueIntNotFound = 'Value %0:d not found';
+
 
 //Unit JwsclEncryption.pas
 
@@ -518,6 +600,11 @@ const
 
 //
   RsInvalidObjectTypeList = 'The given array of ObjectType is invalid around index %0:d. ';
+
+//Unit JwsclKnownSid.pas
+
+  RsInvalidLevelSIDPrefix = 'The given SID "%s" is not a integrity label.';
+  RsInitMappingMustBeCalled = 'JwInitMapping must be called.';
 
 //Unit JwsclComUtils.pas
 
@@ -580,6 +667,7 @@ const
 
   RsUnimplementedFeature = 'The feature "%s" is not yet implemented.';
 
+
 // jwsclProcess.pas
 
 //
@@ -588,6 +676,14 @@ const
   RsInvalidJobObject = 'The returned job object is invalid and cannot be used to assign a job to.';
   RsEnumerateProcessesFailed = 'The enumeration of processes failed. ';
   RsInvalidStartupInfo = 'The given Startupinfo must be initialized!';
+
+  RsLoadLibProcUninitialized = 'TJwLibraryUtilities.LoadLibProc was called before the critical section was initialized. Make sure JwsclProcess '+
+     'is included at first or TJwLibraryUtilities.JwInitSafeLoadLibrary was called before.';
+  RsLeaveSafeLoadLibraryInvalidCountValue = 'TSafeLoadLibrarySectionImpl.LeaveSafeLoadLibrary was called with invalid count value %0:d.';
+
+// JwsclConstants.pas
+  RsNewUnknownWindows = 'New unknown Windows';
+  RsUnknownWindows = 'Unknown';
 
 // Unit names - do not localize
 // use these constants in the source parameter of any JWSCL Exception.
@@ -600,12 +696,13 @@ const
   RsUNAuthZCtx           = 'JwsclAuthCtx.pas';
   RsUNCertificates       = 'JwsclCertificates.pas';
   RsUNComUtils           = 'JwsclComUtils.pas';
+  RsUNComSecurity        = 'JwsclComSecurity.pas';
   RsUNConstants          = 'JwsclConstants.pas';
   RsUNCredentials        = 'JwsclCredentials.pas';
   RsUNCryptProvider      = 'JwsclCryptProvider.pas';
   RsUNDescriptor         = 'JwsclDescriptor.pas';
   RsUNDesktops           = 'JwsclDesktops.pas';
-  RsUNElevation          = 'JwsclElevation.pas'; 
+  RsUNElevation          = 'JwsclElevation.pas';
   RsUNExceptions         = 'JwsclExceptions.pas';
   RsUNFirewall           = 'JwsclFirewall.pas';
   RsUNImpersonation      = 'JwsclImpersonation.pas';

@@ -17,13 +17,13 @@ ANY KIND, either express or implied. See the License for the specific language g
 and limitations under the License.
 
 Alternatively, the contents of this file may be used under the terms of the
-GNU Lesser General Public License (the  "LGPL License"), in which case the   
-provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
+GNU Lesser General Public License (the  "LGPL License"), in which case the
+provisions of the LGPL License are applicable instead of those above.
+If you wish to allow use of your version of this file only under the terms
+of the LGPL License and not to allow others to use your version of this file
+under the MPL, indicate your decision by deleting  the provisions above and
+replace  them with the notice and other provisions required by the LGPL
+License.  If you do not delete the provisions above, a recipient may use
 your version of this file under either the MPL or the LGPL License.
 
 For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
@@ -35,37 +35,26 @@ The Original Code is JwsclUtils.pas.
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-11-14 15:40:34 +0000 (Sun, 14 Nov 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1059 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/JwsclUtils.pas $
+</table>
 }
 unit JwsclUtils;
 {$INCLUDE ..\includes\Jwscl.inc}
-// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
-
-
-//Check for FastMM4
-{$IFDEF FASTMM4}
-  //and also activate debug mode (leak detection for Local-/GlobalAlloc)
-  {$DEFINE FullDebugMode}
-{$ENDIF FASTMM4}
-{.$UNDEF FullDebugMode}
-
-//check for Eurekalog
-{$IFDEF EUREKALOG}
-  {$DEFINE FullDebugMode}
-{to see if this memory manager catches Local/Global leaks}
-  {.$UNDEF FASTMM4}
-  {.$UNDEF MEMCHECK}
-  {.$UNDEF FullDebugMode}
-{$ENDIF EUREKALOG}
 
 interface
 
 uses
   Classes,
+  Registry,
   JwaWindows,
-{$IFDEF JCL}
-  JclWideFormat,
-  JclWideStrings,
-{$ENDIF}
   JwsclTypes,
   JwsclExceptions,
   JwsclResource,
@@ -95,8 +84,8 @@ type
   public
     {<B>Create</B> create a thread instance.
      @param CreateSuspended defines whether the thread is created
-      and commenced immediately (false) or suspended (true). 
-     @param Name defines the thread's name 
+      and commenced immediately (false) or suspended (true).
+     @param Name defines the thread's name
      }
     constructor Create(const CreateSuspended: Boolean; const Name: TJwString);
     destructor Destroy; override;
@@ -124,7 +113,7 @@ type
 
     {<B>Name</B> sets or gets the threads name.
      The name is retrieved from internal variable. Changing the thread's name
-     using foreign code does not affect this property.
+     using foreign code does not afect this property.
     }
     property Name: TJwString read FName write SetName;
 
@@ -156,6 +145,8 @@ type
     property Items[Index : DWORD] : Pointer read GetItem write SetItem; default;
     property Count : Cardinal read GetCount;
   end;
+
+
 
 {<B>JwGlobalFreeAndNil</B> calls GlobalFree on parameter hMem and sets it to zero (0).}
 procedure JwGlobalFreeAndNil(var hMem: HGLOBAL);
@@ -249,38 +240,38 @@ parameter StartStringId. Changing this value and the resource strings
 will lead to EJwsclResourceNotFound exception.
 
 @param MappingRecord @italic([in,out]) receives an array of TJwRightsMapping which
-  string member Name is replaced by the resource string. 
+  string member Name is replaced by the resource string.
 
 @param StartStringId defines the starting position of the index counting.
  It must be an absolute resource string index, which context contains a number
- that defines the count of array elements. 
+ that defines the count of array elements.
 
 @param PrimaryLanguageId defines the primary language id.
 use PRIMARYLANGID(GetUserDefaultUILanguage), SUBLANGID(GetUserDefaultUILanguage)
-to get user language. 
+to get user language.
 
-@param SubLanguageId defines the sub language id. 
+@param SubLanguageId defines the sub language id.
 
 @param UseDefaultOnError defines whether EJwsclResourceNotFound is thrown if a
 resource index is invalid (could not be found in resource) (false) or not (true).
 If UseDefaultOnError is true the function does the following.
 
-1. Try to load resource string at index given by member StringId 
-2. if fails : try to load resource string ignoring member StringId 
-3. if fails : leave the text member Name to default value 
- 
+1. Try to load resource string at index given by member StringId
+2. if fails : try to load resource string ignoring member StringId
+3. if fails : leave the text member Name to default value
+
 
 @param ModuleInstance defines where the resource strings can be found. It is simply
 put through to LoadString function. It can be an instance of a dll file which
-contains localized versions of the strings. 
+contains localized versions of the strings.
 
 raises
  EJwsclResourceInitFailed:  is raised if the given value in parameter
-StartStringId could not be found in the string resource 
+StartStringId could not be found in the string resource
 
  EJwsclResourceUnequalCount: is raised if the count of the members of
 the given array (MappingRecord) is not equal to the number given in the resource
-string at index StartStringId. 
+string at index StartStringId.
 
  EJwsclResourceNotFound: is raised if UseDefaultOnError is false and
 a given resource index of a member of the array of TJwRightsMapping could not
@@ -301,14 +292,14 @@ Objs[i .Level = a_i
         { a_i +1        | a_i - a_(i-1) = 1 AND a_i < 4
 a_i+1 = { a_i - t       | a_i - t AND t >= 0
         { ERROR_INVALID_PARAMETER | else
-</pre> 
+</pre>
 
 sequence start: a_0 = 0
 
-@param Objs contains the object list 
+@param Objs contains the object list
 @return Returns true if the object type list is correct; otherwise false.
       It returns false if Objs is nil or does not contain any element.
-      It also returns false if any GUID member is nil. 
+      It also returns false if any GUID member is nil.
 }
 function JwCheckArray(const Objs : TJwObjectTypeArray) : Boolean; overload;
 
@@ -321,15 +312,15 @@ Objs[i .Level = a_i
         { a_i +1        | a_i - a_(i-1) = 1 AND a_i < 4
 a_i+1 = { a_i - t       | a_i - t AND t >= 0
         { ERROR_INVALID_PARAMETER | else
-</pre> 
+</pre>
 
 sequence start: a_0 = 0
 
-@param Objs contains the object list 
-@param Index returns the index where an error occured. 
+@param Objs contains the object list
+@param Index returns the index where an error occured.
 @return Returns true if the object type list is correct; otherwise false.
       It returns false if Objs is nil or does not contain any element.
-      It also returns false if any GUID member is nil. 
+      It also returns false if any GUID member is nil.
 }
 function JwCheckArray(const Objs : TJwObjectTypeArray; out Index : Integer) : Boolean; overload;
 
@@ -340,30 +331,12 @@ procedure JwUNIMPLEMENTED_DEBUG;
 {<B>JwUNIMPLEMENTED</B> raises exception EJwsclUnimplemented}
 procedure JwUNIMPLEMENTED;
 
-{<B>JwCheckInitKnownSid</B> checks for the call of JwInitWellKnownSIDs
-and raises EJwsclInitWellKnownException if it was not called.
 
-There is a more detailed procedure JwsclKnownSid.JwCheckInitKnownSid
-which can be used to check for special well known SID variables from
-unit JwsclKnownSid.
-
-@param MethodName defines the name of the method this parameter belongs to
-@param ClassName defines the name of the class the method belongs to. Can be
-  empty if the method does not belong to a class
-@param FileName defines the source file of the call to this procedure.
-raises
- EJwsclInitWellKnownException This exception will be raised if JwInitWellKnownSIDs
-  was not called.
-}
-
-procedure JwCheckInitKnownSid(const MethodName, ClassName, FileName : TJwString);
-
-
-{$IFDEF JW_TYPEINFO}
+{$IFDEF JWSCL_TYPEINFO}
 {<B>GetUnitName</B> returns the name of unit where the given objects was defined in source code.
 }
 function GetUnitName(argObject: TObject): AnsiString;
-{$ENDIF JW_TYPEINFO}
+{$ENDIF JWSCL_TYPEINFO}
 
 {<B>JwSetThreadName</B> names a thread. A debugger can use this name to display a human readably
 identifier for a thread.
@@ -372,7 +345,7 @@ identifier for a thread.
 
 @param Name defines an name for the thread. This Name is converted to ansicode internally.
 @param ThreadID defines which thread is named. A value of Cardinal(-1)  uses
-  the current thread 
+  the current thread
 }
 procedure JwSetThreadName(const Name: TJwString; const ThreadID : Cardinal = Cardinal(-1));
 
@@ -391,7 +364,7 @@ procedure JwFreeThreadName;
  This function only returns the name of the current thread. It cannot be used
  with different threads than the current one.
 
-<B>Precondition:</B> 
+<B>Precondition:</B>
  JwSetThreadName must be called with a value of Cardinal(-1) for parameter ThreadID.
 }
 function JwGetThreadName : WideString;
@@ -400,45 +373,96 @@ function JwGetThreadName : WideString;
 function JwIsHandleValid(const Handle : THandle) : Boolean;
 
 {<B>JwCheckBitMask</B> Checks if (Bitmask and Check) = Check}
-function JwCheckBitMask(const Bitmask: Integer; const Check: Integer): Boolean; 
+function JwCheckBitMask(const Bitmask: Integer; const Check: Integer): Boolean;
 
-{<B>JwMsgWaitForMultipleObjects</B> encapsulates MsgWaitForMultipleObjects using an open array
-parameter. The function should be used to make sure that window messages are processed. In this way
-windows are responsible. This function returns if such a message is received.
+{ <b>JwMsgWaitForMultipleObjects</b> encapsulates MsgWaitForMultipleObjects using an open array parameter. The
+  function should be used to make sure that window messages are processed. In this way windows are responsible. This
+  function returns if such a message is received.
 
-@param Handles This parameter receives an array of Handles. You can be either create an array type of THandle
-  or use set operators "[" and "]" containing a comma separated list of handle variables.
-@param bWaitAll Set to true to let the function wait for all given handles until it returns; otherwise it returns
-  as soon as at least one handle state is signaled.
-@param dwMilliseconds Defines a timeout interval that exits the function when elapsed. Set to constant INFINITE (-1) 
-  to ignore timeouts.
-@param dwWakeMask See MsgWaitForMultipleObjects (http://msdn.microsoft.com/en-us/library/ms684242.aspx) in MSDN for more information.
-
-@return Returns a status code. See MsgWaitForMultipleObjects (http://msdn.microsoft.com/en-us/library/ms684242.aspx) in MSDN for more information.
-}
-function JwMsgWaitForMultipleObjects(const Handles: array of THandle; bWaitAll: LongBool;
+  If you need to create a dynamic array of handles, use the other <link JwMsgWaitForMultipleObjects@TJwHandles@LongBool@DWord@DWord, JwMsgWaitForMultipleObjects>
+  function.
+  Parameters
+  Handles :         This parameter receives an array of Handles. This parameter also supports other type of values. For
+                    more information see Remarks
+  bWaitAll :        Set to true to let the function wait for all given handles until it returns; otherwise it returns
+                    as soon as at least one handle state is signaled.
+  dwMilliseconds :  Defines a timeout interval that exits the function when elapsed. Set to constant INFINITE (\-1) to
+                    ignore timeouts.
+  dwWakeMask :      See MsgWaitForMultipleObjects (http\://msdn.microsoft.com/en\-us/library/ms684242.aspx) in MSDN for
+                    more information.<p />
+  Returns
+  \Returns a status code. See MsgWaitForMultipleObjects (http://msdn.microsoft.com/en-us/library/ms684242.aspx) in
+  MSDN for more information.
+  Remarks
+  Parameter Handles supports different types of values.
+  <table>
+  Type              \Description
+  ----------------  ----------------------------------------
+  THandle (DWORD)   A handle value
+  THandleObject     Classes like TEvent, TMutex, TSemaphore
+  TThread           A thread class, also TJwThread
+  </table>                                                                                                                                                        }
+function JwMsgWaitForMultipleObjects(const Handles: array of const; bWaitAll: LongBool;
            dwMilliseconds: DWord; dwWakeMask: DWord): DWord; overload;
 
+{ <b>JwMsgWaitForMultipleObjects</b> encapsulates MsgWaitForMultipleObjects using an open array parameter. The
+  function should be used to make sure that window messages are processed. In this way windows are responsible. This
+  function returns if such a message is received.
+
+  Use this function if you intend to create a list of handles at runtime; otherwise use <link JwMsgWaitForMultipleObjects@array of const@LongBool@DWord@DWord, JwMsgWaitForMultipleObjects with const array>.
+  Parameters
+  Handles :         This parameter receives an array of Handles. (TJwHandles)
+  bWaitAll :        Set to true to let the function wait for all given handles until it returns; otherwise it returns
+                    as soon as at least one handle state is signaled.
+  dwMilliseconds :  Defines a timeout interval that exits the function when elapsed. Set to constant INFINITE (\-1) to
+                    ignore timeouts.
+  dwWakeMask :      See MsgWaitForMultipleObjects (http\://msdn.microsoft.com/en\-us/library/ms684242.aspx) in MSDN for
+                    more information.<p />
+  Returns
+  \Returns a status code. See MsgWaitForMultipleObjects (http://msdn.microsoft.com/en-us/library/ms684242.aspx) in
+  MSDN for more information.                                                                                                                                                                                  }
 function JwMsgWaitForMultipleObjects(const Handles: TJwHandles; bWaitAll: LongBool;
            dwMilliseconds: DWord; dwWakeMask: DWord): DWord; overload;
 
-{<B>JwWaitForMultipleObjects</B> encapsulates WaitForMultipleObjects using an open array
-parameter.
+{ <b>JwWaitForMultipleObjects</b> encapsulates WaitForMultipleObjects using an open array parameter.
 
-@param Handles This parameter receives an array of Handles. You can be either create an array type of THandle
-  or use set operators "[" and "]" containing a comma separated list of handle variables.
-@param bWaitAll Set to true to let the function wait for all given handles until it returns; otherwise it returns
-  as soon as at least one handle state is signaled.
-@param dwMilliseconds Defines a timeout interval that exits the function when elapsed. Set to constant INFINITE (-1) 
-  to ignore timeouts.
-
-@return Returns a status code. See WaitForMultipleObjects (http://msdn.microsoft.com/en-us/library/aa931008.aspx) in MSDN for more information.
-}
-function JwWaitForMultipleObjects(const Handles: array of THandle; bWaitAll: LongBool;
+  If you need to create a dynamic array of handles, use the other <link JwWaitForMultipleObjects@TJwHandles@LongBool@DWord, JwWaitForMultipleObjects>
+  function.
+  Parameters
+  Handles :         This parameter receives an array of Handles. This parameter also supports other type of values. For
+                    more information see Remarks
+  bWaitAll :        Set to true to let the function wait for all given handles until it returns; otherwise it returns
+                    as soon as at least one handle state is signaled.
+  dwMilliseconds :  Defines a timeout interval that exits the function when elapsed. Set to constant INFINITE (\-1) to
+                    ignore timeouts.<p />
+  Returns
+  \Returns a status code. See WaitForMultipleObjects (http://msdn.microsoft.com/en-us/library/aa931008.aspx) in MSDN
+  for more information.
+  Remarks
+  Parameter Handles supports different types of values.
+  <table>
+  Type              \Description
+  ----------------  ----------------------------------------
+  THandle (DWORD)   A handle value
+  THandleObject     Classes like TEvent, TMutex, TSemaphore
+  TThread           A thread class, also TJwThread
+  </table>                                                                                                                                            }
+function JwWaitForMultipleObjects(const Handles: array of const; bWaitAll: LongBool;
            dwMilliseconds: DWord): DWord; overload;
 
 
+{ <b>JwWaitForMultipleObjects</b> encapsulates WaitForMultipleObjects using an open array parameter.
 
+  Use this function if you intend to create a list of handles at runtime; otherwise use <link JwWaitForMultipleObjects@array of const@LongBool@DWord, JwWaitForMultipleObjects with const array>.
+  Parameters
+  Handles :         This parameter receives an array of Handles. (TJwHandles)
+  bWaitAll :        Set to true to let the function wait for all given handles until it returns; otherwise it returns
+                    as soon as at least one handle state is signaled.
+  dwMilliseconds :  Defines a timeout interval that exits the function when elapsed. Set to constant INFINITE (\-1) to
+                    ignore timeouts.<p />
+  Returns
+  \Returns a status code. See WaitForMultipleObjects (http://msdn.microsoft.com/en-us/library/aa931008.aspx) in MSDN
+  for more information.                                                                                                                                                                           }
 function JwWaitForMultipleObjects(const Handles: TJwHandles; bWaitAll: LongBool;
            dwMilliseconds: DWord): DWord; overload;
 
@@ -523,7 +547,7 @@ raise
   EJwsclFileMappingException see TJwFileStreamEx.Create for more information.
   EJwsclSecurityException There can be other exceptions raised by TJwHash.Create, TJwHash.HashData
     and TJwHash.RetrieveHash.
-  
+
 remarks
   * This function uses TJwFileStreamEx for getting hash in the fastest way possible.
   * This function uses SHA hashing.
@@ -531,9 +555,9 @@ remarks
 }
 function JwCompareFileHash(const FilePath : WideString;
   const OriginalHash : TJwFileHashData) : Boolean;
-  
-{<B>JwCreateFileHash</B> creates a hash from a given file and returns 
-the hash. 
+
+{<B>JwCreateFileHash</B> creates a hash from a given file and returns
+the hash.
 
 @param FilePath Defines a path to a file that is used to calculate a hash.
 @return The return value is a record that holds the hash data. The returned pointer member "hash" in
@@ -543,7 +567,7 @@ raise
   EJwsclFileMappingException see TJwFileStreamEx.Create for more information.
   EJwsclSecurityException There can be other exceptions raised by TJwHash.Create, TJwHash.HashData
     and TJwHash.RetrieveHash.
-	
+
 remarks
   * This function uses TJwFileStreamEx for getting hash in the fastest way possible.
   * This function uses SHA hashing.
@@ -592,6 +616,7 @@ function JwLoadHashFromRegistry(const Hive: Cardinal;
    const Key, HashName, SizeName : String) : TJwFileHashData;
 
 
+{<b>JwAccessMaskToBits</b> creates a bit pattern from an access right value.}
 function JwAccessMaskToBits(const Access : DWORD) : TJwString;
 
 {<B>JwCheckVISTACompilerSwitch</B> raises an exception EJwsclVistaFeaturesDisabled
@@ -656,38 +681,649 @@ Remarks
 function JwCreateToString(const Values : array of const) : String;
 
 { <b>JwZeroPassword</b> erases securely a UNICODE or ANSICODE string.
-  
-  
-  
+
+
+
 
   Parameters
   S :  Defines the string to be erased securely. The returned string will have a
        length of 0.
-  
-  
-  
+
+
+
   Remarks
   JwZeroPassword writes random data over all characters of the string. In a second
   step it zeroes all characters and sets the length of the string to zero (0).
-  
+
   This function works with UNICODE and ANSICODE.
-  
-  
+
+
                                                                                    }
 procedure JwZeroPassword(var S : TJwString);
 
-implementation
-uses SysUtils, Registry, Math, D5Impl, JwsclToken, JwsclKnownSid, JwsclDescriptor, JwsclAcl,
-     JwsclSecureObjects, JwsclMapping, JwsclStreams, JwsclCryptProvider,
-     JwsclConstants
-{$IFDEF JW_TYPEINFO}
-     ,TypInfo
-{$ENDIF JW_TYPEINFO}
-      ;
+{<b>JwFree</> calls Free on an instance of TObject descendant.
+Parameters
+Obj:
+
+Remarks
+In DEBUG mode the parameter Obj will be set to an invalid value that is not nil.
+otherwise the instance is not touched at all.
+
+}
+procedure JwFree(var Obj);
 
 
 type
+  TJwFormatMessageFlag = (
+    {If set, all inserts are ignored and the resulting string is not touched.}
+    fmfIgnoreInserts  //FORMAT_MESSAGE_IGNORE_INSERTS  = $00000200;
+  );
+  TJwFormatMessageFlags = set of TJwFormatMessageFlag;
+
+
+{ <b>JwFormatMessage</b> formats a message using WinAPI FormatMessage. This overloaded function uses the System
+  Message Table to format a message specified by its message id.
+  Parameters
+  MessageID :   The id of the message retrieved from the System Message Table.
+  Flags :       A set of flags that the function supports. Currently only fmfIgnoreInserts is supported.
+  LanguageID :  The id of the language to be used. Set parameter to zero (0) to use a neutral, thread, user or system
+                language.
+  Arguments\ :  Receives a list of values to be supplied to the inserts. The number of arguments must be the same as
+                the number of inserts. Be aware that some inserts may contain of up to three arguments. If the number
+                of arguments is smaller than the number of inserts, the results are unpredictable.
+  Remarks
+  JwFormatMessage ignores inserts (like %1) if the length of parameter Arguments is zero. The resulting string
+  contains all inserts unchanged.
+
+  JwFormatMessage does not support Int64 as Arguments because FormatMessage does not support them when passing
+  \arguments as pointers (This may change with 64bit support). If you intend to use Int64 for messages, you should
+  consider using Delphi Format function (and this %d) instead.
+
+  JwFormatMessage only supports one type of strings or char. Either unicode or ansicode depending on the compiler
+  switch UNICODE. If the function was compiled with the UNICODE switch, only unicode strings (PWideChar,
+  UnicodeString, WideString) and chars (WideChar, PWideChar) are allowed. The contrary goes for if the UNICODE switch
+  is not defined.
+
+  <b>JwFormatMessage does not check whether the number of inserts (like %1) is the same as the supplied entries in
+  parameter Arguments. If the number of arguments is smaller than the number of inserts, the results are
+  unpredictable.</b>
+  Exceptions
+  EJwsclResourceLanguageNotFound :                 A message could not be retrieved for the supplied Language ID.
+  EJwsclResourceNotFound :                         A message table could not be found in the given module.
+  EJwsclWinCallFailedException :                   FormatMessage failed. See property LastError for more information
+                                                   about the error (GetLastError).
+  EJwsclUnsupportedInsertParameterTypeException :  The parameter Arguments contains a value that is not supported
+                                                   (vtExtended, vtVariant, vtInt64)
+  EJwsclInvalidInsertParameterTypeException :      JwFormatMessage was compiled with either Unicode or AnsiCode
+                                                   support. However, an argument contains a string or char type that is
+                                                   contrary. E.g. You cannot pass a WideString to the function if it
+                                                   was not compiled with UnicodeSupport. Doing so would create
+                                                   unpredictable results. To do even so, you need to explicitly cast
+                                                   the string beforehand.                                               }
+function JwFormatMessage(
+  const MessageID : Cardinal;
+  const Flags : TJwFormatMessageFlags;
+  const LanguageID : Cardinal;
+  const Arguments : array of const
+
+) : TJwString; overload;
+
+
+
+{ <b>JwFormatMessage</b> formats a message using WinAPI FormatMessage. This overloaded function formats a supplied
+  user defined string.
+  Parameters
+  MessageString :  A string to be formatted.
+  Flags :          A set of flags that the function supports. Currently only fmfIgnoreInserts is supported.
+  Arguments\ :     Receives a list of values to be supplied to the inserts. The number of arguments must be the same as
+                   the number of inserts. Be aware that some inserts may contain of up to three arguments. If the
+                   number of arguments is smaller than the number of inserts, the results are unpredictable.
+  Remarks
+  JwFormatMessage ignores inserts (like %1) if the length of parameter Arguments is zero. The resulting string
+  contains all inserts unchanged.
+
+  JwFormatMessage does not support Int64 as Arguments because FormatMessage does not support them when passing
+  \arguments as pointers (This may change with 64bit support). If you intend to use Int64 for messages, you should
+  consider using Delphi Format function (and this %d) instead.
+
+  JwFormatMessage only supports one type of strings or char. Either unicode or ansicode depending on the compiler
+  switch UNICODE. If the function was compiled with the UNICODE switch, only unicode strings (PWideChar,
+  UnicodeString, WideString) and chars (WideChar, PWideChar) are allowed. The contrary goes for if the UNICODE switch
+  is not defined.
+
+  <b>JwFormatMessage does not check whether the number of inserts (like %1) is the same as the supplied entries in
+  parameter Arguments. If the number of arguments is smaller than the number of inserts, the results are
+  unpredictable.</b>
+  Exceptions
+  EJwsclResourceLanguageNotFound :                 A message could not be retrieved for the supplied Language ID.
+  EJwsclResourceNotFound :                         A message table could not be found in the given module.
+  EJwsclWinCallFailedException :                   FormatMessage failed. See property LastError for more information
+                                                   about the error (GetLastError).
+  EJwsclUnsupportedInsertParameterTypeException :  The parameter Arguments contains a value that is not supported
+                                                   (vtExtended, vtVariant, vtInt64)
+  EJwsclInvalidInsertParameterTypeException :      JwFormatMessage was compiled with either Unicode or AnsiCode
+                                                   support. However, an argument contains a string or char type that is
+                                                   contrary. E.g. You cannot pass a WideString to the function if it
+                                                   was not compiled with UnicodeSupport. Doing so would create
+                                                   unpredictable results. To do even so, you need to explicitly cast
+                                                   the string beforehand.                                               }
+function JwFormatMessage(
+  const MessageString : TJwString;
+  const Flags : TJwFormatMessageFlags;
+  const Arguments : array of const
+
+) : TJwString; overload;
+
+
+{
+<b>JwFormatMessage</b> formats a message using WinAPI FormatMessage.
+This overloaded function uses a used defined message table supplied through a HMODULE handle.
+
+Parameters
+
+  Module
+  MessageID : The id of the message retrieved from the System Message Table.
+  Flags : A set of flags that the function supports. Currently only fmfIgnoreInserts is supported.
+  LanguageID : The id of the language to be used. Set parameter to zero (0) to use a neutral, thread, user or system language.
+  Arguments\ : Receives a list of values to be supplied to the inserts. The number of arguments must be the same as
+        the number of inserts. Be aware that some inserts may contain of up to three arguments.
+        If the number of arguments is smaller than the number of inserts, the results are unpredictable.
+
+Remarks
+  JwFormatMessage ignores inserts (like %1) if the length of parameter Arguments is zero. The resulting string
+  contains all inserts unchanged.
+
+  JwFormatMessage does not support Int64 as Arguments because FormatMessage does not support them when passing arguments
+  as pointers (This may change with 64bit support). If you intend to use Int64 for messages, you should consider using
+  Delphi Format function (and this %d) instead.
+
+  JwFormatMessage only supports one type of strings or char. Either unicode or ansicode depending on the compiler switch UNICODE.
+  If the function was compiled with the UNICODE switch, only unicode strings (PWideChar, UnicodeString, WideString) and chars (WideChar, PWideChar)
+  are allowed. The contrary goes for if the UNICODE switch is not defined.
+
+  <b>JwFormatMessage does not check whether the number of inserts (like %1) is the same as the supplied entries in parameter
+  Arguments. If the number of arguments is smaller than the number of inserts, the results are unpredictable.</b>
+
+
+Exceptions
+EJwsclResourceLanguageNotFound : A message could not be retrieved for the supplied Language ID.
+EJwsclResourceNotFound : A message table could not be found in the given module.
+EJwsclWinCallFailedException : FormatMessage failed. See property LastError for more information about the error (GetLastError).
+EJwsclUnsupportedInsertParameterTypeException : The parameter Arguments contains a value that is not supported (vtExtended, vtVariant, vtInt64)
+EJwsclInvalidInsertParameterTypeException : JwFormatMessage was compiled with either Unicode or AnsiCode support. However, an argument
+      contains a string or char type that is contrary. E.g. You cannot pass a WideString to the function if it was not compiled with
+      UnicodeSupport. Doing so would create unpredictable results.
+      To do even so, you need to explicitly cast the string beforehand.
+}
+function JwFormatMessage(
+  const Module : HMODULE;
+  const MessageID : Cardinal;
+  const Flags : TJwFormatMessageFlags;
+  const LanguageID : Cardinal;
+  const Arguments : array of const
+) : TJwString; overload;
+
+{ <b>JwDeviceToDosDrive</b> converts a device path to a DOS path.
+  Returns
+  The return value is a fully qualified DOS path (e.g. C:\\ or C:\\Windows) or a UNC path (\\\\server\\path). If
+  parameter Device is empty, the return value will also be empty.
+  Remarks
+  A device path starts with device and continues with a device name (like floppy0 or a partition HardDiskVolume0). The
+  path is converted to a dos path that contains a drive instead of device name.
+
+  The function tries to replace the device name with the dos drive. All sub folders and a possible filename is kept.
+
+  The function does not validate the string whether the device, path or file exists.
+
+  If the device name does not link to a DOS drive, the function removes the device name and puts \\ in front of it.
+  E.g. \\device\\rdpdr\\tsclient\\path resolves to \\\\tsclient\\path .
+  Example
+  The following code converts the first floppy device to a DOS Path
+  <code>
+     S := JwDeviceToDosDrive('\\device\\floppy0\\test.txt');
+     S = 'A:\\test.txt';
+  </code>
+
+  This code converts a RDP drive mapping:
+  <code>
+    S := JwDeviceToDosDrive('\\device\\rdpdr\\tsclient\\a\\test.txt');
+    S = '\\\\tsclient\\a\\test.txt';
+  </code>                                                                                                              }
+function JwDeviceToDosDrive(Device : WideString) : WideString;
+
+implementation
+uses SysUtils, Math, JwsclToken, JwsclKnownSid, JwsclDescriptor, JwsclAcl,
+     JwsclSecureObjects, JwsclMapping, JwsclStreams, JwsclCryptProvider,
+     ComObj, SyncObjs,
+     JwsclConstants
+{$IFDEF JWSCL_TYPEINFO}
+     ,TypInfo
+{$ENDIF JWSCL_TYPEINFO}
+      ;
+
+
+//internal
+function FormatMessageAPICall(
+            const Source : Pointer;
+            Flags : DWORD; const MessageID, LanguageID : Cardinal;
+            Arguments : array of const
+            ) : TJwString;
+
+const
+  vtNames : array[0..18] of String = (
+      'vtInteger',
+      'vtBoolean',
+      'vtChar',
+      'vtExtended',
+      'vtString',
+      'vtPointer',
+{$IFDEF DELPHI2009_UP}
+      'vtPChar (PAnsiChar)',
+{$ELSE}
+      'vtPChar (Ansicode)',
+{$ENDIF DELPHI2009_UP}
+      'vtObject',
+      'vtClass',
+      'vtWideChar',
+      'vtPWideChar',
+      'vtAnsiString',
+      'vtCurrency',
+      'vtVariant',
+      'vtInterface',
+      'vtWideString',
+      'vtInt64',
+      'vtUnicodeString',
+      '(unknown)');
+
+var
+  MsgStr : TJwPChar;
+  Res : Cardinal;
+  P : array of Pointer;
+  I : Integer;
+begin
+  P := nil;
+
+  if ((Flags and FORMAT_MESSAGE_IGNORE_INSERTS) <> FORMAT_MESSAGE_IGNORE_INSERTS) then
+  begin
+    SetLength(P, Length(Arguments));
+
+    for I := 0 to High(P) do
+    begin
+      case Arguments[I].VType of
+        vtExtended,
+        vtVariant,
+        vtInt64 :
+          begin
+            raise EJwsclUnsupportedInsertParameterTypeException.CreateFmtEx(
+                   RsUnsupportedFormatMessageArgumentType,
+                   'JwFormatMessage', '', RsUNUtils, 0, false,
+                   [i, vtNames[min(Arguments[i].VType, High(vtNames))]]);
+          end;
+
+
+      //FormatMessage will produce unpredictable results
+      //if a unicode string or char is used in the AnsiVersion, and vice versa.
+  {$IFDEF UNICODE}
+        vtChar,
+        vtAnsiString,
+        vtPChar
+  {$ELSE}
+        vtPWideChar,
+        vtWideChar,
+        vtWideString
+    {$IFDEF DELPHI2009_UP}
+        ,vtUnicodeString
+    {$ENDIF}
+  {$ENDIF UNICODE}:
+         raise EJwsclInvalidInsertParameterTypeException.CreateFmtEx(
+              RsInvalidFormatMessageArgumentType,
+              'JwFormatMessage', '', RsUNUtils, 0, false,
+               [i, vtNames[min(Arguments[i].VType, High(vtNames))],
+               {$IFDEF UNICODE}'Unicode' {$ELSE}'Ansicode'{$ENDIF UNICODE}]);
+      else
+        P[I] := Arguments[I].VPointer;
+      end;
+    end;
+
+    Flags := Flags or FORMAT_MESSAGE_ARGUMENT_ARRAY;
+  end
+  else
+  begin
+    Flags := Flags and not FORMAT_MESSAGE_ARGUMENT_ARRAY;
+  end;
+
+  if (Length(Arguments) = 0) then
+  begin
+    Flags := Flags or FORMAT_MESSAGE_IGNORE_INSERTS;
+  end;
+
+  Res :=
+{$IFDEF UNICODE}
+    FormatMessageW(
+{$ELSE}
+    FormatMessageA(
+{$ENDIF}
+      Flags or FORMAT_MESSAGE_ALLOCATE_BUFFER, // DWORD dwFlags,
+      Source,  //LPCVOID lpSource,
+      MessageID,  //DWORD dwMessageId,
+      LanguageID, //DWORD dwLanguageId,
+      TJwPChar(@MsgStr), //LPTSTR lpBuffer,
+      0,             //DWORD nSize,
+      @P[0]);// va_list *Arguments
+
+  if (Res = 0) then  //Error
+  begin
+    case GetLastError() of
+      ERROR_RESOURCE_LANG_NOT_FOUND :
+        raise EJwsclResourceLanguageNotFound.CreateFmtEx(
+          RsInvalidResourceLanguage,
+          'JwFormatMessage', '', RsUNUtils, 0, true,
+            [LanguageID]);
+      ERROR_RESOURCE_TYPE_NOT_FOUND :
+        raise EJwsclResourceNotFound.CreateFmtEx(
+          RsMessageTableNotFound,
+          'JwFormatMessage', '', RsUNUtils, 0, true,
+            []);
+    else
+      raise EJwsclWinCallFailedException.CreateFmtEx(
+        RsWinCallFailed,
+        'JwFormatMessage', '', RsUNUtils, 0, true,
+          ['FormatMessage']);
+    end;
+  end;
+
+  try
+    Result := MsgStr;
+  finally
+    LocalFree(HLOCAL(MsgStr));
+  end;
+end;
+
+
+function HandlesConstToHandles(const Handles : Array of const) : TJwHandles;
+var
+  I: Integer;
+begin
+  for I := low(Handles) to High(Handles) do
+  begin
+    case Handles[i].VType of
+      vtInteger :
+        begin
+          SetLength(result, max(1, Length(result)+1));
+          result[High(result)] := Handles[i].VInteger;
+        end;
+      vtObject :
+        begin
+          SetLength(result, max(1, Length(result)+1));
+
+          if Handles[i].VObject is THandleObject then
+            result[High(result)] := (Handles[i].VObject as THandleObject).Handle
+          else
+          if Handles[i].VObject is TThread then
+            result[High(result)] := (Handles[i].VObject as TThread).Handle
+          else
+          if Handles[i].VObject <> nil then
+            Assert(false, Format(RsInvalidObjectTypeAtIndex,[Handles[i].VObject.ClassName, i]))
+          else
+            Assert(false, Format(RsInvalidObjectValueNilTypeAtIndex,[Handles[i].VObject.ClassName, i]))
+        end;
+    else
+      Assert(false, Format(RsInvalidHandleTypeAtIndex,[Handles[i].VType, i]));
+    end;
+  end;
+end;
+
+function JwDeviceToDosDrive(Device : WideString) : WideString;
+
+  function _QueryDosDevice(Device : WideString) : WideString;
+  var
+    dwResult, dwSize : DWORD;
+    pwszFileName : PWideChar;
+  begin
+    result := '';
+    if Device = '' then
+      exit;
+
+    if Device[Length(Device)] = '\' then
+      SetLength(Device, Length(Device) - 1);
+
+    dwResult := ERROR_INSUFFICIENT_BUFFER;
+    dwSize := MAX_PATH * sizeof(WChar); //start with minimum size
+    GetMem(pwszFileName, dwSize);
+    try
+      while dwResult = ERROR_INSUFFICIENT_BUFFER do
+      begin
+        dwResult := QueryDosDeviceW(
+            PWideChar(Device),
+            pwszFileName, dwSize);
+
+        if dwResult = 0 then
+        begin
+          if GetLastError() = ERROR_INSUFFICIENT_BUFFER  then
+          begin
+            dwSize := dwSize * 2;
+            ReallocMem(pwszFileName, dwSize);
+          end
+          else
+          if GetLastError() <> 0 then
+            raise EJwsclWinCallFailedException.CreateFmtEx(
+                RsWincallFailed,
+                'JwDeviceToDosDrive', '',
+                RsUNUtils, 0, true, ['QueryDosDeviceW']);
+        end;
+      end;
+      result := WideString(pwszFileName);
+      UniqueString(result);
+    finally
+      FreeMem(pwszFileName);
+      pwszFileName := nil;
+    end;
+  end;
+
+type
+  PDrivesArray = ^TDrivesArray;
+  TDrivesArray = array[0..0] of record
+    Drive : array[0..2] of WideChar;
+    Null : WideChar;
+  end;
+
+var
+  I, Count, dwSize, dwLen, DelimiterPos, DelimiterCount : Integer;
+  P : array[0..MAX_PATH] of WideChar;
+  sDosDevice, oldDevice : WideString;
+  szDevice : PWideChar;
+  Drives : PDrivesArray;
+
+const
+  DevicePreFix = '\DEVICE\';
+begin
+  result := '';
+
+  if Device = '' then
+    exit;
+
+  //Make sure that input string starts with \DEVICE\ (case insensitive)
+  //otherwise the following code fails
+  I := 1;
+  while (I <= Length(Device)) and (I <= Length(DevicePreFix)) do
+  begin
+{$IFDEF UNICODE}
+    if (DevicePreFix[I] <> UpCase(Device[I])) then
+{$ELSE}
+    if (AnsiChar(DevicePreFix[I]) <> UpCase(AnsiChar(Device[I]))) then
+{$ENDIF UNICODE}
+    begin
+      SetLastError(ERROR_INVALID_NAME);
+      raise EJwsclInvalidParameterException.CreateFmtEx(
+                RsInvalidDevicePath,
+                'JwDeviceToDosDrive', '',
+                RsUNUtils, 0, true, [Device]);
+    end;
+    Inc(I);
+  end;
+
+  //get a list of drives
+  Count := GetLogicalDriveStringsW(MAX_PATH, @P);
+
+  if Count = 0 then
+    RaiseLastOSError;
+
+  Count := Count div 4;
+  {$R-}
+  //create an array from the zero terminated string list
+  Drives := PDrivesArray(@P);
+
+  oldDevice := Device;
+  //deliberately put a slash at the end so we can find it
+  //if the 3rd slash is missing in Device
+  if Device[Length(Device)] <> '\' then
+    Device := Device + '\';
+
+
+  //find the slash behind the device name (3rd slash)
+  // \device\xxx\
+  DelimiterCount := 0;
+  DelimiterPos   := 1;
+  while (DelimiterPos <= Length(Device)) and (DelimiterCount < 3) do
+  begin
+    if (Device[DelimiterPos] = '\') then
+      Inc(DelimiterCount);
+
+    Inc(DelimiterPos);
+  end;
+
+
+  dwSize := sizeof(WideChar) * (DelimiterPos);
+  //szDevice := AllocMem(dwSize + TJwCharSize); //CW: Using SetLength makes StringCchCopyNW fail with invalid parameter
+  GetMem(szDevice, dwSize + sizeof(WideChar));
+
+  try
+    //create a device string that only contains device name without slash
+    //like \device\xxx
+    OleCheck(
+      StringCchCopyNW(szDevice, DelimiterPos, PWideChar(Device), DelimiterPos - 2)
+      );
+
+    //query all dos devices and compare their device names with szDevice
+    for I := 0 to Count - 1 do
+    begin
+      sDosDevice := _QueryDosDevice(Drives[I].Drive);
+      if WideCompareText(WideString(szDevice), WideString(sDosDevice)) = 0 then
+      begin
+        result := Drives[I].Drive;
+        break;
+      end;
+    end;
+  finally
+    FreeMem(szDevice);
+  end;
+
+  //could not find the given Device
+  if result = '' then
+  begin
+    //this usually happens on a remote path
+    // like \\server\path
+    //also frequently happens on
+    result := '\\';
+  end;
+
+  dwSize := Length(result);
+  dwLen := Length(result) + Length(Device) - DelimiterPos + 1;
+  SetLength(result, dwLen);
+
+  //the user put some additional path or filename to the Device String
+  if dwLen > dwSize then
+  begin
+    //add the rest of Device string (anything behind the 3rd slash) to the drive string
+    OleCheck(
+       StringCchCopyNW(PWideChar(@result[dwSize + 1]), dwLen, PWideChar(@Device[DelimiterPos]),
+          Length(Device) - DelimiterPos)
+       );
+    //StringCxxx routines put an additional #0 at the end which is removed here
+    SetLength(result, dwLen - 1);
+  end;
+end;
+
+function FormatMessageInternal(
+  const Source : Pointer;
+  FlagsEx : Cardinal;
+  const Flags : TJwFormatMessageFlags;
+  const MessageID, LanguageID : Cardinal;
+  Arguments : array of const
+) : TJwString; overload; //internal
+begin
+  if fmfIgnoreInserts in Flags then
+    FlagsEx := FlagsEx or FORMAT_MESSAGE_IGNORE_INSERTS;
+
+  result := FormatMessageAPICall(Source,
+        FlagsEx,
+        MessageID, LanguageID, Arguments);
+end;
+
+function JwFormatMessage(
+  const MessageID : Cardinal;
+  const Flags : TJwFormatMessageFlags;
+  const LanguageID : Cardinal;
+  const Arguments : array of const
+) : TJwString; overload;
+begin
+  result := FormatMessageInternal(
+    nil,
+    FORMAT_MESSAGE_FROM_SYSTEM,
+    Flags,
+    MessageID,
+    LanguageID,
+    Arguments);
+end;
+
+//FORMAT_MESSAGE_FROM_STRING
+function JwFormatMessage(
+  const MessageString : TJwString;
+  const Flags : TJwFormatMessageFlags;
+  const Arguments : array of const
+) : TJwString; overload;
+begin
+  result := FormatMessageInternal(
+    TJwPChar(@MessageString[1]),
+    FORMAT_MESSAGE_FROM_STRING,
+    Flags,
+    0,
+    0,
+    Arguments);
+end;
+
+//FORMAT_MESSAGE_FROM_HMODULE
+function JwFormatMessage(
+  const Module : HMODULE;
+  const MessageID : Cardinal;
+  const Flags : TJwFormatMessageFlags;
+  const LanguageID : Cardinal;
+  const Arguments : array of const
+) : TJwString; overload;
+begin
+  result := FormatMessageInternal(
+    @Module,
+    FORMAT_MESSAGE_FROM_HMODULE,
+    Flags,
+    MessageID,
+    LanguageID,
+    Arguments);
+end;
+
+procedure JwFree(var Obj);
+var
+  Temp: TObject;
+begin
+  Temp := TObject(Obj);
+{$IFDEF DEBUG}
+  Pointer(Obj) := Pointer($C);
+{$ENDIF DEBUG}
+  Temp.Free;
+end;
+
+type
    TLStr = array[0..1] of AnsiChar;
+   PLStr = ^TLStr;
 
 procedure JwZeroPassword(var S : TJwString);
 {$IFOPT O+}
@@ -697,7 +1333,7 @@ procedure JwZeroPassword(var S : TJwString);
 {$ENDIF}
 {$O-}
 var i : Integer;
-      Data : ^TLStr;
+      Data : PLStr;
       len : Integer;
 begin
   if Length(S) = 0 then
@@ -712,7 +1348,9 @@ begin
     {$IFOPT O+}
      Error //: this procedure must not be compiled with optimization
     {$ENDIF}
+{$IFNDEF CODECHECKER} //Some code checker fail here
     Data^[i] := AnsiChar(Random(255));
+{$ENDIF CODECHECKER}
   end;
   ZeroMemory(Data, len);
   SetLength(S, 0);
@@ -723,8 +1361,8 @@ end;
 
 function JwCreateToString(const Values : array of const) : String;
   function GetValue(I : Integer; const Values : array of const) : String;
-  const B : Array[boolean] of ShortString = ('true','false');
-  begin    
+  const B : Array[boolean] of ShortString = ('false','true');
+  begin
     case Values[i].VType of
       vtInteger : result := IntToStr(Values[i].VInteger);
       vtBoolean : result := String(B[Values[i].VBoolean]);
@@ -867,7 +1505,7 @@ begin
   raise EJwsclVistaFeaturesDisabled.CreateFmtEx(
       RsVistaFeaturesDisabled, MethodName,
       ClassName, FileName, 0, False, []);
-{$ENDIF VISTA}      
+{$ENDIF VISTA}
 end;
 
 
@@ -961,7 +1599,7 @@ begin
       // TJwFileHashData is freed by TJwHash.FreeBuffer
       // Change this memory manager when TJwHash is changed.
           GetMem(result.Hash, result.Size);
-		  
+
           ZeroMemory(result.Hash, result.Size);
           try
             result.Size := Reg.ReadBinaryData(HashName,result.Hash^,result.Size);
@@ -974,7 +1612,7 @@ begin
       end;
     end
     else
-      raise ERegistryException.CreateFmt('Key %s not found/accessible.',[Key]);
+      raise ERegistryException.CreateFmt(RsKeyNotFoundAccessible,[Key]);
   finally
     Reg.Free;
   end;
@@ -1001,7 +1639,7 @@ begin
   end;
 end;
 
-{$IFDEF JW_TYPEINFO}
+{$IFDEF JWSCL_TYPEINFO}
 function GetUnitName(argObject: TObject): AnsiString;
 var
   ptrTypeData: PTypeData;
@@ -1012,7 +1650,7 @@ begin
     Result := ptrTypeData.UnitName;
   end;
 end;
-{$ENDIF JW_TYPEINFO}
+{$ENDIF JWSCL_TYPEINFO}
 
 
 function JwIsHandleValid(const Handle : THandle) : Boolean;
@@ -1108,15 +1746,6 @@ end;
 
 
 
-procedure JwCheckInitKnownSid(const MethodName, ClassName, FileName : TJwString);
-begin
-  if not JwInitWellKnownSidStatus then
-    raise EJwsclInitWellKnownException.CreateFmtEx(
-      RsInitWellKnownNotCalled,
-      MethodName, ClassName, FileName, 0, false, []);
-end;
-
-
 function JwCheckArray(const Objs : TJwObjectTypeArray; out Index : Integer) : Boolean;
 var
     LastLevel : Cardinal;
@@ -1165,7 +1794,7 @@ end;
 procedure JwUNIMPLEMENTED;
 begin
   raise EJwsclUnimplemented.CreateFmtEx(
-    'This function is not implemented.',
+    RsUnimplemented,
     '', '', '', 0, false, []);
 end;
 
@@ -1173,9 +1802,9 @@ procedure JwUNIMPLEMENTED_DEBUG;
 begin
 {$IFNDEF DEBUG}
   raise EJwsclUnimplemented.CreateFmtEx(
-    'This function is not implemented.',
+    RsUnimplemented,
     '', '', '', 0, false, []);
-{$ENDIF DEBUG}    
+{$ENDIF DEBUG}
 end;
 
 procedure LocalizeMapping(var MappingRecord : array of TJwRightsMapping;
@@ -1239,7 +1868,7 @@ begin
   for i := ArrayLo to ArrayHi do
   begin
     bSuccess := true;
-    
+
     if MappingRecord[i].StringId > 0 then
     begin
       Id := MappingRecord[i].StringId;
@@ -1289,10 +1918,11 @@ begin
   end;
 end;
 
-function JwMsgWaitForMultipleObjects(const Handles: array of THandle; bWaitAll: LongBool;
+function JwMsgWaitForMultipleObjects(const Handles: array of const; bWaitAll: LongBool;
            dwMilliseconds: DWord; dwWakeMask: DWord): DWord;
 begin
-  Result := MsgWaitForMultipleObjects(Length(Handles), @Handles[0], bWaitAll, dwMilliseconds, dwWakeMask);
+  Result := JwMsgWaitForMultipleObjects(HandlesConstToHandles(Handles), bWaitAll, dwMilliseconds, dwWakeMask);
+  //Result := MsgWaitForMultipleObjects(Length(Handles), @Handles[0], bWaitAll, dwMilliseconds, dwWakeMask);
 end;
 
 function JwMsgWaitForMultipleObjects(const Handles: TJwHandles; bWaitAll: LongBool;
@@ -1301,11 +1931,7 @@ begin
   Result := MsgWaitForMultipleObjects(Length(Handles), @Handles[0], bWaitAll, dwMilliseconds, dwWakeMask);
 end;
 
-function JwWaitForMultipleObjects(const Handles: array of THandle; bWaitAll: LongBool;
-           dwMilliseconds: DWord): DWord;
-begin
-  Result := WaitForMultipleObjects(Length(Handles), @Handles[0], bWaitAll, dwMilliseconds);
-end;
+
 
 function JwHandlesArray(const Handles: array of THandle) : TJwHandles;
 var i : Integer;
@@ -1336,6 +1962,12 @@ begin
   end;
 end;
 
+function JwWaitForMultipleObjects(const Handles: array of const; bWaitAll: LongBool;
+           dwMilliseconds: DWord): DWord;
+begin
+  //Result := WaitForMultipleObjects(Length(Handles), @Handles[0], bWaitAll, dwMilliseconds);
+  Result := JwWaitForMultipleObjects(HandlesConstToHandles(Handles), bWaitAll, dwMilliseconds);
+end;
 
 function JwWaitForMultipleObjects(const Handles: TJwHandles; bWaitAll: LongBool;
            dwMilliseconds: DWord): DWord;
@@ -1346,14 +1978,15 @@ end;
 
 {$IFDEF FullDebugMode}
 type
-     PMemTuple = ^TMemTuple;
-     TMemTuple = record
-       GetMemPointer : Pointer;
-       case MemType : Boolean of
-         true : (LocalData : HLOCAL);              
-         false: (GlobalData : HGLOBAL);
-      end;
-var InternalMemArray : TList {=nil};
+  PMemTuple = ^TMemTuple;
+  TMemTuple = record
+    GetMemPointer : Pointer;
+    case MemType : Boolean of
+      true : (LocalData : HLOCAL);
+      false: (GlobalData : HGLOBAL);
+  end;
+var
+  InternalMemArray : TList {=nil};
 {$ENDIF}
 
 
@@ -1480,11 +2113,11 @@ begin
     FreeMem(PMemTuple(InternalMemArray[Index]));
     InternalMemArray.Delete(Index);
 
-    GlobalUnlock(hMem);                
+    GlobalUnlock(hMem);
     result := GlobalFree(hMem);
   end;
 {$ELSE}
-  result := GlobalFree(hMem);          
+  result := GlobalFree(hMem);
 {$ENDIF FullDebugMode}
   hMem := 0;
 end;
@@ -1512,14 +2145,6 @@ begin
   FreeAndNil(InternalMemArray);
 end;
 {$ENDIF}
-
-
-{var S : TJwString;
-    SA : TResourceTStringArray;
-    Indexes : TResourceIndexArray;
-    i : Integer;     }
-
-
 
 { TJwIntTupleList }
 
@@ -1568,7 +2193,7 @@ begin
     end;
   end;
 
-  raise ERangeError.CreateFmt('Value %d not found',[Index]);
+  raise ERangeError.CreateFmt(RsValueIntNotFound,[Index]);
 end;
 
 
@@ -1596,7 +2221,7 @@ begin
     end;
   end;
 
-  raise ERangeError.CreateFmt('Value %d not found',[Index]);
+  raise ERangeError.CreateFmt(RsValueIntNotFound,[Index]);
 end;
 
 procedure TJwIntTupleList.SetItem(Index : DWORD; Value: Pointer);
@@ -1611,7 +2236,7 @@ begin
     end;
   end;
 
-  raise ERangeError.CreateFmt('Value %d not found',[Index]);
+  raise ERangeError.CreateFmt(RsValueIntNotFound,[Index]);
 end;
 
 function JwCreateWaitableTimer(
@@ -1693,7 +2318,8 @@ function JwCreateWaitableTimerAbs(
       const SuspendResume : Boolean = false;
       const SecurityAttributes : TObject = nil) : THandle; overload;
 begin
-  raise EJwsclUnimplemented.Create('JwCreateWaitableTimer is not implemented.');
+  JwUNIMPLEMENTED;
+  //raise EJwsclUnimplemented.Create('JwCreateWaitableTimer is not implemented.');
   (*
   // Declare our local variables.
 HANDLE hTimer;
@@ -1758,7 +2384,7 @@ begin
         {Okay, we could just have used the builtin timeout support.
         But that's too easy
         }
-        if MsgLoop then
+       if MsgLoop then
           WaitResult := JwMsgWaitForMultipleObjects([Handle, {$IFDEF DELPHI7_UP}SyncEvent,{$ENDIF} hTimer], False, INFINITE, QS_SENDMESSAGE)
         else
           WaitResult := JwWaitForMultipleObjects([Handle, {$IFDEF DELPHI7_UP}SyncEvent,{$ENDIF} hTimer], False, INFINITE);
@@ -1787,6 +2413,7 @@ begin
 
   CheckThreadError(GetExitCodeThread(Handle, Result));
 end;
+
 
 
 initialization

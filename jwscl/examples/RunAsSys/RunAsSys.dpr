@@ -58,7 +58,7 @@ begin
       try
         args[0] := PChar(IntToStr(JwGetProcessLogonSession));
       except
-        args[0] := '0'#0; 
+        args[0] := '0'#0;
       end;
       for i := 1 to ParamCount do
       begin
@@ -142,15 +142,12 @@ begin
   result := 0;
   Log := nil;
   try
-    JwInitWellKnownSIDs;
-
-
     if JwIsPrivilegeSet(SE_TCB_NAME, pqt_Available) and
      {  JwIsPrivilegeSet(SE_CREATE_TOKEN_NAME, pqt_Available) and}
        (JwSecurityProcessUserSID.EqualSid(JwLocalSystemSID)) then
     begin
       InitLog;
-     
+
       Log.Log('Found service privileges. Starting service...');
       SvcMgr.Application.Initialize;
       SvcMgr.Application.CreateForm(TRunAsSysSvc9, RunAsSysSvc9);
@@ -197,18 +194,14 @@ begin
        The service itself started above must be changed as well to the name given here.
        Otherwise it wont start.
      }
-    {  while Retries > 0 do}
+      while Retries > 0 do
       begin
-{        RunAsSysSvc8.Name := 'RunAsSysSvc'+IntToStr(Random(100000));
-        RunAsSysSvc8.DisplayName := 'This is a temporary RunAsSys service. ' + DateTimeToStr(Now) ;
-
- }
         RunAsSysSvc9.DisplayName := 'This is a temporary RunAsSys service. ' + DateTimeToStr(Now) ;
 
         try
           Log.Log('Registering service...');
           TServiceApplicationEx(SvcMgr.Application).RegisterServices(true, true);
-          Retries := 0;
+          break;
         except
           on E : EOSError do
           begin
@@ -218,9 +211,13 @@ begin
             Dec(Retries);
           end;
         end;
-
       end;
 
+      if Retries = 0 then
+      begin
+        Log.Log('Could not register the service');
+        exit;
+      end;
 
       try
         Log.Log('Starting service...');

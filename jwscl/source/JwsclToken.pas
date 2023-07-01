@@ -16,16 +16,16 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the  
-GNU Lesser General Public License (the  "LGPL License"), in which case the   
-provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
-License.  If you do not delete the provisions above, a recipient may use     
-your version of this file under either the MPL or the LGPL License.          
-                                                                             
+Alternatively, the contents of this file may be used under the terms of the
+GNU Lesser General Public License (the  "LGPL License"), in which case the
+provisions of the LGPL License are applicable instead of those above.
+If you wish to allow use of your version of this file only under the terms
+of the LGPL License and not to allow others to use your version of this file
+under the MPL, indicate your decision by deleting  the provisions above and
+replace  them with the notice and other provisions required by the LGPL
+License.  If you do not delete the provisions above, a recipient may use
+your version of this file under either the MPL or the LGPL License.
+
 For more information about the LGPL: http://www.gnu.org/copyleft/lesser.html
 
 Note
@@ -34,23 +34,29 @@ The Original Code is JwsclToken.pas.
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
-See Jwscl.inc for Vista related stuff!
-
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-11-14 15:40:34 +0000 (Sun, 14 Nov 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1059 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/JwsclToken.pas $
+</table>
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclToken;
-
 {$INCLUDE ..\includes\Jwscl.inc}
-// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
 
 uses SysUtils, Contnrs, Classes,
   JwaWindows,
-  JwsclResource, JwsclUtils, 
+  JwsclResource, JwsclUtils,
   JwsclTypes, JwsclExceptions, JwsclSid, JwsclAcl,
   JwsclDescriptor, JwsclEnumerations,
-  JwsclVersion, JwsclConstants,
+  JwsclConstants,
   JwsclStrings; //JwsclStrings, must be at the end of uses list!!!
 {$ENDIF SL_OMIT_SECTIONS}
 
@@ -59,11 +65,18 @@ const
   ExplorerProcessName = 'EXPLORER.EXE';
 
 type
+  TJwSecurityToken = class;
   TJwPrivilegeSet = class;
   TJwPrivilege    = class;
   TJwSecurityTokenStatistics = class;
 
 
+  TJwSaferComputeTokenResult = record
+    Token : TJwSecurityToken;
+    case Integer of
+      0 : (CompareResult : DWORD);
+      1 : (TokenFlags : DWORD);
+  end;
 
      {<B>TJwSecurityToken</B> administers a token (impersonated or primary)
       All token information are retrieved dynamically.
@@ -81,7 +94,7 @@ type
 
       <B>TJwSecurityToken</B> does not support some of the values defined in the MSDN http://msdn2.microsoft.com/en-us/library/aa379626.aspx
 
-      <B>TJwSecurityToken</B> administers a token (impersonated or not) 
+      <B>TJwSecurityToken</B> administers a token (impersonated or not)
       }
 
   TJwSecurityToken = class(TInterfacedObject, IJwBase)
@@ -120,14 +133,14 @@ type
      raises
  EJwsclInvalidPrimaryToken:  if primary user token is not SYSTEM. }
     procedure RaiseOnInvalidPrimaryToken(MethodName: TJwString);
-  public
+  protected
     {see TokenType }
     function GetTokenType: TOKEN_TYPE; virtual;
 
         {<B>GetTokenInformationLength</B> returns the needed memory for a token information.
-         @param hTokenHandle receives the token handle 
+         @param hTokenHandle receives the token handle
          @param aTokenInformationClass receives token class
-              See GetTokenInformationLength GetTokenInformationLength  for class types. 
+              See GetTokenInformationLength GetTokenInformationLength  for class types.
          @return Returns the length of needed memory buffer. If the call failed zero will be returned ;
          }
     function GetTokenInformationLength(hTokenHandle: TJwTokenHandle;
@@ -135,10 +148,10 @@ type
 
 
         {<B>GetTokenInformation</B> returns a buffer filled with token information.
-        @param hTokenHandle receives the token handle 
+        @param hTokenHandle receives the token handle
          @param aTokenInformationClass receives token class.
            Legend : o  defines already implemented structures.
-              
+
               #  TokenDefaultDacl   The buffer receives a TOKEN_DEFAULT_DACL structure containing the default DACL for newly created objects.
               #  o TokenGroups   The buffer receives a TOKEN_GROUPS structure containing the group accounts associated with the token.
               #  TokenGroupsAndPrivileges   The buffer receives a TOKEN_GROUPS_AND_PRIVILEGES structure containing the user SID, the group accounts, the restricted SIDs, and the authentication ID associated with the token.
@@ -154,8 +167,8 @@ type
               #  TokenStatistics   The buffer receives a TOKEN_STATISTICS structure containing various token statistics.
               #  o TokenType   The buffer receives a TOKEN_TYPE value indicating whether the token is a primary or impersonation token.
               #  o TokenUser   The buffer receives a TOKEN_USER structure containing the token's user account.
-               
-         @param TokenInformation contains the requested information. You must convert the type to the appropiate token type information class. 
+
+         @param TokenInformation contains the requested information. You must convert the type to the appropiate token type information class.
 
         raises
  EJwsclTokenInformationException:  is raised if a call to GetTokenInformation failed.
@@ -175,15 +188,10 @@ type
     function GetTokenUser: TJwSecurityId; virtual;
     function GetUserName : TJwString; virtual;
 
-    procedure GetTokenSource(out SourceName: ShortString;
-      out SourceLUID: TLuid);
-      overload; virtual;
-    function GetTokenSource: TTokenSource; overload; virtual;
-
     function GetTokenGroups: TJwSecurityIdList; virtual;
     procedure SetTokenGroups(List: TJwSecurityIdList); virtual;
 
-    function GetTokenGroupsEx: PTokenGroups;
+
 
     function GetTokenGroupsAttributesInt(Index: integer): TJwSidAttributeSet;
     procedure SetTokenGroupsAttributesInt(Index: integer;
@@ -202,7 +210,7 @@ type
 
     function GetTokenDefaultDacl: TJwDAccessControlList;
 
-    {This function is not implemented}
+
     procedure SetTokenDefaultDacl(const aDefaultDCAL: TJwDAccessControlList);
       virtual; //TOKEN_ADJUST_DEFAULT
 
@@ -210,7 +218,12 @@ type
     procedure SetTokenOrigin(const anOrigin: TLuid);
       virtual; //SE_TCB_NAME
 
+    {Obsolete
+    Use the property TokenOwner instead}
     function GetTokenOwner: TJwSecurityId; virtual;
+    {
+    Obsolete
+    Use the property TokenOwner instead}
     procedure SetTokenOwner(const anOwner: TJwSecurityId);
       virtual; //TOKEN_ADJUST_DEFAULT
 
@@ -229,7 +242,7 @@ type
 
     function GetPrivilegeAvailable(Name: TJwString): boolean;
 
-    function GetIntegrityLevel: TJwSecurityIdList; virtual;
+    function GetIntegrityLevel: TJwSecurityId; virtual;
     function GetIntegrityLevelType: TJwIntegrityLabelType; virtual;
     procedure SetIntegrityLevelType(const LevelType: TJwIntegrityLabelType);
       virtual;
@@ -244,39 +257,55 @@ type
 
     function GetMandatoryPolicy: TJwTokenMandatoryPolicies; virtual;
 
+    function GetUserProfileDirectory : TJwString; virtual;
+
+
+    {Maps generic access rights of a token to specific access right.
+     A MAXIMUM_ALLOWED will result in the result of function call GetMaximumAllowed().
+    }
     function RetrieveSpecificAccessRights(const AccessMask : TJwAccessMask) : TJwAccessMask; virtual;
-  protected
+  public
+
         {<B>CheckTokenHandle</B> checks the TokenHandle of this instance and raises EJwsclInvalidTokenHandle if the token is invalid; otherwise it does nothing
-         @param aSourceProc defines the caller method  
+         @param aSourceProc defines the caller method
          raises
- EJwsclInvalidTokenHandle:  is raised if the property TokenHandle is invalid. }
+           EJwsclInvalidTokenHandle:  is raised if the property TokenHandle is invalid.
+         Remarks
+            Use this procedure to check the token properties and raise an exception if they are not met.
+
+         }
     procedure CheckTokenHandle(sSourceProc: TJwString); virtual;
 
         {<B>CheckTokenAccessType</B> checks if the given token was opened with the desired access mask.
          If the desired access is not included in the token access mask an exception will be raised; otherwise nothing happens.
-         @param aDesiredAccessMask contains access mask that must be included in the token access mask to succeed. 
-         @param StringMask contains the desired access mask in a human readable format. This string will be display in the exception description. 
-         @param SourceProc contains the method name of the caller method. 
+         @param aDesiredAccessMask contains access mask that must be included in the token access mask to succeed.
+         @param StringMask contains the desired access mask in a human readable format. This string will be display in the exception description.
+         @param SourceProc contains the method name of the caller method.
          raises
- EJwsclAccessTypeException:  will be raised if a desired access flag could not be found in the access mask of the token 
+ EJwsclAccessTypeException:  will be raised if a desired access flag could not be found in the access mask of the token
+        Remarks
+            Use this procedure to check the token properties and raise an exception if they are not met.
          }
     procedure CheckTokenAccessType(aDesiredAccessMask: TJwAccessMask;
       StringMask, SourceProc: TJwString);
 
         {<B>CheckTokenPrivileges</B> checks if the token has all privileges that was given in the array.
         It does not matter whether the privilege is en- or disabled. It simply must exist.
-        The privilege names are compared case sensitive. 
-        @param Privileges contains all privileges names that the token must held 
+        The privilege names are compared case sensitive.
+        @param Privileges contains all privileges names that the token must held
         raises
  EJwsclPrivilegeCheckException:  will be raised if one privilege was not found
+
+         Remarks
+            Use this procedure to check the token properties and raise an exception if they are not met.
         }
 
     procedure CheckTokenPrivileges(Privileges: array of TJwString);
-
+  protected
         {<B>IsPrivilegeAvailable</B> checks if one token holds a privilege.
          The privilege names are compared case sensitive.
-         @param Priv contains the privilege name to be checked for 
-         @return <B>IsPrivilegeAvailable</B> returns true if the privilege could be found in the tokens privileges; otherwise false 
+         @param Priv contains the privilege name to be checked for
+         @return <B>IsPrivilegeAvailable</B> returns true if the privilege could be found in the tokens privileges; otherwise false
         }
     function IsPrivilegeAvailable(Priv: TJwString): boolean;
 
@@ -292,6 +321,13 @@ type
 
 
   public
+    {<B>GetTokenSource</B> returns the source name and ID of the token.}
+    procedure GetTokenSource(out SourceName: ShortString;
+      out SourceLUID: TLuid); overload; virtual;
+
+    {<B>GetTokenSource</B> returns the source name and ID of the token in a TTokenSource structure.}
+    function GetTokenSource: TTokenSource; overload; virtual;
+  public
     {<B>Create</B> TBD.
      Using this constructor is stronly discouraged!
      It initialises all properties and sets
@@ -305,12 +341,13 @@ type
         {
         CreateTokenByProcess creates a new instances and opens a process token.
 
+        Remarks:
         To open a token of another session rather than the current session
         the current process token must be the SYSTEM token. Only the access right
         TOKEN_READ can be used with an admin token.
 
         If parameter aDesiredAccess is MAXIMUM_ALLOWED and the right READ_CONTROL
-        is not granted the value of the property AccessMask is zero. Otherwise
+        is not granted, the value of the property AccessMask is zero. Otherwise
         it contains all granted rights for the token.
 
         If you do not specify TOKEN_DUPLICATE, you will get direct access to
@@ -318,9 +355,9 @@ type
         the process by changing enabled privileges. This does not affect
         an impersonation of the token because for this action is has to be duplicated.
 
-        @param aProcessHandle Receives a process handle which is used to get the process token. The handle can be zero (0) to use the current process handle of the caller 
+        @param aProcessHandle Receives a process handle which is used to get the process token. The handle can be zero (0) to use the current process handle of the caller
         @param aDesiredAccess Receives the desired access for this token. The access types can be get from the following list. Access flags must be concatenated with or operator.
-              Can be MAXIMUM_ALLOWED to get maximum access. 
+              Can be MAXIMUM_ALLOWED to get maximum access.
         @param Duplicate Defines whether the token of the Processhandle should be spawned into this process.
             If this parameter is true the token handle is opened and duplicated. The new handle may have more
             rights for the current process. This is especially useful if another process is defined in aProcessHandle because
@@ -330,7 +367,7 @@ type
 
         Access Rights for Access-Token Objects:
                 from http://msdn2.microsoft.com/en-us/library/aa374905.aspx:
-        
+
         #  TOKEN_ADJUST_DEFAULT   Required to change the default owner, primary group, or DACL of an access token.
         #  TOKEN_ADJUST_GROUPS   Required to adjust the attributes of the groups in an access token.
         #  TOKEN_ADJUST_PRIVILEGES   Required to enable or disable the privileges in an access token.
@@ -344,30 +381,30 @@ type
         #  TOKEN_READ   Combines STANDARD_RIGHTS_READ and TOKEN_QUERY.
         #  TOKEN_WRITE   Combines STANDARD_RIGHTS_WRITE, TOKEN_ADJUST_PRIVILEGES, TOKEN_ADJUST_GROUPS, and TOKEN_ADJUST_DEFAULT.
         #  TOKEN_ALL_ACCESS
-        
+
 
         Standard Access Rights:
                 from http://msdn2.microsoft.com/en-us/library/aa379607.aspx
-        
+
         #  DELETE   The right to delete the object.
         #  READ_CONTROL   The right to read the information in the object's security descriptor, not including the information in the SACL.
         #  SYNCHRONIZE   The right to use the object for synchronization. This enables a thread to wait until the object is in the signaled state. Some object types do not support this access right.
         #  WRITE_DAC   The right to modify the DACL in the object's security descriptor.
         #  WRITE_OWNER   The right to change the owner in the object's security descriptor.
-        
+
         The Windows API also defines the following combinations of the standard access rights constants.
-        
+
         #  Constant   Meaning
         #  STANDARD_RIGHTS_ALL   Combines DELETE, READ_CONTROL, WRITE_DAC, WRITE_OWNER, and SYNCHRONIZE access.
         #  STANDARD_RIGHTS_EXECUTE   Currently defined to equal READ_CONTROL.
         #  STANDARD_RIGHTS_READ   Currently defined to equal READ_CONTROL.
         #  STANDARD_RIGHTS_REQUIRED   Combines DELETE, READ_CONTROL, WRITE_DAC, and WRITE_OWNER access.
         #  STANDARD_RIGHTS_WRITE
-        
+
         )
 
         raises
- EJwsclOpenProcessTokenException:  If the token could not be opened 
+ EJwsclOpenProcessTokenException:  If the token could not be opened
         }
     constructor CreateTokenByProcess(const aProcessHandle: TJwProcessHandle;
       const aDesiredAccess: TJwAccessMask; const Duplicate : Boolean = false); virtual;
@@ -387,33 +424,33 @@ type
 
      <B>CreateTokenByProcessId</B> tries to use debug privilege to open any process.
 
-     @param ProcessID defines a process ID 
+     @param ProcessID defines a process ID
      @param DesiredAccess Receives the desired access for this token. The access types can be get from the list written at CreateTokenByProcess.
         Access flags must be concatenated with or operator. Can be MAXIMUM_ALLOWED to get maximum access.
 
      raises
- EJwsclOpenProcessTokenException:  If the token could not be opened 
+ EJwsclOpenProcessTokenException:  If the token could not be opened
       EJwsclWinCallFailedException: will be raised if the process could not be opened
-      to retrieve the token 
+      to retrieve the token
     }
     constructor CreateTokenByProcessId(const ProcessID: DWORD;
       const DesiredAccess: TJwAccessMask); virtual;
 
         {CreateTokenByThread creates a new class instance and opens a thread token if available; otherwise it fails.
 
-        @param aThreadHandle Receives a thread handle which is used to get 
-				the process token. The handle can be zero (0) to use the current 
-				process handle of the caller
-        @param aDesiredAccess Receives the desired access for this token. The access types can be get 
-			from the following list. Access flags must be concatenated with or operator.
-			If you want to use DuplicateToken or creating an impersonated token (by ConvertToImpersonatedToken) you must specific TOKEN_DUPLICATE.
-			See CreateTokenByProcess for a list of access rights.
+        @param aThreadHandle Receives a thread handle which is used to get
+            the process token. The handle can be zero (0) to use the current
+            process handle of the caller
+        @param aDesiredAccess Receives the desired access for this token. The access types can be get
+            from the following list. Access flags must be concatenated with or operator.
+            If you want to use DuplicateToken or creating an impersonated token (by ConvertToImpersonatedToken) you must specific TOKEN_DUPLICATE.
+            See CreateTokenByProcess for a list of access rights.
         @param anOpenAsSelf Indicates whether the access check is to be made against the security context of the thread calling the CreateTokenByThread function or against the
                                 security context of the process for the calling thread
 
         raises
- EJwsclNoThreadTokenAvailable:  will be raised if you try to call <B>CreateTokenByThread</B> in a process rather than thread 
-         EJwsclOpenThreadTokenException: will be raised if the threak token could not be opened 
+ EJwsclNoThreadTokenAvailable:  will be raised if you try to call <B>CreateTokenByThread</B> in a process rather than thread
+         EJwsclOpenThreadTokenException: will be raised if the threak token could not be opened
 
         }
     constructor CreateTokenByThread(const aThreadHandle: TJwThreadHandle;
@@ -427,7 +464,7 @@ type
         @param aDesiredAccess The desired access rights of the new token.
            It can be MAXIMUM_ALLOWED to get the maximum possible access.
            See CreateTokenByProcess  for a list of access rights.
-            
+
        }
     constructor CreateTokenEffective(const aDesiredAccess: TJwAccessMask);
       virtual;
@@ -481,7 +518,7 @@ type
      @param aTokeHandle defines the handle to the token.
        <B>Create</B> does not do a validity check on the handle!
      @param ShareTokenHandle defines whether the instance ought to close the handle
-      or not 
+      or not
      @param aDesiredAccess defines the access to the token handle.
        MAXIMUM_ALLOWED can be used to get the maximum access allowed. }
     constructor Create(const aTokenHandle: TJwTokenHandle;
@@ -500,17 +537,17 @@ type
          to call CreateProcessAsUser to lunch a process in the given terminal session.
 
          @param SessionID defines the session which is used to obtain the token.
-               If set to INVALID_HANDLE_VALUE, the function does the following steps:
-               
-                1. Try to open the token of the current console session. Using WtsGetActiveConsoleSessionID to obtain the session ID. 
-                2. Try to open the token of the current session using the session ID WTS_CURRENT_SESSION 
-                
-               If it fails an exception is raised. 
+               If set to INVALID_HANDLE_VALUE (-1),  the function does the following steps:
+
+                1. Try to open the token of the current console session. Using WtsGetActiveConsoleSessionID to obtain the session ID.
+                2. Try to open the token of the current session using the session ID WTS_CURRENT_SESSION
+
+               If it fails an exception is raised.
 
          raises
- EJwsclUnsupportedWindowsVersionException:  is raised if the Windows System does not have WTS function support 
-          EJwsclPrivilegeCheckException: is raised if the privilege SE_TCB_NAME is not held. 
-          EJwsclWinCallFailedException: if a call to WTSQueryUserToken failed 
+ EJwsclUnsupportedWindowsVersionException:  is raised if the Windows System does not have WTS function support
+          EJwsclPrivilegeCheckException: is raised if the privilege SE_TCB_NAME is not held.
+          EJwsclWinCallFailedException: if a call to WTSQueryUserToken failed
          }
     constructor CreateWTSQueryUserToken(SessionID: TJwSessionId = INVALID_HANDLE_VALUE);
       overload; virtual;
@@ -537,12 +574,12 @@ type
       EJwsclTerminalServiceNecessary:  will be raised if the no terminal
         service is running
       EJwsclInvalidPrimaryToken: will be raised if the process token
-      is not a SYSTEM user token 
+      is not a SYSTEM user token
       EJwsclPrivilegeCheckException: will be raised if the privilege
-       SE_TCB_NAME is not available 
+       SE_TCB_NAME is not available
 
       EJwsclWinCallFailedException: will be raised if
-      a call to WinStationQueryUserToken failed 
+      a call to WinStationQueryUserToken failed
 
      }
     constructor CreateWTSQueryUserTokenEx(const Server: TObject;
@@ -562,22 +599,25 @@ type
 
      raises
  EJwsclProcessNotFound:  will be raised if process handle given in parameter
-       ProcessName could not be retrieved. 
+       ProcessName could not be retrieved.
       EJwsclWinCallFailedException: will be raised if the process handle of the found
-       process could not be opened 
+       process could not be opened
       EJwsclSecurityException: Several exceptions can be raised by used methods:
-       
+
       Remarks
            This constructor creates a token from the first explorer.exe it finds.
            In this way any user explorer process can be returned - not only the
            console user. To avoid this problem call this constructor
            using true as parameter. Only apply FALSE if the current system
            does not support multiple users (like Win2000 Workstation)
+
+           This function sets implicitly the TOKEN_DUPLICATE access right.
        }
 
     constructor CreateCompatibilityQueryUserToken(
       const DesiredAccess: TJwAccessMask;
       const ProcessName: TJwString = ExplorerProcessName);
+
 
       (*
        <B>CreateNewToken</B> forges a new token using ZwCreateToken.
@@ -591,7 +631,7 @@ type
        the SYSTEM account.
 
      raises
- EJwsclPrivilegeException:  if SE_CREATE_TOKEN_NAME is not available 
+ EJwsclPrivilegeException:  if SE_CREATE_TOKEN_NAME is not available
          ZwCreateToken(
            TokenHandle: PHANDLE;
            DesiredAccess: ACCESS_MASK;
@@ -642,25 +682,25 @@ type
 
          @param aTokenHandle contains the token handle to be restricted in a new token.
             If this parameter is 0, first the thread token and if not existant
-            second the process token will be used as a template, 
+            second the process token will be used as a template,
          @param aTokenAccessMask contains the access mask of aTokenHandle.
-           MAXIMUM_ALLOWED can be used to get the maximum access allowed. 
+           MAXIMUM_ALLOWED can be used to get the maximum access allowed.
          @param aFlags contains special flags:
-         
+
           #  DISABLE_MAX_PRIVILEGE
-                0x1   Disables all privileges in the new token. If this value is specified, the DeletePrivilegeCount and PrivilegesToDelete parameters are ignored, and the restricted token does not have the SeChangeNotifyPrivilege privilege. 
+                0x1   Disables all privileges in the new token. If this value is specified, the DeletePrivilegeCount and PrivilegesToDelete parameters are ignored, and the restricted token does not have the SeChangeNotifyPrivilege privilege.
           #  SANDBOX_INERT
-                0x2   Stores this flag in the token. A token may be queried for existence of this flag using GetTokenInformation. 
+                0x2   Stores this flag in the token. A token may be queried for existence of this flag using GetTokenInformation.
           #  LUA_TOKEN
-                0x4   The new token is a LUA token. 
+                0x4   The new token is a LUA token.
           #  WRITE_RESTRICTED
-                0x8   The new token contains restricting SIDs that are considered only when evaluating write access. 
-           
-         @param aSidsToDisable contains a list of SIDs that are disabled to the new token. Can be nil. 
-         @param aPrivilegesToDelete contains a list of privileges to be removed from the token. Can be nil. 
-         @param aRestrictedSids contains a list of SIDs to be restricted. Can be nil. 
+                0x8   The new token contains restricting SIDs that are considered only when evaluating write access.
+
+         @param aSidsToDisable contains a list of SIDs that are disabled to the new token. Can be nil.
+         @param aPrivilegesToDelete contains a list of privileges to be removed from the token. Can be nil.
+         @param aRestrictedSids contains a list of SIDs to be restricted. Can be nil.
          raises
- EJwsclSecurityException:  will be raised if the winapi call failed 
+ EJwsclSecurityException:  will be raised if the winapi call failed
 
         }
     constructor CreateRestrictedToken(
@@ -671,7 +711,31 @@ type
       const PrivilegesToDelete: TJwPrivilegeSet;
       const RestrictedSids: TJwSecurityIdList); overload; virtual;
 
-    {TBD}
+    {
+    Please refer to the MSDN documentation :
+      http://msdn.microsoft.com/en-us/library/aa378184%28VS.85%29.aspx
+    Parameters
+      dwLogonType
+          LOGON32_LOGON_INTERACTIVE
+
+          LOGON32_LOGON_BATCH
+          LOGON32_LOGON_NETWORK
+          LOGON32_LOGON_NETWORK_CLEARTEXT
+          LOGON32_LOGON_NEW_CREDENTIALS
+          LOGON32_LOGON_SERVICE
+          LOGON32_LOGON_UNLOCK
+
+      dwLogonProvider
+        LOGON32_PROVIDER_DEFAULT
+        LOGON32_PROVIDER_WINNT50
+        LOGON32_PROVIDER_WINNT40
+
+    Remarks
+       LOGON32_LOGON_INTERACTIVE cannot be used in all cases if the token is used by a COM client to impersonate
+       a COM call.
+       You should use LOGON32_LOGON_BATCH if you need to create a COM server with the identity of the logon user token;
+       otherwise the server may fail to start. (An out of process COM server is started if the first class is created.)
+    }
     constructor CreateLogonUser(sUsername: TJwString;
     // string that specifies the user name
       sDomain: TJwString;  // string that specifies the domain or server
@@ -680,8 +744,6 @@ type
       dwLogonProvider: cardinal  // specifies the logon provider
       ); overload; virtual;
 
-    //constructor CreateLogonUser(.....
-    //constructor CreateLSALogonUser(....
   public
     {<B>ConvertToImpersonatedToken</B> converts the token into an impersonated token. For this purpose
      the token will be converted and the old TokenHandle will be closed. The
@@ -723,16 +785,16 @@ type
 
 
 
-    @param impLevel receives the impersonation Level. Use one of these SecurityAnonymous, SecurityIdentification, SecurityImpersonation, SecurityDelegation.  
+    @param impLevel receives the impersonation Level. Use one of these SecurityAnonymous, SecurityIdentification, SecurityImpersonation, SecurityDelegation.
     @param aDesiredAccess Receives the desired access for this token. The access types can be get from the following list. Access flags must be concatenated with or operator.
     If you want to use DuplicateToken or creating an impersonated token (by ConvertToImpersonatedToken) you must specify TOKEN_DUPLICATE.
 
-    See CreateTokenByProcess CreateTokenByProcess  for a list of access rights. 
+    See CreateTokenByProcess CreateTokenByProcess  for a list of access rights.
 
     raises
- EJwsclSharedTokenException:  IS NOT USED! .. will be raised if Shared Shared  is set to true. This is because the old token handle will be closed and other referes to it are invalid. 
-     EJwsclTokenImpersonationException: will be raised if the call to DuplicateTokenEx failed. 
-     EJwsclAccessTypeException: will be raised if the token does not have the access TOKEN_READ and TOKEN_DUPLICATE 
+ EJwsclSharedTokenException:  IS NOT USED! .. will be raised if Shared Shared  is set to true. This is because the old token handle will be closed and other referes to it are invalid.
+     EJwsclTokenImpersonationException: will be raised if the call to DuplicateTokenEx failed.
+     EJwsclAccessTypeException: will be raised if the token does not have the access TOKEN_READ and TOKEN_DUPLICATE
 
     }
     procedure ConvertToImpersonatedToken(impLevel:
@@ -757,14 +819,14 @@ type
         @param aDesiredAccess Receives the desired access for this token. The access types can be get from the following list. Access flags must be concatenated with or operator.
         If you want to use DuplicateToken or creating an primary token (by ConvertToPrimaryToken) you must specify TOKEN_DUPLICATE.
 
-        See CreateTokenByProcess CreateTokenByProcess  for a list of access rights. 
+        See CreateTokenByProcess CreateTokenByProcess  for a list of access rights.
 
         @param aDesiredAccess defines the access to the new primary token.
           It can be MAXIMUM_ALLOWED to get the maximum possible access.
-          Possible access rights are always equal or lower than the given ones when the handle was opened 
+          Possible access rights are always equal or lower than the given ones when the handle was opened
         raises
- EJwsclTokenPrimaryException:  will be raised if the call to DuplicateTokenEx failed. 
-         EJwsclAccessTypeException: will be raised if the token does not have the access TOKEN_READ and TOKEN_DUPLICATE 
+ EJwsclTokenPrimaryException:  will be raised if the call to DuplicateTokenEx failed.
+         EJwsclAccessTypeException: will be raised if the token does not have the access TOKEN_READ and TOKEN_DUPLICATE
 
         }
     procedure ConvertToPrimaryToken(const aDesiredAccess: TJwAccessMask);
@@ -786,11 +848,11 @@ type
     {<B>SetIntegrityLevel</B> sets the integrity level of the token using a Sid structure.
      <B>SetIntegrityLevel</B> needs InitWellKnownException from JwsclKnownSid to be called before.
 
-     @param MandatorySid a mandatory Sid. Must not be nil 
-     @param Attributes defines attributes for the Sid 
+     @param MandatorySid a mandatory Sid. Must not be nil
+     @param Attributes defines attributes for the Sid
      raises
- EJwsclInitWellKnownException:  will be raised if InitWellKnownException was not called 
-      EJwsclNILParameterException: will be raised if parameter MandatorySid is nil 
+ EJwsclInitWellKnownException:  will be raised if InitWellKnownException was not called
+      EJwsclNILParameterException: will be raised if parameter MandatorySid is nil
       EJwsclWinCallFailedException: will be raised if the integrity level could not be changed
 
     Remarks
@@ -834,7 +896,7 @@ type
       control list (SACL), the token gets ACCESS_SYSTEM_SECURITY access right, even if it was not
       requested in dwDesiredAccess.
       (source: http://msdn2.microsoft.com/en-us/library/aa446617.aspx)
-      
+
 
      @param AccessMask defines the access to the token handle.
        MAXIMUM_ALLOWED can be used to get the maximum access allowed.
@@ -864,25 +926,25 @@ type
 
         {<B>IsEqual</B> compares the token instance with a second one.
          This function loads a function from ntdll.dll dynamically. This function is only available on XP or better
-         @return <B>IsEqual</B> returns true if both tokens do have the same accesscheck; otherwise false. It returns false if aToken is nil. 
-         
+         @return <B>IsEqual</B> returns true if both tokens do have the same accesscheck; otherwise false. It returns false if aToken is nil.
+
          raises
- EJwsclAccessTypeException:  will be raised if the token or aToken does not have access type TOKEN_QUERY 
+ EJwsclAccessTypeException:  will be raised if the token or aToken does not have access type TOKEN_QUERY
          }
     function IsEqual(aToken: TJwSecurityToken): boolean;
 
         {<B>SetThreadToken</B> sets the thread token.
-         @param Thread contains the thread handle. If Thread is zero the calling thread will be used. 
+         @param Thread contains the thread handle. If Thread is zero the calling thread will be used.
 
         raises
  EJwsclSecurityException:  will be raised if the token could not be attached to the thread
-         EJwsclSecurityException: will be raised if a winapi function failed 
+         EJwsclSecurityException: will be raised if a winapi function failed
         }
     procedure SetThreadToken(const Thread: TJwThreadHandle);
 
         {
         <B>RemoveThreadToken</B> removes the token from the thread.
-        @param Thread contains the thread handle. If Thread is zero the calling thread will be used. 
+        @param Thread contains the thread handle. If Thread is zero the calling thread will be used.
         raises
  EJwsclSecurityException:  will be raised if a winapi function failed
         }
@@ -896,8 +958,8 @@ type
          call ConvertToImpersonatedToken to get an thread token directly without creating a new instance.
         raises
  EJwsclAccessTypeException:  will be raised if the token is an impersonation token and does not have access type TOKEN_QUERY and TOKEN_IMPERSONATE
-         EJwsclAccessTypeException: will be raised if the token is a primary token and does not have access type TOKEN_QUERY and TOKEN_DUPLICATE 
-         EJwsclSecurityException: will be raised if a winapi function failed 
+         EJwsclAccessTypeException: will be raised if the token is a primary token and does not have access type TOKEN_QUERY and TOKEN_DUPLICATE
+         EJwsclSecurityException: will be raised if a winapi function failed
         }
     procedure ImpersonateLoggedOnUser;
 
@@ -910,7 +972,7 @@ type
          Every privilege that was used for a privilege check will have the property Privilege_Used_For_Access set to true.
 
          @param aRequiredPrivileges provides a list of priveleges that are compared with the token
-         @return see description 
+         @return see description
          }
     function PrivilegeCheck(const RequiredPrivileges: TJwPrivilegeSet;
       const RequiresAllPrivs: TJwPrivCheck): boolean; overload;
@@ -927,10 +989,10 @@ type
           If no privilege from aRequiredPrivileges is enabled in the token the function returns false.
          If RequiresAllPrivs is pcAllPrivsEnabled <B>PrivilegeCheck</B> returns true if all privileges from aRequiredPrivileges are enabled in the token; otherwise false.
 
-         @param ClientToken is a token that is used to check the privileges 
-         @param aRequiredPrivileges provides a list of priveleges that are compared with the token  
-         @return see description 
-         
+         @param ClientToken is a token that is used to check the privileges
+         @param aRequiredPrivileges provides a list of priveleges that are compared with the token
+         @return see description
+
         }
     class function PrivilegeCheck(
       const ClientToken: TJwSecurityToken;
@@ -949,42 +1011,58 @@ type
      access the user registry of an impersonated user.
 
      @param DesiredAccess defines desired access mask to this key.
-        MAXIMUM_ALLOWED can be used to get maximum access to the key. 
-     @return Returns a handle to the key. Use RegCloseKey to close the key 
+        MAXIMUM_ALLOWED can be used to get maximum access to the key.
+     @return Returns a handle to the key. Use RegCloseKey to close the key
      raises
  EJwsclWinCallFailedException:  will be raised if the call
-      to RegOpenCurrentUser failed 
+      to RegOpenCurrentUser failed
     }
     function GetCurrentUserRegKey(const DesiredAccess: TJwAccessMask): HKEY;
+
+    { <b>ExpandEnvironmentStrings</b> expands the environment variables of the token user.
+      Returns
+      The return value is a string where all environment variables placeholders are replaced.
+      Remarks
+      This function simulates the WinAPI function ExpandEnvironmentStringsForUser but does not use string variables static
+      in length.
+
+      The token must have TOKEN_IMPERSONATE and TOKEN_QUERY access rights. In addition Windows 7 needs TOKEN_DUPLICATE.
+
+      In a 32bit Process on a Windows 64 bit (WOW64) the environment variables are replaced by their 32bit counterparts.
+      E.g. % ProgramFiles% will expand to "C:\\Program Files (x86)" If you need a 64bit folder, use % ProgramW6432% to
+      access "C:\\Program Files" instead.
+
+      Disabling Wo64 Redirection does not affect this function because file system layer is not accessed.                  }
+    function ExpandEnvironmentStrings(const EnvString : TJwString) : TJwString; virtual;
+
 
     {<B>LoadUserProfile</B> loads the user profile of the current token instance.
      It also uses the roaming profile if possible.
 
      @param ProfileInfo defines parameter for supplying to winapi LoadUserProfile.
         You must set a flag in parameter ProfileMembers for each member of this record
-        you want to set.  
+        you want to set. You can use [] in Parameter ProfileMembers to use no member of the profile info record.
         See MSDN for more information.
         The method returns a registry key handle in member Profile of structure.
         Call UnLoadUserProfile to unload this key if finished.
-         
-         
+
+
      @param ProfileMembers defines which member of ProfileInfo is set by
       the user. All other parameters are set to default values.
-     
-      # pmFlags xclude this value if you want to let the method
-          set PI_NOUI 
-      # pmUserName Exclude this value if you want to let the method
-          set the correct user name 
 
+      # pmFlags exclude this value if you want to let the method
+          set PI_NOUI
+      # pmUserName Exclude this value if you want to let the method
+          set the correct user name
       # pmProfilePath Exclude this value if you want to let the method
         get the roaming profile.
-     
-      
+
+
 
     raises
  EJwsclPrivilegeException
-       :  will be raised if the privilege SE_RESTORE_NAME and SE_BACKUP_NAME is not available. 
-     EJwsclWinCallFailedException: will be raised if call to LoadUserProfile failed 
+       :  will be raised if the privilege SE_RESTORE_NAME and SE_BACKUP_NAME is not available.
+     EJwsclWinCallFailedException: will be raised if call to LoadUserProfile failed
 
     }
     procedure LoadUserProfile(var ProfileInfo : TJwProfileInfo;
@@ -992,8 +1070,8 @@ type
 
     {<B>UnLoadUserProfile</B> unloads a user profile loaded by LoadUserProfile.
      Member ProfileInfo.Profile will be set to INVALID_HANDLE_VALUE.
-     @param ProfileInfo define the profile 
-     @return Returns success (true) status of the operation. 
+     @param ProfileInfo define the profile
+     @return Returns success (true) status of the operation.
     }
     function UnLoadUserProfile(var ProfileInfo : TJwProfileInfo) : Boolean;
   public
@@ -1014,9 +1092,9 @@ type
          @param ClientToken is the token to be used in audit log.
 
          raises
- EJwsclPrivilegeNotFoundException:  will be raised if the process token does not have the privilege : SE_AUDIT_NAME 
-          EJwsclWinCallFailedException: will be raised if the winapi call to PrivilegedServiceAuditAlarm failed. 
-          EJwsclInvalidTokenHandle: will be raised if the parameter ClientToken is nil 
+ EJwsclPrivilegeNotFoundException:  will be raised if the process token does not have the privilege : SE_AUDIT_NAME
+          EJwsclWinCallFailedException: will be raised if the winapi call to PrivilegedServiceAuditAlarm failed.
+          EJwsclInvalidTokenHandle: will be raised if the parameter ClientToken is nil
          }
     class procedure PrivilegedServiceAuditAlarm(
       SubsystemName, ServiceName: TJwString; ClientToken: TJwSecurityToken;
@@ -1028,9 +1106,18 @@ type
     //see equivalent msdn function for more information
     class procedure ImpersonateSelf(
       const anImpersonationLevel: SECURITY_IMPERSONATION_LEVEL); virtual;
-    //see equivalent msdn function for more information
+    {see equivalent msdn function for more information
+
+     Notes
+       The exception was changed from EJwsclSecurityException to EJwsclWinCallFailedException.
+    }
     class procedure RevertToSelf; virtual;
-    //see equivalent msdn function for more information
+
+    {see equivalent msdn function for more information
+
+    Notes
+       The exception was changed from EJwsclSecurityException to EJwsclWinCallFailedException.
+    }
     class procedure ImpersonateNamedPipeClient(hNamedPipe: THandle); virtual;
 
         {<B>HasThreadAToken</B> returns whether the current thread has a token or not.
@@ -1044,8 +1131,59 @@ type
     class function GetThreadToken(const aDesiredAccess: TJwAccessMask;
       const anOpenAsSelf: boolean): TJwSecurityToken; virtual;
 
+    (*
+    LookupPrivilegeValue wraps LookupPrivilegeValueW which tends to fail with ERROR_IO_PENDING.
+
+    Parameters
+      lpDefaultLuid Defines a LUID that is used if the LookupPrivilegeValueW fails up to iTryCount with error ERROR_IO_PENDING.
+          On ERROR_IO_PENDING the value lpDefaultLuid will be copied to lpLuid if lpDefaultLuid is not DEFAULT_LUID_NULL. In this
+        case the function will still fail but the error code will be ERROR_NO_DATA.
+        This value can be DEFAULT_LUID_NULL and lpLuid will not be touched.
+      iTryCount Defines the number of times the function LookupPrivilegeValueW may fail with ERROR_IO_PENDING.
+        This value must be greater than zero. It is set to 1 automatically for values smaller than 1.
+
+    Remarks
+
+    LookupPrivilegeValue calls LookupPrivilegeValueW but also checks for the RPC timeout error
+    ERROR_IO_PENDING. This error happens when data could not be returned within the call of LookupPrivilegeValueW.
+    Data may be returned to a later time (overlapped transfer).
+    However, the returned data may be invalid so we call LookupPrivilegeValueW up to the value of iTryCount times.
+
+    Return values
+    LookupPrivilegeValue returns the return value and error of LookupPrivilegeValueW (HRESULT_CODE(GetLastError()). However,
+    if LookupPrivilegeValueW still fails with ERROR_IO_PENDING after iTryCount times, the return value will be
+    HRESULT_CODE(ERROR_NO_SUCH_PRIVILEGE). Subsequently the return value code changes to HRESULT_CODE(ERROR_NO_DATA)
+    if lpDefaultLuid is not DEFAULT_LUID_NULL.
+    The return value will be HRESULT_FROM_WIN32(ERROR_NO_SUCH_PRIVILEGE) but without the error flag if LookupPrivilegeValueW was
+    called iTryCount times and the last call returned a LUID between 0 and $FF (loword).
+
+    *)
+    class function LookupPrivilegeValue(
+      {__in_opt} const lpSystemName : TJwString;
+      {__in}     const lpName : TJwString;
+      {__out}    out lpLuid : TLuid;
+      {__in}     const lpDefaultLuid : TLUID;
+      {__in}     iTryCount : Integer = DEFAULT_LUID_TRY_COUNT) : HRESULT; virtual;
+
+   {IsTokenLinkedForMappedDrives checks whether a system group policy was defined
+    that allows an Administrator in Vista and newer with UAC enabled to access a
+    mapped netzwork drive to be accessible by both tokens: the standard user token
+    and its elevated copy.
+
+    Returns
+      The function returns true if the system was configured to allow tokens and
+      its elevated version to access the same mapped drive. If UAC is disabled or
+      the policy was not configured the return value is false.
+
+    Raises
+      EJwsclWinCallFailedException This exception is raised if the policy could not be opened for reading
+        or the value could not be read. If the policy value does not exist, no exception
+    is raised, instead the return value is false. }
+    class function IsTokenLinkedForMappedDrives : Boolean; virtual;
+
+  public
     {<B>GetTokenUserName</B> returns the username of the token user.}
-    function GetTokenUserName : TJwString;
+    function GetTokenUserName : TJwString;  virtual;
 
     {<B>GetSecurityDescriptor</B> gets the security descriptor.
      The caller is responsible to free the returned instance.
@@ -1053,8 +1191,8 @@ type
      about exceptions.
 
      @param SecurityFlags defines which component of the security descriptor
-      is retrieved. 
-     @return Returns a new security descriptor instance.  
+      is retrieved.
+     @return Returns a new security descriptor instance.
     }
     function GetSecurityDescriptor(
       const SecurityFlags: TJwSecurityInformationFlagSet):
@@ -1065,15 +1203,45 @@ type
      See TJwSecureGeneralObject.SetSecurityInfo  for more information
      about exceptions.
      Warning: Changing the security descriptor's security information can
-      lead to security holes. 
+      lead to security holes.
 
      @param SecurityFlags defines which component of the security descriptor
-      is changed.  
+      is changed.
     }
     procedure SetSecurityDescriptor(
       const SecurityFlags: TJwSecurityInformationFlagSet;
       const SecurityDescriptor: TJwSecurityDescriptor); virtual;
 
+   public
+    {<B>SaferComputeTokenFromLevel</B> encapsulates the SAFER API function
+     SaferComputeTokenFromLevel.
+
+     @param SaferLevelHandle A handle obtained by the WinAPI function SaferCreateLevel.
+     @param InAccessToken An access token that is to be restricted by the Safer API. If nil
+      the current thread token is used. It the thread is not impersonating the process token is used instead.
+     @param SaferFlags Some flags applied to SaferFlags WinAPI function SaferComputeTokenFromLevel.
+      See MSDN docs for more information.
+     @param Result A structure that contains the result of the call. The token is returned
+      in this record. Some flags can indicate that the returned token is nil.
+    }
+    class procedure SaferComputeTokenFromLevel(const SaferLevelHandle : TSaferLevelHandle;
+      const InAccessToken : TJwSecurityToken; SaferFlags : DWORD;
+        out Result : TJwSaferComputeTokenResult); overload; virtual;
+
+    {<B>SaferComputeTokenFromLevel</B> encapsulates the SAFER API function
+     SaferComputeTokenFromLevel.
+
+     @param SaferLevelHandle A handle obtained by the WinAPI function SaferCreateLevel.
+     @param InAccessToken An access token that is to be restricted by the Safer API. If nil
+      the current thread token is used. It the thread is not impersonating the process token is used instead.
+     @param SaferFlags Some flags applied to SaferFlags WinAPI function SaferComputeTokenFromLevel.
+      See MSDN docs for more information.
+     @param Result The restricted token created by the API call.
+        Notice: SaferFlags that do not create a token are stripped out of the call.
+    }
+    class procedure SaferComputeTokenFromLevel(const SaferLevelHandle : TSaferLevelHandle;
+      const InAccessToken : TJwSecurityToken; SaferFlags : DWORD;
+        out Result : TJwSecurityToken); overload; virtual;
   public
     //overriden basic methods
     function Equals(Obj: TObject): Boolean; {$IFDEF DELPHI2009_UP}override;{$ELSE}virtual;{$ENDIF}
@@ -1204,8 +1372,8 @@ type
          A write call on a Windows 2000 is ignored!
          A write call on needs the SE_TCB_NAME privilege.
 
-		 To set the SessionID in an existing token you need to create a duplicate first and
-		 set the ID of the duplicated token. Use CreateDuplicateExistingToken for this reason.
+         To set the SessionID in an existing token you need to create a duplicate first and
+         set the ID of the duplicated token. Use CreateDuplicateExistingToken for this reason.
 
          See
          http://msdn2.microsoft.com/en-us/library/aa379591.aspx
@@ -1273,13 +1441,14 @@ type
 
      Remarks
        This function only works in Windows Vista and newer.
+
        The caller is responsible for freeing the resulting TJwSecurityIdList.
 
        If the compiler directive VISTA (jwscl.inc) is not defined, an exception
        EJwsclVistaFeaturesDisabled is raised. This feature can only be used with
        activated VISTA compiler directive.
     }
-    property TokenIntegrityLevel: TJwSecurityIdList Read GetIntegrityLevel;
+    property TokenIntegrityLevel: TJwSecurityId Read GetIntegrityLevel;
 
     {<B>TokenIntegrityLevelType</B> sets or gets the TokenIntegrityLevel in an easier way.
      This property uses iltLow, iltMedium, iltHigh, iltSystem and iltProtected to
@@ -1366,10 +1535,10 @@ type
 
     {<B>MandatoryPolicy</B> returns the mandatory policy of the token.
      This property can have one the following values (from MSDN: http://msdn2.microsoft.com/en-us/library/bb394728.aspx):
-      
-        # TOKEN_MANDATORY_POLICY_OFF No mandatory integrity policy is enforced for the token. 
-        # TOKEN_MANDATORY_POLICY_NO_WRITE_UP A process associated with the token cannot write to objects that have a greater mandatory integrity level. 
-        # TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN A process created with the token has an integrity level that is the lesser of the parent-process integrity level and the executable-file integrity level. 
+
+        # TOKEN_MANDATORY_POLICY_OFF No mandatory integrity policy is enforced for the token.
+        # TOKEN_MANDATORY_POLICY_NO_WRITE_UP A process associated with the token cannot write to objects that have a greater mandatory integrity level.
+        # TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN A process created with the token has an integrity level that is the lesser of the parent-process integrity level and the executable-file integrity level.
         # TOKEN_MANDATORY_POLICY_VALID_MASK A combination of TOKEN_MANDATORY_POLICY_NO_WRITE_UP and TOKEN_MANDATORY_POLICY_NEW_PROCESS_MIN
 
     Raises
@@ -1395,6 +1564,10 @@ type
      is a thread token; otherwise false; Same as IsImpersonationToken.}
     property IsThreadToken : Boolean index 2 read IsTokenType;
 
+    {<b>UserProfileDirectory</b> returns the path to the token user's profile directory.
+    The token must have the TOKEN_QUERY access right to succeed.
+    EJwsclWinCallFailedException will be raised in case of an error. }
+    property UserProfileDirectory : TJwString read GetUserProfileDirectory;
   end;
 
      {<B>TJwSecurityTokenStatistics</B> is a class that holds information about a token.
@@ -1466,11 +1639,11 @@ type
        {<B>GetEnabled</B> retrieves the enable status of a privilege.
         raises
  EJwsclAdjustPrivilegeException:  will be raised if :
-            
+
              #  A call to AdjustTokenPrivileges failed, because the privilege does not exist or was refused to change.
              # A second call to AdjustTokenPrivileges failed, because the original state could not be restored. The second call will only be
-              made in case of a changed privilege. 
-             
+              made in case of a changed privilege.
+
          EJwsclNotImplementedException: If the privilete instance does not belong to a token.
          EJwsclAccessTypeException: If the token does not hold TOKEN_QUERY and TOKEN_ADJUST_PRIVILEGES access values.
        }
@@ -1489,20 +1662,24 @@ type
   public
        {<B>Create</B> creates a new instance with information of a privilege.
         raises
- EJwsclInvalidOwnerException:  will be raised if anOwner is nil. 
+ EJwsclInvalidOwnerException:  will be raised if anOwner is nil.
         }
     constructor Create(anOwner: TJwPrivilegeSet;
-      aLUID_AND_ATTRIBUTES: LUID_AND_ATTRIBUTES);
+      aLUID_AND_ATTRIBUTES: LUID_AND_ATTRIBUTES); overload;
+
+    constructor Create(anOwner: TJwPrivilegeSet;
+        Name : String; Attributes: cardinal); overload;
+
 
        {<B>PrivilegeAttributeToText</B> convertes a set of attributes into a human readable string
 
-       @param SE_Attributes receives the privilege attributes to be converted 
+       @param SE_Attributes receives the privilege attributes to be converted
        @return The result ist a combination (comma seperated) of these strings:
                (none)
                SE_PRIVILEGE_ENABLED_BY_DEFAULT
                SE_PRIVILEGE_ENABLED
                SE_PRIVILEGE_USED_FOR_ACCESS
-               (unknown attributes) 
+               (unknown attributes)
        }
     class function PrivilegeAttributeToText(PrivilegeAttributes: cardinal;
       HumanReadable: boolean = False): TJwString;
@@ -1512,7 +1689,7 @@ type
         Output format:
         <pre>'hi: 0x<hipart>, lo: 0x<lopart> (0x<(hipart shl 4) or (lopart)>)';</pre>
 
-        @param aLUID receives the LUID of the privilege 
+        @param aLUID receives the LUID of the privilege
        }
     class function LUIDtoText(aLUID: LUID): TJwString; virtual;
 
@@ -1541,16 +1718,16 @@ type
 
        {<B>RemoveIrrepealable</B> removes a privilege from the token.
         It cannot be readded.
-        @param aPrivilege contains the privilege to be removed 
+        @param aPrivilege contains the privilege to be removed
         raises
- EJwsclAdjustPrivilegeException:  if the token could not be removed 
-         EJwsclAdjustPrivilegeException: if the token does not held the privilege  
+ EJwsclAdjustPrivilegeException:  if the token could not be removed
+         EJwsclAdjustPrivilegeException: if the token does not held the privilege
         }
     procedure RemoveIrrepealable; virtual;
 
        {<B>GetText</B> creates a string that contains a privilege in a human
         readable form :
-		 <pre>	
+         <pre>
          LUID       : <luid> #13#10
          Name       : <name> #13#10
          DisplayName : <descr> #13#10
@@ -1629,25 +1806,25 @@ type
     fPPrivilegesSetList: TList;
   protected
 
-    //see property PrivByIdx 
+    //see property PrivByIdx
     function GetPrivByIdx(Index: cardinal): TJwPrivilege;
-    //see property PrivByName 
+    //see property PrivByName
     function GetPrivByName(Index: TJwString): TJwPrivilege;
-    //see property PrivByLUID 
+    //see property PrivByLUID
     function GetPrivByLUID(Index: LUID): TJwPrivilege;
 
     function GetCount: cardinal;
   public
        {<B>Create</B> creates a new instance with a list of privileges.
-        @param Owner contains the owner token of this privilege set. It must not be nil! 
-        @param Privileges contains a set of privileges 
+        @param Owner contains the owner token of this privilege set. It must not be nil!
+        @param Privileges contains a set of privileges
         raises
  EJwsclInvalidOwnerException:  will be raised if anOwner is nil. }
     constructor Create(Owner: TJwSecurityToken;
       Privileges: jwaWindows.TPrivilegeSet); overload;
        {<B>Create</B> creates a new instance with a list of privileges.
-        @param Owner contains the owner token of this privilege set. It must not be nil! 
-        @param PrivilegesPointer contains a set of privileges 
+        @param Owner contains the owner token of this privilege set. It must not be nil!
+        @param PrivilegesPointer contains a set of privileges
         raises
  EJwsclInvalidOwnerException:  will be raised if anOwner is nil. }
     constructor Create(Owner: TJwSecurityToken;
@@ -1656,8 +1833,8 @@ type
        {<B>Create</B> creates a new instance with a list of privileges from a
          TJwPrivilegeSet instance.
 
-        @param Owner contains the owner token of this privilege set. It must not be nil! 
-        @param PrivilegesPointer contains a set of privileges 
+        @param Owner contains the owner token of this privilege set. It must not be nil!
+        @param PrivilegesPointer contains a set of privileges
         raises
  EJwsclInvalidOwnerException:  will be raised if anOwner is nil. }
     constructor Create(Owner: TJwSecurityToken;
@@ -1674,7 +1851,7 @@ type
 
        {<B>GetText</B> creates a string that contains all privileges in a human
         readable form :
-        <pre> 
+        <pre>
          LUID       : <luid> #13#10
          Name       : <name> #13#10
          DisplayName : <descr> #13#10
@@ -1685,10 +1862,10 @@ type
 
        {<B>RemoveIrrepealable</B> removes a privilege from the token.
         It cannot be readded.
-        @param aPrivilege contains the privilege to be removed 
+        @param aPrivilege contains the privilege to be removed
         raises
- EJwsclAdjustPrivilegeException:  if the token could not be removed 
-         EJwsclNotImplementedException: if the set is not assigned to a token 
+ EJwsclAdjustPrivilegeException:  if the token could not be removed
+         EJwsclNotImplementedException: if the set is not assigned to a token
         }
     procedure RemoveIrrepealable(Privilege: TJwPrivilege); virtual;
 
@@ -1696,7 +1873,7 @@ type
         This is done in a faster way than iterate through the privilege list.
         You can undo this by setting Enabled state of a privilege.
         raises
- EJwsclNotImplementedException:  if the set is not assigned to a token 
+ EJwsclNotImplementedException:  if the set is not assigned to a token
         }
     procedure DisableAllPrivileges; virtual;
 
@@ -1716,7 +1893,7 @@ type
         The number of array elements is count.
         If count is zero the return value is an emtpy structure but not nil
 
-        @return Contains a set of privileges. 
+        @return Contains a set of privileges.
 
         The structure must be freed by Free_PPRIVILEGE_SET .
         If not freed by the user the structure will be freed on destruction of the TJwPrivilegeSet instance.
@@ -1729,7 +1906,7 @@ type
         The number of array elements is count.
         If count is zero the return value is an emtpy structure but not nil
 
-        @return Contains a set of privileges.  
+        @return Contains a set of privileges.
 
         The structure must be freed by Free_PTOKEN_PRIVILEGES .
         If not freed by the user the structure will be freed on destruction of the TJwPrivilegeSet instance.
@@ -1741,9 +1918,9 @@ type
        {<B>Free_PLUID_AND_ATTRIBUTES</B> frees an allocated luid and attribute structure by Create_PLUID_AND_ATTRIBUTES.
         Postcondition : privs will be nil.
 
-        @param Privileges contains the array pointing to the first element.  
+        @param Privileges contains the array pointing to the first element.
         raises
- EJwsclSecurityException:  will be raised if privs was not created by Create_PLUID_AND_ATTRIBUTES of the same class instance! 
+ EJwsclSecurityException:  will be raised if privs was not created by Create_PLUID_AND_ATTRIBUTES of the same class instance!
        }
     procedure Free_PLUID_AND_ATTRIBUTES(var Privileges: PLUID_AND_ATTRIBUTES);
       virtual;
@@ -1751,9 +1928,9 @@ type
        {<B>Free_PPRIVILEGE_SET</B> frees an allocated set of privileges structure by Create_PPRIVILEGE_SET.
         Postcondition : privs will be nil.
 
-        @param Privileges contains the array pointing to the first element.  
+        @param Privileges contains the array pointing to the first element.
         raises
- EJwsclSecurityException:  will be raised if privs was not created by Create_PPRIVILEGE_SET of the same class instance! 
+ EJwsclSecurityException:  will be raised if privs was not created by Create_PPRIVILEGE_SET of the same class instance!
        }
     procedure Free_PPRIVILEGE_SET(var Privileges: jwaWindows.PPRIVILEGE_SET);
       virtual;
@@ -1761,9 +1938,9 @@ type
        {<B>Free_PTOKEN_PRIVILEGES</B> frees an allocated luid and attribute structure by Create_PLUID_AND_ATTRIBUTES.
         Postcondition : privs will be nil.
 
-        @param Privileges contains the array pointing to the first element.  
+        @param Privileges contains the array pointing to the first element.
         raises
- EJwsclSecurityException:  will be raised if privs was not created by Create_PLUID_AND_ATTRIBUTES of the same class instance! 
+ EJwsclSecurityException:  will be raised if privs was not created by Create_PLUID_AND_ATTRIBUTES of the same class instance!
        }
     procedure Free_PTOKEN_PRIVILEGES(var Privileges: PTOKEN_PRIVILEGES);
       virtual;
@@ -1774,7 +1951,7 @@ type
         If not the privilege will be removed from the list if it exists.
 
         raises
- EJwsclInvalidIndexPrivilegeException:  will be raised if the index does not exist 
+ EJwsclInvalidIndexPrivilegeException:  will be raised if the index does not exist
         }
     procedure DeletePrivilege(Index: integer); overload; virtual;
 
@@ -1783,7 +1960,7 @@ type
         If not the privilege will be removed from the list if it exists.
 
         raises
- EJwsclPrivilegeNotFoundException:  will be raised if the privilege does not exist in list. 
+ EJwsclPrivilegeNotFoundException:  will be raised if the privilege does not exist in list.
         }
     procedure DeletePrivilege(Privilege: TJwPrivilege); overload; virtual;
 
@@ -1791,12 +1968,12 @@ type
         EJwsclNotImplementedException will be raised.
         If the privilege already exists the exception EJwsclSecurityException will be raised.
 
-        @param LuidAttributes defines an luid structure with attributes. The attributes are ignored 
+        @param LuidAttributes defines an luid structure with attributes. The attributes are ignored
 
         raises
- EJwsclSecurityException:  will be raised if the privilege already exists 
-         EJwsclNotImplementedException: will be raised if the privilege set belongs to a token 
-         EJwsclPrivilegeNotFoundException: will be raised if the privilege was not found on the system 
+ EJwsclSecurityException:  will be raised if the privilege already exists
+         EJwsclNotImplementedException: will be raised if the privilege set belongs to a token
+         EJwsclPrivilegeNotFoundException: will be raised if the privilege was not found on the system
        }
     function AddPrivilege(LuidAttributes: LUID_AND_ATTRIBUTES): integer;
       overload; virtual;
@@ -1805,12 +1982,12 @@ type
         EJwsclNotImplementedException will be raised.
         If the privilege already exists the exception EJwsclSecurityException will be raised.
 
-        @param Luid defines a luid to be added 
+        @param Luid defines a luid to be added
 
         raises
- EJwsclSecurityException:  will be raised if the privilege already exists 
-         EJwsclNotImplementedException: will be raised if the privilege set belongs to a token 
-         EJwsclPrivilegeNotFoundException: will be raised if the privilege was not found on the system 
+ EJwsclSecurityException:  will be raised if the privilege already exists
+         EJwsclNotImplementedException: will be raised if the privilege set belongs to a token
+         EJwsclPrivilegeNotFoundException: will be raised if the privilege was not found on the system
        }
     function AddPrivilege(Luid: TLuid): integer; overload; virtual;
 
@@ -1818,13 +1995,13 @@ type
         EJwsclNotImplementedException will be raised.
         If the privilege already exists the exception EJwsclSecurityException will be raised.
 
-        @param HighValue contains the high value of the privilege luid to be added 
-        @param LowValue contains the low value of the privilege luid to be added 
+        @param HighValue contains the high value of the privilege luid to be added
+        @param LowValue contains the low value of the privilege luid to be added
 
         raises
- EJwsclSecurityException:  will be raised if the privilege already exists 
-         EJwsclNotImplementedException: will be raised if the privilege set belongs to a token 
-         EJwsclPrivilegeNotFoundException: will be raised if the privilege was not found on the system 
+ EJwsclSecurityException:  will be raised if the privilege already exists
+         EJwsclNotImplementedException: will be raised if the privilege set belongs to a token
+         EJwsclPrivilegeNotFoundException: will be raised if the privilege was not found on the system
        }
     function AddPrivilege(HighValue, LowValue: cardinal): integer;
       overload; virtual;
@@ -1833,12 +2010,12 @@ type
         EJwsclNotImplementedException will be raised.
         If the privilege already exists the exception EJwsclSecurityException will be raised.
 
-        @param PrivName contains the privilege name to be added 
+        @param PrivName contains the privilege name to be added
 
         raises
- EJwsclSecurityException:  will be raised if the privilege already exists 
-         EJwsclNotImplementedException: will be raised if the privilege set belongs to a token 
-         EJwsclPrivilegeNotFoundException: will be raised if the privilege was not found on the system 
+ EJwsclSecurityException:  will be raised if the privilege already exists
+         EJwsclNotImplementedException: will be raised if the privilege set belongs to a token
+         EJwsclPrivilegeNotFoundException: will be raised if the privilege was not found on the system
        }
     function AddPrivilege(PrivName: TJwString): integer; overload; virtual;
 
@@ -1933,39 +2110,40 @@ function JwGetPrivilegesText: TJwString; overload;
 SE_XXXXX [enabled]
 SE_XXXXX [disabled]
 This function returns the status of the given privileges in parameter DisplayPrivileges.
-@param DisplayPrivileges defines an array of privilege names that are checked for status and availability. 
+@param DisplayPrivileges defines an array of privilege names that are checked for status and availability.
 }
 
 function JwGetPrivilegesText(
   const DisplayPrivileges: array of TJwString): TJwString;
   overload;
 
-{<B>JwIsMemberOfAdministratorsGroup</B> checks if the user is a member of the Administrators group
-and this group is enabled for access checking. Therefore if this group has the flag use-for-deny-only
-the returned value is false. This usually happens if the user is an Administrator in Windows Vista with
-activated UAC.
- 
+{<B>JwIsMemberOfAdministratorsGroup</B> checks if the user has administrative rights.
+
 @return Returns true if the user is a member of the administrators group; otherwise false.
 
 Remarks
-This function uses the Windows API function CheckTokenMembership. 
+  Same as JwIsMemberOfAdministratorsGroup.
 
-JwIsMemberOfAdministratorsGroup is equal to JwCheckAdministratorAccess.
+Source description
+  This function calls CheckTokenMembership API and works in Vista and newer with UAC activated.
 
 }
 function JwIsMemberOfAdministratorsGroup: boolean;
 
-{<B>JwCheckAdministratorAccess</B> checks if the user is a member of the Administrators group
-and this group is enabled for access checking. Therefore if this group has the flag use-for-deny-only
-the returned value is false. This usually happens if the user is an Administrator in Windows Vista with
-activated UAC.
+{<B>JwCheckAdministratorAccess</B> checks if the user has administrative rights.
 
 @return Returns true if the user has administrative access; otherwise false.
 
 Remarks
-This function mimics the Windows API function CheckTokenMembership. 
+  This function works also in Windows Vista and later if UAC is enabled.
+  If the current process is not elevated the return value is false even if the token
+  contains the administrators group (which is disabled then).
 
-JwCheckAdministratorAccess is equal to JwIsMemberOfAdministratorsGroup.
+Same as JwIsMemberOfAdministratorsGroup.
+
+Source description
+  This code does the same as CheckTokenMembership and calls WinAPI AccessCheck. You may
+  regard it as a simple example how to use AccessCheck in JWSCL.
 }
 function JwCheckAdministratorAccess: boolean;
 
@@ -1988,8 +2166,32 @@ support UAC the return value is false.
 
 Remarks
 On Windows Systems that do not support UAC the return value is always false.
+
+Exceptions
+  EJwsclWinCallFailedException Usually this exception occurrs if a registry key could not be read.
  }
 function JwIsUACEnabled: Boolean;
+
+{<B>JwCreateRestrictedToken</b> creates a restricted token from the current process.
+
+ Remark:
+ The function adapts the token security permission to allow the user access to its resources
+ created with the restricted token (by setting a different token default dacl).
+ This is necessary if you intend to strip away the Administrators group.
+
+ The function also sets the integrity level for Vista or above.
+
+ If the current process token does not have the Administrators group the function
+ just returns a copy of the current process token.
+}
+function JwCreateRestrictedToken(
+  const DenyUserSIDs : TJwSecurityIdList = nil;
+  const RestrictedUserSIDs : TJwSecurityIdList = nil;
+  const RestrictAllSIDs : Boolean = false;
+  const DisableUserPrivileges : TJwPrivilegeSet = nil;
+  const IntegrityLevel : TJwIntegrityLabelType = iltMedium;
+  const Flags : DWORD = DISABLE_MAX_PRIVILEGE) : TJwSecurityToken;
+
 
 {$ENDIF SL_IMPLEMENTATION_SECTION}
 
@@ -1997,12 +2199,171 @@ function JwIsUACEnabled: Boolean;
 implementation
 
 uses JwsclKnownSid, JwsclMapping, JwsclSecureObjects, JwsclProcess,
-     JwsclTerminalServer, JwsclLsa, TypInfo,
-      JwsclPrivileges, Math, D5impl;
+     JwsclTerminalServer, JwsclLsa,  JwsclVersion,
+     JwsclPrivileges,
+     {$IFDEF JWSCL_TYPEINFO}
+     TypInfo,
+     {$ENDIF JWSCL_TYPEINFO}
+     Math
+     ;
 
 {$ENDIF SL_OMIT_SECTIONS}
 
 {$IFNDEF SL_INTERFACE_SECTION}
+
+
+function JwCreateRestrictedToken(
+  const DenyUserSIDs : TJwSecurityIdList = nil;
+  const RestrictedUserSIDs : TJwSecurityIdList = nil;
+  const RestrictAllSIDs : Boolean = false;
+  const DisableUserPrivileges : TJwPrivilegeSet = nil;
+  const IntegrityLevel : TJwIntegrityLabelType = iltMedium;
+  const Flags : DWORD = DISABLE_MAX_PRIVILEGE) : TJwSecurityToken;
+
+  function HasAdminAccess(Token : TJwSecurityToken) : Boolean;
+  var
+    SD: TJwSecurityDescriptor;
+  begin
+    SD := TJwSecurityDescriptor.Create;
+    try
+      SD.PrimaryGroup := JwNullSID;
+      SD.Owner   := JwAdministratorsSID;
+      SD.OwnDACL := True;
+
+      SD.DACL.Add(TJwDiscretionaryAccessControlEntryAllow.Create(nil,
+        [], STANDARD_RIGHTS_ALL, JwAdministratorsSID, False));
+
+      Result := TJwSecureGeneralObject.AccessCheck(SD, nil,
+        STANDARD_RIGHTS_ALL, TJwSecurityGenericMapping);
+    finally
+      FreeAndNil(SD);
+    end;
+  end;
+
+var
+  AdminToken
+  : TJwSecurityToken;
+
+  SIDList,
+  DenySIDList,
+  RestrictedSIDList : TJwSecurityIdList;
+  DisabledPrivilegeList : TJwPrivilegeSet;
+
+  SD : TJwSecurityDescriptor;
+  I : Integer;
+  NewSID : TJwSecurityId;
+begin
+  //You cannot use a foreign token here
+  //Only the own process token can be used
+  AdminToken := TJwSecurityToken.CreateTokenByProcess(0, TOKEN_ALL_ACCESS);
+
+  //If the current token does not have administrative rights
+  // just return this token.
+  if not HasAdminAccess(AdminToken) then
+  begin
+    if not AdminToken.IsPrimaryToken then
+    begin
+      AdminToken.ConvertToPrimaryToken(TOKEN_ALL_ACCESS);
+    end;
+
+    result := AdminToken;
+    exit;
+  end;
+
+  result := nil;
+
+  DenySIDList := TJwSecurityIdList.Create(true);
+  RestrictedSIDList := TJwSecurityIdList.Create(true);
+  DisabledPrivilegeList := TJwPrivilegeSet.Create();
+  try
+    if Assigned(DenyUserSIDs) then
+    begin
+      for I := 0 to DenyUserSIDs.Count - 1 do
+      begin
+        NewSID := TJwSecurityId.Create(DenyUserSIDs.Items[i]);
+        DenySIDList.Add(NewSID);
+      end;
+    end;
+
+    //Deny Administrator access by default
+    if DenySIDList.FindSid(JwAdministratorsSID) < 0 then
+      DenySIDList.Add(JwAdministratorsSID);
+
+
+    if RestrictAllSIDs then
+    begin
+      SIDList := AdminToken.TokenGroups;
+      try
+        RestrictedSIDList.Assign(SIDList);
+        for I := 0 to RestrictedSIDList.Count - 1 do
+        begin
+          RestrictedSIDList[I].Attributes := 0;
+        end;
+      finally
+        SIDList.Free;
+      end;
+    end
+    else
+    if Assigned(RestrictedUserSIDs) then
+    begin
+      for I := 0 to RestrictedUserSIDs.Count - 1 do
+      begin
+        NewSID := TJwSecurityId.Create(RestrictedUserSIDs.Items[i]);
+        NewSID.Attributes := 0;
+        RestrictedSIDList.Add(NewSID);
+      end;
+    end;
+
+    if Assigned(DisableUserPrivileges) and
+      (Flags and DISABLE_MAX_PRIVILEGE = 0) then
+    begin
+      for I := 0 to DisableUserPrivileges.Count - 1 do
+      begin
+        DisabledPrivilegeList.AddPrivilege(DisableUserPrivileges.PrivByIdx[I].LUID);
+      end;
+    end;
+
+    try
+      result := TJwSecurityToken.CreateRestrictedToken(AdminToken.TokenHandle,
+         TOKEN_ALL_ACCESS, Flags, DenySIDList, nil, RestrictedSIDList);
+
+      if TJwWindowsVersion.IsWindowsVista(true) then
+      begin
+        result.TokenIntegrityLevelType := IntegrityLevel;
+      end;
+
+    except
+      AdminToken.Free;
+      raise;
+    end;
+
+    //Change the Token DACL to apply more rights for the user
+    SD := TJwSecurityDescriptor.CreateDefaultByToken(AdminToken);
+    try
+     { TODO: should work without!
+
+      //add RestrictedUser SID to the token DACL
+      //This is only necessary if you add a SID to RestrictedSIDList
+      if RestrictedSIDList.Count > 0 then
+        SD.DACL.Add(TJwDiscretionaryAccessControlEntryAllow.Create(nil, [], GENERIC_ALL, JwRestrictedCodeSID, false));
+      }
+
+      //Add the user to the DACL so a process can open its own token
+      //otherwise Access Denied will occur every time a new process tries to run
+      SD.DACL.Add(TJwDiscretionaryAccessControlEntryAllow.Create(nil, [], GENERIC_ALL, JwSecurityProcessUserSID,true));
+
+      result.TokenDefaultDacl := SD.DACL;
+    finally
+      SD.Free;
+      AdminToken.Free;
+    end;
+
+  finally
+    DenySIDList.Free;
+    RestrictedSIDList.Free;
+    DisabledPrivilegeList.Free;
+  end;
+end;
 
 function JwIsUACEnabled: Boolean;
   function IsLUA : Boolean;
@@ -2012,7 +2373,7 @@ function JwIsUACEnabled: Boolean;
     Size : DWORD;
     Data : Pointer;
   begin
-    result := false;
+    //result := false;
     if RegOpenKeyExW(HKEY_LOCAL_MACHINE, 'Software\Microsoft\Windows\CurrentVersion\Policies\System', 0, KEY_READ, Key) = HRESULT(ERROR_SUCCESS) then
     begin
       Result := RegQueryValueExW(Key, 'EnableLUA', nil, nil, nil, @Size) = HRESULT(ERROR_SUCCESS);
@@ -2026,10 +2387,19 @@ function JwIsUACEnabled: Boolean;
           FreeMem(Data);
         end;
       end;
+      //else: result := false;
       RegCloseKey(Key);
     end
     else
-    RaiseLastOSError;
+      raise EJwsclWinCallFailedException.CreateFmtWinCall(
+        RsWinCallFailed,
+        'JwIsUACEnabled',                                //sSourceProc
+        '',                                //sSourceClass
+        RSUnVersion,                          //sSourceFile
+        0,                                           //iSourceLine
+        True,                                  //bShowLastError
+        'RegOpenKeyExW',                   //sWinCall
+        ['RegOpenKeyExW']);                                  //const Args: array of const
   end;
 
 begin
@@ -2077,12 +2447,9 @@ function JwCheckAdministratorAccess: boolean;
 var
   SD: TJwSecurityDescriptor;
 begin
-  if not Assigned(JwAdministratorsSID) then
-    JwInitWellKnownSIDs;
-
   SD := TJwSecurityDescriptor.Create;
   try
-    SD.PrimaryGroup := JwNullSID;
+    SD.PrimaryGroup := JwNullSID; //Usually not used
     SD.Owner   := JwAdministratorsSID;
     SD.OwnDACL := True;
 
@@ -2100,11 +2467,13 @@ function JwIsMemberOfAdministratorsGroup: boolean;
 var
   Token: TJwSecurityToken;
 begin
+  JwCheckInitKnownSid([JwAdministratorsSID], ['JwAdministratorsSID'], 'JwIsMemberOfAdministratorsGroup', '', RsUNToken);
+
   Token := TJwSecurityToken.CreateTokenEffective(TOKEN_READ or
     TOKEN_DUPLICATE);
   try
     Token.ConvertToImpersonatedToken(SecurityImpersonation, MAXIMUM_ALLOWED);
-    Result := Token.CheckTokenMembership(JwAdministratorsSID)
+    Result := Token.CheckTokenMembership(JwAdministratorsSID);
   finally
     FreeAndNil(Token);
   end;
@@ -2247,7 +2616,6 @@ begin
 
   for i := 0 to PrivilegesPointer.PrivilegeCount - 1 do
   begin
-    //fails for range check errors {_R+}
     fList.Add(TJwPrivilege.Create(Self, PrivilegesPointer.Privileges[i]));
   end;
 end;
@@ -2341,11 +2709,11 @@ destructor TJwPrivilegeSet.Destroy;
       end;
     end;
 
-    FreeAndNil(fPPrivilegesSetList);
+    JwFree(fPPrivilegesSetList);
   end;
 
 begin
-  FreeAndNil(fList);
+  JwFree(fList);
   ClearPrivilegeList;
   ClearPrivilegeSetList;
 
@@ -2511,6 +2879,9 @@ begin
   if Count = 0 then
     exit;
 
+  if JwProcessHeap = 0 then
+    JwProcessHeap := GetProcessHeap;
+
   Result := HeapAlloc(JwProcessHeap, HEAP_ZERO_MEMORY,
     sizeof(TLuidAndAttributes) * Count);
 
@@ -2565,6 +2936,9 @@ var
   size, i: integer;
 
 begin
+  if JwProcessHeap = 0 then
+    JwProcessHeap := GetProcessHeap;
+
   size   := sizeof(jwaWindows.PTOKEN_PRIVILEGES) +
     sizeof(TLuidAndAttributes) * Count;
   Result := HeapAlloc(JwProcessHeap, HEAP_ZERO_MEMORY, size);
@@ -2585,6 +2959,9 @@ function TJwPrivilegeSet.Create_PPRIVILEGE_SET: jwaWindows.PPRIVILEGE_SET;
 var
   i: integer;
 begin
+  if JwProcessHeap = 0 then
+    JwProcessHeap := GetProcessHeap;
+
   Result := HeapAlloc(JwProcessHeap, HEAP_ZERO_MEMORY,
     sizeof(jwaWindows.TPrivilegeSet) - sizeof(TLuidAndAttributes) +
     sizeof(TLuidAndAttributes) * Count);
@@ -2610,7 +2987,7 @@ begin
 
  {HeapFree(JwProcessHeap, 0, Pointer(Privileges));
   fPPrivilegesSetList.Remove(Privileges);}
-  
+
   fPPrivilegesSetList.Remove(Privileges);
   HeapFree(JwProcessHeap, 0, Pointer(Privileges));
 
@@ -2662,15 +3039,14 @@ end;
 function TJwPrivilegeSet.AddPrivilege(PrivName: TJwString): integer;
 var
   aLUID: Luid;
+  hRes : HRESULT;
 begin
-  if not
-  {$IFDEF UNICODE}LookupPrivilegeValueW{$ELSE}
-    LookupPrivilegeValueA
-{$ENDIF}
-    ((''), TJwPChar(PrivName), aLUID) then
+  hRes := TJwSecurityToken.LookupPrivilegeValue('', PrivName, aLUID, DEFAULT_LUID_NULL);
+
+  if FAILED(hRes) then
     raise EJwsclPrivilegeNotFoundException.CreateFmtEx(
       RsTokenCallLookUpPrivilegeValueFailed, 'AddPrivilege',
-      ClassName, RsUNToken, 0, True, [PrivName]);
+      ClassName, RsUNToken, 0, HRESULT_CODE(hRes), [PrivName]);
   Result := AddPrivilege(aLUID);
 end;
 
@@ -2734,16 +3110,15 @@ constructor TJwPrivilege.Create(anOwner: TJwPrivilegeSet;
     sName: TJwPChar;
 
   begin
-    if not Assigned(anOwner) then
-      raise EJwsclInvalidOwnerException.CreateFmtEx(
-        RsNilParameter, 'Create', ClassName, RsUNToken, 0, False, ['Owner']);
-
     Result := '';
     len    := 0;
     {$IFDEF UNICODE}LookupPrivilegeNameW{$ELSE}
     LookupPrivilegeNameA
 {$ENDIF}
     ('', LUID, '', len);
+
+    if JwProcessHeap = 0 then
+      JwProcessHeap := GetProcessHeap;
 
     sName := HeapAlloc(JwProcessHeap, HEAP_ZERO_MEMORY, (len + 1) *
       sizeof(TJwChar));
@@ -2780,6 +3155,9 @@ constructor TJwPrivilege.Create(anOwner: TJwPrivilegeSet;
 {$ENDIF}
     ('', TJwPChar(aName), '', len, aLanguageID);
 
+    if JwProcessHeap = 0 then
+      JwProcessHeap := GetProcessHeap;
+
     sName := HeapAlloc(JwProcessHeap, HEAP_ZERO_MEMORY, (len + 1) *
       sizeof(TJwChar));
 
@@ -2803,6 +3181,17 @@ begin
 
   fPrivilege_Enabled_By_Default := IsEnabledByDefault;
 end;
+
+constructor TJwPrivilege.Create(anOwner: TJwPrivilegeSet;
+        Name : String; Attributes: cardinal);
+var L : TLuidAndAttributes;
+begin
+  L.Luid := TJwPrivilege.TextToLUID(Name);
+  L.Attributes := Attributes;
+  Create(anOwner, L);
+end;
+
+
 
 class function TJwPrivilege.MakeLUID_AND_ATTRIBUTES(const LowPart: cardinal;
   const HighPart: LONG; Attributes: cardinal): TLuidAndAttributes;
@@ -2828,18 +3217,16 @@ end;
 
 class function TJwPrivilege.TextToLUID(const Name: TJwString;
   const SystemName: TJwString = ''): TLuid;
+var
+  hRes : HRESULT;
 begin
   Result := LUID_INVALID;
-  if not
-{$IFDEF UNICODE}LookupPrivilegeValueW{$ELSE}
-    LookupPrivilegeValueA
-{$ENDIF}
-    (TJwPChar(SystemName), TJwPChar(Name), Result) then
+  hRes := TJwSecurityToken.LookupPrivilegeValue(SystemName, Name, Result, DEFAULT_LUID_NULL);
 
+  if FAILED(hRes) then
     raise EJwsclWinCallFailedException.CreateFmtEx(
       RsWinCallFailed, 'TextToLUID', ClassName, RsUNToken, 0,
-      True, ['LookupPrivilegeValue']);
-
+      HRESULT_CODE(hRes), ['LookupPrivilegeValue']);
 end;
 
 class function TJwPrivilege.LUIDtoText(aLUID: LUID): TJwString;
@@ -2943,6 +3330,10 @@ begin
 
   Fillchar(prevState, sizeof(prevState), 0);
   preLen := 0;
+  (*
+  BUGBUG:
+    Parameter 3 should be sizeof(prevState)
+  *)
   if (not AdjustTokenPrivileges(Owner.Owner.TokenHandle, False,
     @privs, sizeof(privs), @prevState, @preLen)) then
   begin
@@ -3043,12 +3434,10 @@ end;
 procedure TJwSecurityToken.Done;
 //[Hint] var i : Integer;
 begin
-  fPrivelegesList.Free;
-  fPrivelegesList := nil;
+  JwFree(fPrivelegesList);
 
   //!!hier noch privs zurückpopen
-  fStackPrivilegesList.Free;
-  fStackPrivilegesList := nil;
+  JwFree(fStackPrivilegesList);
 end;
 
 destructor TJwSecurityToken.Destroy;
@@ -3059,7 +3448,7 @@ begin
   if not Shared then
     CloseHandle(fTokenHandle);
 
-  //invalidate it  
+  //invalidate it
   fTokenHandle := 0;
 
   Done;
@@ -3111,7 +3500,7 @@ end;}
 
 procedure TJwSecurityToken.CheckTokenHandle(sSourceProc: TJwString);
 begin
-  //TODO: check also non null tokens
+  //TODO: check also none null tokens
   if fTokenHandle = 0 then
     raise EJwsclInvalidTokenHandle.CreateFmtEx(
       RsTokenInvalidTokenHandle, sSourceProc, ClassName, RsUNToken,
@@ -3141,7 +3530,10 @@ begin
 
 
   except
-    //Make sure that the given token has enough access rights
+    //TODO: Check for correct exception
+  //on E : EJwscl...
+
+  //Make sure that the given token has enough access rights
     //to get the DACL
     //Strangely enough, XP needs TOKEN_DUPLICATE to work correctly
 
@@ -3201,7 +3593,7 @@ begin
 
   if Duplicate and bResult then
   begin
-    fAccessMask := TOKEN_ALL_ACCESS; //skip our internal access checks routines 
+    fAccessMask := TOKEN_ALL_ACCESS; //skip our internal access checks routines
     ConvertToImpersonatedToken(DEFAULT_IMPERSONATION_LEVEL, aDesiredAccess);
     ConvertToPrimaryToken(aDesiredAccess);
   end;
@@ -3224,9 +3616,9 @@ constructor TJwSecurityToken.CreateTokenByProcessId(const ProcessID: DWORD;
 var P : IJwPrivilegeScope;
     hProc : DWORD;
 begin
-   P := JwGetPrivilegeScope([SE_DEBUG_NAME],pst_EnableIfAvail);
+  P := JwGetPrivilegeScope([SE_DEBUG_NAME],pst_EnableIfAvail);
 
-  hProc := OpenProcess(PROCESS_QUERY_INFORMATION,
+  hProc := OpenProcess({PROCESS_QUERY_INFORMATION or PROCESS_VM_READ,}PROCESS_ALL_ACCESS,
                 False, ProcessID);
   if hProc = 0 then
       raise EJwsclWinCallFailedException.CreateFmtEx(
@@ -3386,7 +3778,7 @@ begin
 
     try
       //Copy token handle to a primary one
-      Self.CreateDuplicateExistingToken(TokenOrig.TokenHandle, DesiredAccess);
+      Self.CreateDuplicateExistingToken(TokenOrig.TokenHandle, DesiredAccess or TOKEN_DUPLICATE);
     finally
       FreeAndNil(TokenOrig);
     end;
@@ -3431,8 +3823,8 @@ begin
     TSRunning := true;
   end
   else
-    TSRunning := TJwWindowsVersion.IsWindows7 or //On Win7 WTS calls are always valid
-      TJwWindowsVersion.IsTerminalServiceRunning;
+    TSRunning := TJwWindowsVersion.IsWindows7(True) or //On Win7 WTS calls are always valid
+      TJwSystemInformation.IsTerminalServiceRunning;
 
   if (not TSRunning) then
     raise EJwsclTerminalServiceNecessary.CreateFmtEx(
@@ -3469,7 +3861,7 @@ begin
         ClassName, RsUNToken, 0, True, [SessionID]);
   end;
 
-  
+
   try
     fAccessMask := GetMaximumAllowed;
   except
@@ -3477,7 +3869,7 @@ begin
     //we may fail here, so just set access mask to zero
     //many people don't even read it.
     fAccessMask := 0;
-  end;  
+  end;
 end;
 
 constructor TJwSecurityToken.CreateWTSQueryUserToken(SessionID:
@@ -3550,7 +3942,7 @@ begin
     if fTokenHandle <> aTokenHandle then
       Shared := False;
 
-    //if we are here the token is an impersonated one in every case  
+    //if we are here the token is an impersonated one in every case
     ConvertToPrimaryToken(aDesiredAccess);
 
     Shared := False;
@@ -3587,6 +3979,7 @@ var
   cLuids, cDisSids, cResSids: cardinal;
 
   aToken: TJwSecurityToken;
+  i : Integer;
 begin
   Self.Create;
   fShared := False;
@@ -3625,6 +4018,16 @@ begin
   begin
     pResSids := PSID_AND_ATTRIBUTES(RestrictedSids.Create_PSID_Array);
     cResSids := RestrictedSids.Count;
+
+    for I := 0 to RestrictedSids.Count - 1 do
+    begin
+      if RestrictedSids[i].Attributes <> 0 then
+      begin
+        raise EJwsclInvalidSecurityListException.CreateFmtEx(
+          RsInvalidRestrictedSids, 'CreateRestrictedToken',
+          ClassName, RsUNToken, 0, True, []);
+      end;
+    end;
   end;
 
   //[Hint] bRes := false;
@@ -3652,15 +4055,15 @@ begin
     //we may fail here, so just set access mask to zero
     //many people don't even read it.
     fAccessMask := 0;
-  end;    
+  end;
 
   if Assigned(aToken) then
     aToken.Free;
 
   if not bRes then
     raise EJwsclSecurityException.CreateFmtEx(
-      RsTokenFailedImpersonateAnonymousToken, 'CreateRestrictedToken',
-      ClassName, RsUNToken, 0, True, []);
+      RsWinCallFailed, 'CreateRestrictedToken',
+      ClassName, RsUNToken, 0, True, ['CreateRestrictedToken']);
 end;
 
 
@@ -3699,9 +4102,9 @@ begin
     if not fShared then
       CloseHandle(fTokenHandle);
     fTokenHandle := hNewTokenHandle;
-    
-      
-  	fAccessMask := RetrieveSpecificAccessRights(aDesiredAccess);  
+
+
+    fAccessMask := RetrieveSpecificAccessRights(aDesiredAccess);
   end
   else
     raise EJwsclTokenImpersonationException.CreateFmtEx(
@@ -3744,7 +4147,7 @@ begin
       CloseHandle(fTokenHandle);
     fTokenHandle := hNewTokenHandle;
 
-    fAccessMask := RetrieveSpecificAccessRights(aDesiredAccess);        
+    fAccessMask := RetrieveSpecificAccessRights(aDesiredAccess);
   end
   else
     raise EJwsclTokenPrimaryException.CreateFmtEx(
@@ -3771,24 +4174,24 @@ begin
   iTC := cardinal(aTokenInformationClass);
   TokenClass := JwaWindows._TOKEN_INFORMATION_CLASS(iTC);
 
-  //GetTokenInformation should always return ERROR_INSUFFICIENT_BUFFER
+  //GetTokenInformation should always return ERROR_INSUFFICIENT_BUFFER or ERROR_BAD_LENGTH
   if not jwaWindows.GetTokenInformation(hTokenHandle, TokenClass,
     ptrTokenType, 0, Result) then
   begin
     iError := GetLastError;
-    if (iError <> HRESULT(ERROR_INSUFFICIENT_BUFFER)) and (iError <> 24) then
-      Result := 0;
-    if iError = 24 then
+
+    if (iError <> HRESULT(ERROR_INSUFFICIENT_BUFFER)) and (iError <> ERROR_BAD_LENGTH) then
+    Result := 0; //something else happened
+
+    //this case happens on token classes with DWORD type (e.g. TokenSessionId)
+    if iError = ERROR_BAD_LENGTH then
     begin
-      {on XP, this size of the following classtypes
-       returns 0.
-       We fix that here
-      }
       case aTokenInformationClass of
         JwaWindows.TokenSessionId : result := SizeOf(DWORD);
       end;
     end;
   end;
+  //else the caller must check for zero return
 end;
 
 procedure TJwSecurityToken.GetTokenInformation(hTokenHandle: TJwTokenHandle;
@@ -3818,15 +4221,19 @@ begin
   else
     CheckTokenAccessType(TOKEN_QUERY, 'TOKEN_QUERY', 'GetTokenInformation');
 
+
   tokLen := Self.GetTokenInformationLength(hTokenHandle,
     TokenInformationClass);
 
   if tokLen <= 0 then
     doRaiseError(nil, RsTokenUnableTokenInformationLength);
 
+  if JwProcessHeap = 0 then
+    JwProcessHeap := GetProcessHeap;
+
   TokenInformation := HeapAlloc(JwProcessHeap, HEAP_ZERO_MEMORY, tokLen);
 
-  if (TokenInformation = nil) then
+  if (TokenInformation = nil) then //TODO: BUGBUG : On not enough Memory this will fail
     doRaiseError(EJwsclNotEnoughMemory,
       RsTokenNotEnoughMemoryTokenSave);
 
@@ -3847,7 +4254,7 @@ begin
   if not Result then
   begin
     HeapFree(JwProcessHeap, 0, TokenInformation);
-    doRaiseError(nil, RsTokenUnableGetTokenInformation);
+    doRaiseError(nil, RsTokenUnableGetTokenInformation); //TODO: BUG, duplicate use of same exception class for different errors
   end;
 end;
 
@@ -3985,7 +4392,7 @@ var
   groups: PTOKEN_GROUPS;
   temp:   cardinal;
 begin
-  CheckTokenHandle('GetTokenGroupsEx');
+  CheckTokenHandle('SetTokenGroups');
 
   if not Assigned(List) then
     raise EJwsclNILParameterException.CreateFmtEx(
@@ -4031,25 +4438,12 @@ begin
     JwsclTypes.
 {$ENDIF}*)
     JwaWindows.TokenGroups, Pointer(pGroups));
-
-  Result := TJwSecurityIdList.Create(True, pGroups);
-
-  HeapFree(JwProcessHeap, 0, pGroups);
+  try
+    Result := TJwSecurityIdList.Create(True, pGroups);
+  finally
+    HeapFree(JwProcessHeap, 0, pGroups);
+  end;
 end;
-
-function TJwSecurityToken.GetTokenGroupsEx: PTokenGroups;
-  //var pGroups : PTOKEN_GROUPS;
-begin
-  CheckTokenHandle('GetTokenGroupsEx');
-
-  GetTokenInformation(fTokenHandle,
-(*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
-    JwsclTypes.
-{$ENDIF}*)
-    JwaWindows.TokenGroups, Pointer(Result));
-end;
-
-
 
 
 function TJwSecurityToken.GetTokenRestrictedSids: TJwSecurityIdList;
@@ -4058,12 +4452,12 @@ var
 begin
   CheckTokenHandle('GetTokenRestrictedSids');
   GetTokenInformation(fTokenHandle,
-(*{$IFDEF SL_OMIT_SECTIONS}JwsclLibrary.{$ELSE}
-    JwsclTypes.
-{$ENDIF}     *)
-    JwaWindows.TokenRestrictedSids, Pointer(pGroups));
-  Result := TJwSecurityIdList.Create(True, pGroups);
-  HeapFree(JwProcessHeap, 0, pGroups);
+                      JwaWindows.TokenRestrictedSids, Pointer(pGroups));
+  try
+    Result := TJwSecurityIdList.Create(True, pGroups);
+  finally
+    HeapFree(JwProcessHeap, 0, pGroups);
+  end;
 end;
 
 
@@ -4107,14 +4501,17 @@ begin
 
 
   pDACL.DefaultDacl := aDefaultDCAL.Create_PACL;
+  try
 
-  if (not SetTokenInformation(fTokenHandle, jwaWindows.TokenDefaultDacl,
-    Pointer(@pDACL), sizeof(TOKEN_DEFAULT_DACL))) then
-    raise EJwsclWinCallFailedException.CreateFmtEx(
-      RsWinCallFailed, 'SetTokenDefaultDacl', ClassName, RsUNToken,
-      0, True, ['SetTokenInformation']);
+    if (not SetTokenInformation(fTokenHandle, jwaWindows.TokenDefaultDacl,
+      Pointer(@pDACL), sizeof(TOKEN_DEFAULT_DACL))) then
+      raise EJwsclWinCallFailedException.CreateFmtEx(
+        RsWinCallFailed, 'SetTokenDefaultDacl', ClassName, RsUNToken,
+        0, True, ['SetTokenInformation']);
 
-  aDefaultDCAL.Free_PACL(pDACL.DefaultDacl);
+  finally
+    aDefaultDCAL.Free_PACL(pDACL.DefaultDacl);
+  end;
 end;
 
 function TJwSecurityToken.GetTokenOrigin: TLuid;
@@ -4361,7 +4758,7 @@ in \includes\jediapilib.inc.
   HeapFree(GetProcessHeap, 0, privs);
 {$ELSE}
   result := 0;
-{$ENDIF VISTA}  
+{$ENDIF VISTA}
 end;
 
 
@@ -4369,7 +4766,7 @@ function TJwSecurityToken.GetLinkedToken: TJwSecurityToken;
 {$IFDEF VISTA}
 var
   Data: PTokenLinkedToken;
-{$ENDIF VISTA}  
+{$ENDIF VISTA}
 begin
   TJwWindowsVersion.CheckWindowsVersion(
     cOsVista, True, 'GetLinkedToken', ClassName, RsUNToken, 0);
@@ -4390,56 +4787,90 @@ in \includes\jediapilib.inc.
     JwaWindows.TTokenInformationClass(JwaWindows.TokenLinkedToken), Pointer(Data));
 
   try
-    {TODO: Warning:
-     I do not really know whether the LinkedToken is safe to be shared or
-      must be destroyed.}
-    Result := TJwSecurityToken.Create(Data^.LinkedToken, shShared,
+    Result := TJwSecurityToken.Create(Data^.LinkedToken, shOwned,
       MAXIMUM_ALLOWED);
   finally
     HeapFree(GetProcessHeap, 0, Data);
   end;
 {$ELSE}
-  result := nil;  
-{$ENDIF VISTA}  
+  result := nil;
+{$ENDIF VISTA}
 end;
 
 function TJwSecurityToken.GetIntegrityLevelType: TJwIntegrityLabelType;
 var
-  List:   TJwSecurityIdList;
+  Level:   TJwSecurityId;
+  SID : TJwIntegrityLevelSID;
   Labels: TJwIntegrityLabelType;
 begin
   for Labels := low(TJwIntegrityLabelType) to high(TJwIntegrityLabelType) do
-    if (Labels <> iltNone) and not Assigned(JwIntegrityLabelSID[Labels]) then
+    if (Labels <> iltNone) and not Assigned(JwIntegrityLabelSID(Labels)) then
       raise EJwsclInitWellKnownException.CreateFmtEx(
         RsInitWellKnownNotCalled, 'GetIntegrityLevelType',
         RsTokenGlobalClassName, RsUNToken, 0, False, []);
 
-  Result := iltNone;
-
-  List := GetIntegrityLevel;
+  Level := GetIntegrityLevel;
   try
-    if Assigned(List) and (List.Count > 0) then
-    begin
-      for Labels := low(TJwIntegrityLabelType)
-        to high(TJwIntegrityLabelType) do
-      begin
-        if Assigned(JwIntegrityLabelSID[Labels]) and
-          JwIntegrityLabelSID[Labels].EqualSid(List[0]) then
-        begin
-          Result := Labels;
-          break;
-        end;
-      end;
+    SID := TJwIntegrityLevelSID.Create(Level);
+    try
+      result := SID.LabelType;
+    finally
+      SID.Free;
     end;
   finally
-    List.Free;
+    Level.Free;
   end;
 end;
 
 procedure TJwSecurityToken.SetIntegrityLevelType(
   const LevelType: TJwIntegrityLabelType);
 begin
-  SetIntegrityLevel(LevelType);
+  SetIntegrityLevel(LevelType, [sidaGroupMandatory]);
+end;
+
+class procedure TJwSecurityToken.SaferComputeTokenFromLevel(const SaferLevelHandle : TSaferLevelHandle;
+      const InAccessToken : TJwSecurityToken; SaferFlags : DWORD;
+        out Result : TJwSaferComputeTokenResult);
+var
+  hToken : THandle;
+  InAccessTokenInt : TJwSecurityToken;
+begin
+  InAccessTokenInt := InAccessToken;
+  if not Assigned(InAccessToken) then
+    InAccessTokenInt := TJwSecurityToken.CreateTokenEffective(TOKEN_ALL_ACCESS);
+
+  try
+    ZeroMemory(@result, sizeof(result));
+
+    if (not JwaWindows.SaferComputeTokenFromLevel(SaferLevelHandle,
+      InAccessTokenInt.TokenHandle, @hToken, SaferFlags, @result.CompareResult)) then
+      raise EJwsclWinCallFailedException.CreateFmtEx(
+          RsWinCallFailed, 'SaferComputeTokenFromLevel', ClassName,
+          RsUNToken, 0, True, ['SaferComputeTokenFromLevel']);
+    if hToken <> 0 then
+    begin
+      Result.Token := TJwSecurityToken.Create;
+      Result.Token.fAccessMask := InAccessTokenInt.AccessMask;
+      Result.Token.fTokenHandle := hToken;
+      Result.Token.fShared := False;
+    end;
+  finally
+    FreeAndNil(InAccessTokenInt);
+  end;
+end;
+
+class procedure TJwSecurityToken.SaferComputeTokenFromLevel(const SaferLevelHandle : TSaferLevelHandle;
+  const InAccessToken : TJwSecurityToken; SaferFlags : DWORD;
+    out Result : TJwSecurityToken);
+var TokenResult : TJwSaferComputeTokenResult;
+begin
+  if (SaferFlags and SAFER_TOKEN_COMPARE_ONLY <> 0) then
+    SaferFlags := SaferFlags xor SAFER_TOKEN_COMPARE_ONLY;
+
+  SaferComputeTokenFromLevel(SaferLevelHandle, InAccessToken, SaferFlags, TokenResult);
+
+  ZeroMemory(@Result, sizeof(Result));
+  Result := TokenResult.Token;
 end;
 
 procedure TJwSecurityToken.SetIntegrityLevel(
@@ -4447,12 +4878,12 @@ procedure TJwSecurityToken.SetIntegrityLevel(
   const Attributes: TJwSidAttributeSet = [sidaGroupMandatory]);
 begin
   if (LabelType <> iltNone) and not
-    Assigned(JwIntegrityLabelSID[LabelType]) then
+    Assigned(JwIntegrityLabelSID(LabelType)) then
     raise EJwsclInitWellKnownException.CreateFmtEx(
       RsInitWellKnownNotCalled, 'SetIntegrityLevel',
       RsTokenGlobalClassName, RsUNToken, 0, False, []);
 
-  SetIntegrityLevel(JwIntegrityLabelSID[LabelType], Attributes);
+  SetIntegrityLevel(JwIntegrityLabelSID(LabelType), Attributes);
 end;
 
 
@@ -4461,7 +4892,7 @@ procedure TJwSecurityToken.SetIntegrityLevel(const MandatorySid: TJwSecurityId;
 {$IFDEF VISTA}
 var
   mL: TTokenMandatoryLabel;
-{$ENDIF VISTA}  
+{$ENDIF VISTA}
 begin
   if not Assigned(MandatorySid) then
     raise EJwsclNILParameterException.CreateFmtEx(
@@ -4494,11 +4925,11 @@ in \includes\jediapilib.inc.
 {$ENDIF VISTA}
 end;
 
-function TJwSecurityToken.GetIntegrityLevel: TJwSecurityIdList;
+function TJwSecurityToken.GetIntegrityLevel: TJwSecurityId;
 {$IFDEF VISTA}
 var
   mL: PTokenMandatoryLabel;
-{$ENDIF VISTA}  
+{$ENDIF VISTA}
 begin
   TJwWindowsVersion.CheckWindowsVersion(
     cOsVista, True, 'GetIntegrityLevel', ClassName, RsUNToken, 0);
@@ -4523,7 +4954,7 @@ in \includes\jediapilib.inc.
   Result := nil;
   if Assigned(mL) then
     try
-      Result := TJwSecurityIdList.Create(@Ml^.Label_);
+      Result := TJwSecurityId.Create(PSid_And_Attributes(@Ml^.Label_));
     finally
       HeapFree(GetProcessHeap, 0, mL);
     end;
@@ -4722,11 +5153,11 @@ begin
     else
       fAccessMask := AccessMask;
   except
-	//if GetMaximumAllowed does not have the READ_CONTROL flag
-	//we may fail here, so just set access mask to zero
-	//many people don't even read it.
+    //if GetMaximumAllowed does not have the READ_CONTROL flag
+    //we may fail here, so just set access mask to zero
+    //many people don't even read it.
     fAccessMask := 0;
-  end;          
+  end;
 end;
 
 
@@ -5027,10 +5458,11 @@ begin
     JwsclTypes.
 {$ENDIF}*)
     JwaWindows.TokenStatistics, Pointer(stat));
-
-  Result := TJwSecurityTokenStatistics.Create(stat^);
-
-  HeapFree(GetProcessHeap, 0, stat);
+  try
+    Result := TJwSecurityTokenStatistics.Create(stat^);
+  finally
+    HeapFree(GetProcessHeap, 0, stat);
+  end;
 end;
 
 //function LsaGetUserName(const UserName, DomainName : PUNICODE_STRING) : NTSTATUS; stdcall; external 'advapi32';
@@ -5112,7 +5544,7 @@ procedure TJwSecurityToken.LoadUserProfile(
   begin
     result := '';
     DomainControllerInfo := nil;
-    
+
     try
       //ask domain controller for its name
       Res := {$IFDEF UNICODE}DsGetDcNameW{$ELSE}DsGetDcNameA{$ENDIF}
@@ -5131,7 +5563,7 @@ procedure TJwSecurityToken.LoadUserProfile(
     if DomainControllerInfo <> nil then
       NetApiBufferFree(DomainControllerInfo);
 
-    //get user information for roaming profile   
+    //get user information for roaming profile
     if NetUserGetInfo(
         PWideChar(WideString(intServerName)),//__in   LPCWSTR servername,
         PWideChar(WideString(UserName)),//__in   LPCWSTR username,
@@ -5166,7 +5598,7 @@ begin
   }
   PrivScope := JwGetPrivilegeScope([SE_RESTORE_NAME, SE_BACKUP_NAME]);
 
- 
+
 
   IntProfileInfo.dwSize := Sizeof(IntProfileInfo);
 
@@ -5270,10 +5702,76 @@ begin
       'ImpersonateSelf', ClassName, RsUNToken, 0, True, []);
 end;
 
+class function TJwSecurityToken.LookupPrivilegeValue(const lpSystemName,
+  lpName: TJwString; out lpLuid: TLuid; const lpDefaultLuid: TLUID;
+  iTryCount: Integer): HRESULT;
+var
+  iRetries : Integer;
+  bSuccess : Boolean;
+  aLuid : LUID;
+begin
+  result := ERROR_SUCCESS;
+
+  if (iTryCount < 1) then
+    iTryCount := 1;
+
+  //Try several times to get the value
+  //LookupPrivilegeValue may fail with ERROR_IO_PENDING which
+  //then should be retried (never happened to me, CW)
+  iRetries := iTryCount;
+  repeat
+    aLuid.LowPart  := 0;
+    aLuid.HighPart := 0;
+
+    bSuccess :=
+     {$IFDEF UNICODE}LookupPrivilegeValueW{$ELSE}LookupPrivilegeValueA{$ENDIF}
+        (TJwPChar(lpSystemName), TJwPChar(lpName), lpLuid);
+
+    if (not bSuccess and (GetLastError() = ERROR_IO_PENDING)) then
+    begin
+      Sleep(500);
+    end;
+
+    Dec(iRetries);
+  until ((iRetries <= 0) or (bSuccess or (GetLastError() <> ERROR_IO_PENDING)));
+  //while ((iRetries > 0) && !bSuccess && (GetLastError() == ERROR_IO_PENDING));
+
+  if (not bSuccess) then
+  begin
+    result := HRESULT_FROM_WIN32(GetLastError);
+
+    Sleep(500); //wait for the aLuid value to be written - just guessing
+
+    if ((GetLastError() = ERROR_IO_PENDING) and
+      ((aLuid.LowPart <> 0) and (aLuid.LowPart < $FF)) //Make some assumptions about the low part since the value may be incorrect
+      ) then
+    begin
+      //we got a LUID
+
+      result := HRESULT_FROM_WIN32(ERROR_NO_SUCH_PRIVILEGE) or not $80000000; //this is a SUCCESS hresult with error info
+      //'Could not get LUID for privilege but assume it is %d.%d.',aLuid.HighPart, aLuid.LowPart);
+    end
+    else
+    begin
+      //A privilege name could not be resolved to a LUID.
+
+      //use default value
+      if (lpDefaultLuid.LowPart <> DEFAULT_LUID_NULL.LowPart) and
+         (lpDefaultLuid.HighPart <> DEFAULT_LUID_NULL.HighPart) then
+      begin
+        lpLuid := lpDefaultLuid;
+        result := HRESULT_FROM_WIN32(ERROR_NO_DATA);
+      end;
+    end;
+  end;
+
+  //I got this problem: In Delphi sometimes the last error value is reset beyond the last end; so we use HRESULT
+end;
+
 class procedure TJwSecurityToken.RevertToSelf;
 begin
   if not jwaWindows.RevertToSelf then
-    raise EJwsclSecurityException.CreateFmtEx(RsTokenFailedRevertSelf,
+    raise EJwsclWinCallFailedException.CreateFmtEx(RsTokenFailedRevertSelf,
       'RevertToSelf', ClassName, RsUNToken, 0, True, []);
 end;
 
@@ -5281,7 +5779,7 @@ class procedure TJwSecurityToken.ImpersonateNamedPipeClient(
   hNamedPipe: THandle);
 begin
   if not jwaWindows.ImpersonateNamedPipeClient(hNamedPipe) then
-    raise EJwsclSecurityException.CreateFmtEx(
+    raise EJwsclWinCallFailedException.CreateFmtEx(
       RsTokenFailedImpPipe, 'ImpersonateNamedPipeClient',
       ClassName, RsUNToken, 0, True, []);
 end;
@@ -5295,6 +5793,11 @@ begin
 
   if not result then
     result := OpenThreadToken(GetCurrentThread, TOKEN_QUERY or TOKEN_READ, true, Handle);
+
+  if not result then
+    raise EJwsclWinCallFailedException.CreateFmtEx(
+      RsWinCallFailed, 'HasThreadAToken',
+      ClassName, RsUNToken, 0, True, ['OpenThreadToken']);
 
   if Handle <> INVALID_HANDLE_VALUE then
     CloseHandle(Handle);
@@ -5426,10 +5929,13 @@ begin
   if (Self.AccessMask and aDesiredAccessMask) <> aDesiredAccessMask then
     raise EJwsclAccessTypeException.CreateFmtEx(
       RsTokenCheckAccessTypeText, SourceProc, ClassName, RsUNToken,
-      0, False, [IntToBin(aDesiredAccessMask), StringMask,
-      IntToBin(AccessMask), SourceProc,
-      JwFormatAccessRights(aDesiredAccessMask, TokenMapping),
-      JwFormatAccessRights(AccessMask, TokenMapping)
+      0, False,
+      [
+      IntToBin(aDesiredAccessMask), StringMask,
+      IntToBin(AccessMask),
+      SourceProc,
+      JwFormatAccessRights(AccessMask, TokenMapping),
+      JwFormatAccessRights(aDesiredAccessMask, TokenMapping)
       ]);
 end;
 
@@ -5484,15 +5990,6 @@ function TJwSecurityTokenStatistics.GetText: TJwString;
   end;
 
 begin
-  Result := '';
-  {
-  RsTokenStatisticsText = 'TokenID: %0:s\r\AuthenticationId: %1:s\r\nExpirat' +
-    'ionTime: %2:s\r\nToken type: %3:d\r\nImpersonation level: 0x%4:x\r\nDynam' +
-    'ic charged: 0x%5:x\r\nDynamic available: 0x%6:x\r\nGroup count: %7:d\r\nP' +
-    'rivilege count: %8:d\r\nModified ID: %9:s\r\n';
- 
-  }
-
   Result := JwFormatString(RsTokenStatisticsText,
     [TJwPrivilege.LUIDtoText(fTokenId), //0
     TJwPrivilege.LUIDtoText(fAuthenticationId), //1
@@ -5505,21 +6002,6 @@ begin
     fPrivilegeCount, //8
     TJwPrivilege.LUIDtoText(fModifiedId) //9
     ]);
-  {
-  Result := Result + 'TokenID: ' + TJwPrivilege.LUIDtoText(fTokenId) + #13#10;
-  Result := Result + 'AuthenticationId: ' + TJwPrivilege.LUIDtoText(
-    fAuthenticationId) + #13#10;
-
-  Result := Result + 'ExpirationTime: ' + GetExpirationTimeString + #13#10;
-  Result := Result + 'TOKEN_TYPE: 0x' + IntToHex(integer(fTOKEN_TYPE), 2) + #13#10;
-  Result := Result + 'SECURITY_IMPERSONATION_LEVEL: 0x' + IntToHex(
-    integer(fSECURITY_IMPERSONATION_LEVEL), 2) + #13#10;
-  Result := Result + 'DynamicCharged: 0x' + IntToHex(fDynamicCharged, 2) + #13#10;
-  Result := Result + 'DynamicAvailable: 0x' + IntToHex(
-    fDynamicAvailable, 2) + #13#10;
-  Result := Result + 'GroupCount: 0x' + IntToHex(fGroupCount, 2) + #13#10;
-  Result := Result + 'PrivilegeCount: 0x' + IntToHex(fPrivilegeCount, 2) + #13#10;
-  Result := Result + 'ModifiedId: ' + TJwPrivilege.LUIDtoText(fModifiedId) + #13#10;      }
 end;
 
 constructor TJwSecurityToken.CreateLogonUser(sUsername, sDomain,
@@ -5670,7 +6152,7 @@ begin
 
     end;
 
-    
+
     try
       fAccessMask := GetMaximumAllowed;
     except
@@ -5679,8 +6161,8 @@ begin
       //many people don't even read it.
       fAccessMask := 0;
     end;
-    
-    
+
+
 
     fPrivelegesList      := TObjectList.Create(False);
     fStackPrivilegesList := TObjectList.Create(True);
@@ -5763,8 +6245,6 @@ var
   Token: TJwSecurityToken;
   Sid:   TJwSecurityID;
 begin
-  JwInitWellKnownSIDs; //loads JwLocalSystemSID if not already done
-
   Token := TJwSecurityToken.CreateTokenByProcess(0, TOKEN_READ or TOKEN_QUERY);
   try
     Sid := Token.GetTokenUser;
@@ -5782,6 +6262,51 @@ begin
 end;
 
 
+
+class function TJwSecurityToken.IsTokenLinkedForMappedDrives: Boolean;
+  function CheckReg() : DWORD;
+  var
+    Access : TJwAccessMask;
+    dwSize : DWORD;
+    res : Integer;
+    sErrSrc : String;
+    key : HKEY;
+  begin
+    Access := KEY_READ;
+    result := 0;
+
+    if not TJwWindowsVersion.IsWindows2000(false) and
+      TJwWindowsVersion.IsWindows64 then
+      Access := Access or KEY_WOW64_64KEY;
+
+    res := RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+      'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System', 0, Access, key);
+    sErrSrc := 'RegOpenKeyExW';
+
+    if res = {ERROR_SUCCESS}0 then
+    begin
+      dwSize := sizeof(result);
+      res := RegQueryValueExW(key, 'EnableLinkedConnections', nil, nil, @result, @dwSize);
+      sErrSrc := 'RegQueryValueExW';
+
+      if res = {ERROR_FILE_NOT_FOUND}2 then
+      begin
+        result := 0; //default value is off
+        res := ERROR_SUCCESS;
+      end;
+
+      RegCloseKey(key);
+    end;
+
+    if res <> {ERROR_SUCCESS}0 then
+      raise EJwsclWinCallFailedException.CreateFmtEx(
+        RsWinCallFailed, 'IsTokenLinkedForMappedDrives', ClassName, RsUNToken,
+        0, res, [sErrSrc]);
+  end;
+begin
+  result := not JwIsUACEnabled or (CheckReg() = 1);
+end;
+
 function TJwSecurityToken.IsTokenType(index: Integer): Boolean;
 begin
   case index of
@@ -5796,6 +6321,151 @@ end;
 function TJwSecurityToken.Equals(Obj: TObject): Boolean;
 begin
   result := IsEqual(Obj as TJwSecurityToken);
+end;
+
+function TJwSecurityToken.GetUserProfileDirectory : TJwString;
+var
+  pProfileDir : TJwPChar;
+  dwLen : DWORD;
+begin
+  CheckTokenHandle('GetUserProfileDirectory');
+  CheckTokenAccessType(TOKEN_QUERY,
+                        'TOKEN_QUERY', 'GetUserProfileDirectory');
+
+  if not
+    JwaWindows.
+    {$IFDEF UNICODE}GetUserProfileDirectoryW{$ELSE}GetUserProfileDirectoryA{$ENDIF UNICODE}
+      (fTokenHandle, nil, dwLen)
+     and (GetLastError() <> ERROR_INSUFFICIENT_BUFFER) then
+
+    raise EJwsclWinCallFailedException.CreateFmtWinCall(
+        RsWinCallFailed, //const sMsg: TJwString;
+        'ExpandEnvironmentStrings',//sSourceProc,
+        ClassName, //sSourceClass,
+        RsUNToken,//sSourceFile: TJwString; iSourceLine:
+        0,
+        true,//Cardinal; bShowLastError: boolean;
+        'GetUserProfileDirectoryW',//sWinCall: TJwString;
+        ['GetUserProfileDirectoryW']//const Args: array of const
+    );
+
+  GetMem(pProfileDir, (dwLen) * TJwCharSize);
+  try
+    if not
+      JwaWindows.
+      {$IFDEF UNICODE}GetUserProfileDirectoryW{$ELSE}GetUserProfileDirectoryA{$ENDIF UNICODE}
+        (fTokenHandle, pProfileDir, dwLen) then
+
+      raise EJwsclWinCallFailedException.CreateFmtWinCall(
+          RsWinCallFailed, //const sMsg: TJwString;
+          'ExpandEnvironmentStrings',//sSourceProc,
+          ClassName, //sSourceClass,
+          RsUNToken,//sSourceFile: TJwString; iSourceLine:
+          0,
+          true,//Cardinal; bShowLastError: boolean;
+          'GetUserProfileDirectoryW',//sWinCall: TJwString;
+          ['GetUserProfileDirectoryW']//const Args: array of const
+      );
+
+    result := pProfileDir;
+  finally
+    FreeMem(pProfileDir);
+  end;
+
+end;
+
+function TJwSecurityToken.ExpandEnvironmentStrings(
+  const EnvString: TJwString): TJwString;
+var
+  pEnv : Pointer;
+  SrcU, DestU : UNICODE_STRING;
+  ulReqLen : Cardinal;
+  Status : NTSTATUS;
+begin
+  result := '';
+
+  CheckTokenHandle('ExpandEnvironmentStrings');
+  //Windows 7 needs the  TOKEN_DUPLICATE in addition
+  if TJwWindowsVersion.IsWindows7(true) then
+    CheckTokenAccessType(TOKEN_IMPERSONATE or TOKEN_QUERY or TOKEN_DUPLICATE,
+                        'TOKEN_IMPERSONATE or TOKEN_QUERY or TOKEN_DUPLICATE', 'ExpandEnvironmentStrings')
+  else
+    CheckTokenAccessType(TOKEN_IMPERSONATE or TOKEN_QUERY,
+                        'TOKEN_IMPERSONATE or TOKEN_QUERY', 'ExpandEnvironmentStrings');
+
+  //first get the env block
+  if not CreateEnvironmentBlock(@pEnv, fTokenHandle, false) then
+    raise EJwsclWinCallFailedException.CreateFmtWinCall(
+        RsWinCallFailed, //const sMsg: TJwString;
+        'ExpandEnvironmentStrings',//sSourceProc,
+        ClassName, //sSourceClass,
+        RsUNToken,//sSourceFile: TJwString; iSourceLine:
+        0,
+        true,//Cardinal; bShowLastError: boolean;
+        'CreateEnvironmentBlock',//sWinCall: TJwString;
+        ['CreateEnvironmentBlock']//const Args: array of const
+    );
+  try
+    SrcU := JwCreateTUnicodeString(WideString(EnvString));
+    DestU := JwCreateTUnicodeString('');
+
+    if (SrcU.Length = 0) or (SrcU.Buffer = nil) then //RtlExpandEnvironmentStrings_U fails with AV if input string is empty
+      exit;
+
+    try
+      //ask the function how much space is necessary
+      Status := RtlExpandEnvironmentStrings_U(pEnv, @SrcU, @DestU, @ulReqLen);
+      if Status <> STATUS_BUFFER_TOO_SMALL then
+      begin
+        SetLastError(RtlNtStatusToDosError(Status));
+
+        raise EJwsclWinCallFailedException.CreateFmtWinCall(
+          RsWinCallFailed, //const sMsg: TJwString;
+          'ExpandEnvironmentStrings',//sSourceProc,
+          ClassName, //sSourceClass,
+          RsUNToken,//sSourceFile: TJwString; iSourceLine:
+          0,
+          true,//Cardinal; bShowLastError: boolean;
+          'RtlExpandEnvironmentStrings_U',//sWinCall: TJwString;
+          ['RtlExpandEnvironmentStrings_U']//const Args: array of const
+        );
+      end;
+
+      RtlFreeUnicodeString(@DestU);
+
+      SetLength(result, ulReqLen);
+      DestU := JwCreateTUnicodeString(WideString(result));
+
+      if (DestU.Length = 0) or (DestU.Buffer = nil) then //RtlExpandEnvironmentStrings_U fails with AV if input string is empty
+        exit;
+
+      //expand the vars
+      Status := RtlExpandEnvironmentStrings_U(pEnv, @SrcU, @DestU, @ulReqLen);
+      if Status <> ERROR_SUCCESS then
+      begin
+        SetLastError(RtlNtStatusToDosError(Status));
+        raise EJwsclWinCallFailedException.CreateFmtWinCall(
+          RsWinCallFailed, //const sMsg: TJwString;
+          'ExpandEnvironmentStrings',//sSourceProc,
+          ClassName, //sSourceClass,
+          RsUNToken,//sSourceFile: TJwString; iSourceLine:
+          0,
+          true,//Cardinal; bShowLastError: boolean;
+          'RtlExpandEnvironmentStrings_U',//sWinCall: TJwString;
+          ['RtlExpandEnvironmentStrings_U']//const Args: array of const
+        );
+      end;
+
+      result := TJwString(DestU.Buffer);
+    finally
+      RtlFreeUnicodeString(@SrcU);
+      RtlFreeUnicodeString(@DestU);
+    end;
+
+
+  finally
+    DestroyEnvironmentBlock(pEnv);
+  end;
 end;
 
 function TJwSecurityToken.GetHashCode: Integer;
@@ -5830,6 +6500,7 @@ var
   Groups,Restricted : TJwSecurityIdList;
   Privs : TJwPrivilegeSet;
   sUserName : String;
+  pr : Boolean;
 begin
   Groups := TokenGroups;
   Restricted := TokenRestrictedSids;
@@ -5846,20 +6517,25 @@ begin
     sUserName := '<Access denied>';
   end;
 
+  pr := IsPrimaryToken;
   try
     result := JwCreateToString(
     [ClassName,'',
      'Hash',GetHashCode,
      'Handle',TokenHandle,
      'AccessMask', JwFormatAccessRightsSimple(AccessMask, TokenMapping),
-     'IsPrimaryToken',IsPrimaryToken,
+     'IsPrimaryToken',pr,
      'IsThreadtoken',IsThreadToken,
      'IsRestricted',IsRestricted,
      'SessionID',TokenSessionId,
      'PrimaryGroup',PrimaryGroup.ToString,
      'TokenUserName',sUserName,
      'UserName',UserName,
+     {$IFDEF JWSCL_TYPEINFO}
      'TokenType', GetEnumName(TypeInfo(TOKEN_TYPE), integer(TokenType)),
+     {$ELSE}
+     'TokenType', 'Unavailable value!! JWSCL_TYPEINFO is not defined.',
+     {$ENDIF JWSCL_TYPEINFO}
      'Shared', Shared,
      'Origin',Format('%d.%d',[TokenOrigin.HighPart, TokenOrigin.LowPart]),
      'Groups', Groups.Count,
@@ -5884,10 +6560,9 @@ function TJwSecurityToken.RetrieveSpecificAccessRights(
   const AccessMask: TJwAccessMask): TJwAccessMask;
 begin
   try
-    //TODO: GENERICS hier noch!
     if AccessMask = MAXIMUM_ALLOWED then
       result := GetMaximumAllowed
-    else
+    else //convert generic bits to specific ones
       result := TJwSecurityTokenMapping.GenericMap(AccessMask)
   except
     //if GetMaximumAllowed does not have the READ_CONTROL flag
@@ -5914,6 +6589,7 @@ initialization
   JwProcessHeap := GetProcessHeap;
   //add code from here
   //...
+
 {$ENDIF SL_INITIALIZATION_SECTION}
 
 

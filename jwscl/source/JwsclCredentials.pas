@@ -34,11 +34,20 @@ The Original Code is JwsclCredentials.pas.
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-11-14 15:40:34 +0000 (Sun, 14 Nov 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1059 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/JwsclCredentials.pas $
+</table>
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclCredentials;
 {$INCLUDE ..\includes\Jwscl.inc}
-// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 
 interface
@@ -208,20 +217,20 @@ type
          Remarks
          MaxUserNameLength and MaxPasswordLength are obsolete and are ignored. For more information see Bugs section.
 
-         
-         
+
+
          If parameter CommandLine is true, the property Flags must contain either cfFlagsRequireSmartCard or
          cfFlagsExcludeCertificates. If none is given, JWSCL will assume cfFlagsExcludeCertificates. If both flags are given,
          the flag cfFlagsExcludeCertificates will be removed for the call.
-         
-         
-         
+
+
+
          Be aware, if parameter CommandLine is true, that the Flags are constricted more. For more information read the
          \Remarks section of CredUICmdLinePromptForCredentials in MSDN.
          Bugs
          To the MSDN doc of CredUIPromptForCredentials (http://msdn.microsoft.com/en-us/library/aa375171%28VS.85%29.aspx) the
          function truncates the output string to the maximum given length.
-         
+
          However, in tests the function returned an error 87 (ERROR_INVALID_PARAMETER) in such a case instead. Thus the
          Username and Password properties can receive CRED_MAX_USERNAME_LENGTH and CREDUI_MAX_PASSWORD_LENGTH chars now.      }
     function ShowModal(const CommandLine: boolean = False): boolean;

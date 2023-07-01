@@ -1,4 +1,4 @@
-﻿; This is a Doc-O-Matic version 6.4.2.1326 project file.
+﻿; This is a Doc-O-Matic version 6.5.1.1382 project file.
 ; This file is maintained by Doc-O-Matic, do not edit manually.
 
 [*Control*]
@@ -8,20 +8,20 @@ MasterFile=
 Empty=0
 Saved=1
 Text0=This is unknown %SYMBOLNAME%.
-Text1=This is class %SYMBOLNAME%.
-Text10=This is file %SYMBOLNAME%.
-Text11=This is record %SYMBOLNAME%.
-Text12=This is %SYMBOLNAME%.
-Text13=This is nested type %SYMBOLNAME%.
-Text14=This is namespace %SYMBOLNAME%.
-Text2=This is %MEMBERNAME%, a member of class %CLASSNAME%.
-Text3=This is %MEMBERNAME%, a member of class %CLASSNAME%.
-Text4=This is %MEMBERNAME%, a member of class %CLASSNAME%.
-Text5=This is function %SYMBOLNAME%.
-Text6=This is type %SYMBOLNAME%.
-Text7=This is variable %SYMBOLNAME%.
-Text8=This is constant %SYMBOLNAME%.
-Text9=This is macro %SYMBOLNAME%.
+Text1=This is class %SYMBOLNAME%.\nThis symbol is not documented! If you find it, please let us know about it.
+Text10=This is file %SYMBOLNAME%. This symbol is not documented! If you find it, please let us know about it.
+Text11=This is record %SYMBOLNAME%. This symbol is not documented! If you find it, please let us know about it.
+Text12=This is %SYMBOLNAME%. This symbol is not documented! If you find it, please let us know about it.
+Text13=This is nested type %SYMBOLNAME%. This symbol is not documented! If you find it, please let us know about it.
+Text14=This is namespace %SYMBOLNAME%. This symbol is not documented! If you find it, please let us know about it.
+Text2=This is %MEMBERNAME%, a member of class %CLASSNAME%. This symbol is not documented! If you find it, please let us know about it.
+Text3=This is %MEMBERNAME%, a member of class %CLASSNAME%. This symbol is not documented! If you find it, please let us know about it.
+Text4=This is %MEMBERNAME%, a member of class %CLASSNAME%. This symbol is not documented! If you find it, please let us know about it.
+Text5=This is function %SYMBOLNAME%. This symbol is not documented! If you find it, please let us know about it.
+Text6=This is type %SYMBOLNAME%. This symbol is not documented! If you find it, please let us know about it.
+Text7=This is variable %SYMBOLNAME%. This symbol is not documented! If you find it, please let us know about it.
+Text8=This is constant %SYMBOLNAME%. This symbol is not documented! If you find it, please let us know about it.
+Text9=This is macro %SYMBOLNAME%. This symbol is not documented! If you find it, please let us know about it.
 
 [Class Hierarchy]
 Count=1
@@ -9847,7 +9847,7 @@ HTMLFileExtension=.html
 HTMLFilenaming=0
 HTMLFileTemplate=
 InsertCustomHEADCode=0
-OutputDir=bin\html
+OutputDir=E:\Temp\JWSCL DOC\HTML
 OutputOptions=14
 OutputTOCLevels=0
 PrintFlagsInIndex=0
@@ -12424,22 +12424,106 @@ BodySourceUseAutolinking=0
 BodySourceUseSyntaxHighlight=0
 
 [Configurations\Configuration 1\Disabled Topics]
-Count=9
-ID0=Compilers.inc
-ID1=jedi.inc
-ID2=Jwscl.inc
-ID3=TJwAutoLock.fLeaveFlag
-ID4=TJwProcessEnumerator.Create@TJwWTSProcessList
-ID5=TJwSecureGeneralObject.Dummy
-ID6=TJwSecureRegistryKey.Dummy
-ID7=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
-ID8=TJwSessionsEnumerator.Create@TJwWTSSessionList
+Count=81
+ID0=!!MEMBERTYPE_Fields_TJwComClientSecurity
+ID1=!!MEMBERTYPE_Fields_TJwComCustomSecurity
+ID10=IJwComServerSecurity.GetAuthenticationLevel
+ID11=IJwComServerSecurity.GetAuthenticationService
+ID12=IJwComServerSecurity.GetAuthManager
+ID13=IJwComServerSecurity.GetAuthorizationService
+ID14=IJwComServerSecurity.GetCapabilites
+ID15=IJwComServerSecurity.GetImpersonationLevel
+ID16=IJwComServerSecurity.GetReadOnlyProperties
+ID17=IJwComServerSecurity.GetUserName
+ID18=IJwComServerSecurity.GetWinNTIdentity
+ID19=IJwComServerSecurity.SetAuthContext@TJwAuthContext
+ID2=!!MEMBERTYPE_Fields_TJwComRegistrySecurity
+ID20=IJwComServerSecurity.SetAuthenticationInfo@RPC_AUTH_IDENTITY_HANDLE
+ID21=IJwComServerSecurity.SetAuthenticationLevel@TJwComAuthenticationLevel
+ID22=IJwComServerSecurity.SetAuthenticationService@TJwComAuthenticationService
+ID23=IJwComServerSecurity.SetAuthManager@TJwAuthResourceManager
+ID24=IJwComServerSecurity.SetAuthorizationService@TJwComAuthorizationService
+ID25=IJwComServerSecurity.SetCapabilites@TJwComAuthenticationCapabilities
+ID26=IJwComServerSecurity.SetImpersonationLevel@TJwComImpersonationLevel
+ID27=jedi.inc
+ID28=Jwscl.inc
+ID29=TJwAutoLock.fLeaveFlag
+ID3=!!MEMBERTYPE_Fields_TJwComServerSecurity
+ID30=TJwComClientSecurity.AuthWinNT@string@string@string
+ID31=TJwComClientSecurity.Create@TJwComClientSecurity
+ID32=TJwComClientSecurity.Destroy
+ID33=TJwComClientSecurity.fProxy
+ID34=TJwComCustomSecurity.CreateAuthInfo@TJwAuthInfoType
+ID35=TJwComCustomSecurity.fAuthenticationInfo
+ID36=TJwComCustomSecurity.fAuthenticationLevel
+ID37=TJwComCustomSecurity.fAuthenticationService
+ID38=TJwComCustomSecurity.fAuthorizationService
+ID39=TJwComCustomSecurity.fCapabilites
+ID4=!!MEMBERTYPE_Fields_TJwComWinNTIdentity
+ID40=TJwComCustomSecurity.fImpersonationLevel
+ID41=TJwComCustomSecurity.fProxy
+ID42=TJwComCustomSecurity.fReadOnly
+ID43=TJwComCustomSecurity.fServerPrincipalName
+ID44=TJwComCustomSecurity.fUpdating
+ID45=TJwComCustomSecurity.GetAuthenticationInfo
+ID46=TJwComCustomSecurity.GetAuthenticationLevel
+ID47=TJwComCustomSecurity.GetAuthenticationService
+ID48=TJwComCustomSecurity.GetAuthorizationService
+ID49=TJwComCustomSecurity.GetCapabilites
+ID5=!!MEMBERTYPE_Fields_TJwServerAccessControl
+ID50=TJwComCustomSecurity.GetImpersonationLevel
+ID51=TJwComCustomSecurity.GetReadOnlyProperties
+ID52=TJwComCustomSecurity.GetServerPrincipalName
+ID53=TJwComCustomSecurity.SetAuthenticationInfo@RPC_AUTH_IDENTITY_HANDLE
+ID54=TJwComCustomSecurity.SetAuthenticationLevel@TJwComAuthenticationLevel
+ID55=TJwComCustomSecurity.SetAuthenticationService@TJwComAuthenticationService
+ID56=TJwComCustomSecurity.SetAuthorizationService@TJwComAuthorizationService
+ID57=TJwComCustomSecurity.SetCapabilites@TJwComAuthenticationCapabilities
+ID58=TJwComCustomSecurity.SetImpersonationLevel@TJwComImpersonationLevel
+ID59=TJwComCustomSecurity.SetReadOnlyProperties@Boolean
+ID6=!!MEMBERTYPE_Fields_TJwWTSProcess
+ID60=TJwComCustomSecurity.SetServerPrincipalName@TJwString
+ID61=TJwComRegistrySecurity.Destroy
+ID62=TJwComServerSecurity.Destroy
+ID63=TJwComServerSecurity.GetAuthContext
+ID64=TJwComServerSecurity.GetServerSecurity@TJwServerImpersonationType
+ID65=TJwComServerSecurity.GetToken
+ID66=TJwComServerSecurity.GetUserName
+ID67=TJwComWinNTIdentity.Destroy
+ID68=TJwProcessEnumerator.Create@TJwWTSProcessList
+ID69=TJwSecureGeneralObject.Dummy
+ID7=Compilers.inc
+ID70=TJwSecureRegistryKey.Dummy
+ID71=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
+ID72=TJwServerAccessControl.Destroy
+ID73=TJwSessionsEnumerator.Create@TJwWTSSessionList
+ID74=TJwWindowsVersion._IsNewUnknown@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID75=TJwWindowsVersion._IsServer2003R2@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID76=TJwWindowsVersion._IsWin98SE@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID77=TJwWindowsVersion.GetCachedWindowsType
+ID78=TJwWindowsVersion.ResetCachedWindowsType
+ID79=TJwWindowsVersion.SetCachedWindowsType@Integer@Boolean
+ID8=IJwComServerSecurity.GetAuthContext
+ID80=TJwWTSSessionStatistics
+ID9=IJwComServerSecurity.GetAuthenticationInfo
 
 [Configurations\Configuration 1\Enabled Topics]
-Count=3
-ID0=!!FILES
-ID1=!!SYMREF
-ID2=TJwProcessEnumerator
+Count=15
+ID0=!!SYMREF
+ID1=TJwComCustomSecurity.AuthenticationInfo
+ID10=TJwComCustomSecurity.ImpersonationLevel
+ID11=TJwComCustomSecurity.ReadOnlyProperties
+ID12=TJwComCustomSecurity.ServerPrincipalName
+ID13=TJwProcessEnumerator
+ID14=TJwWTSProcess.FData
+ID2=TJwComCustomSecurity.AuthenticationLevel
+ID3=TJwComCustomSecurity.AuthenticationService
+ID4=TJwComCustomSecurity.AuthorizationService
+ID5=TJwComCustomSecurity.BeginUpdate
+ID6=TJwComCustomSecurity.Capabilites
+ID7=TJwComCustomSecurity.CheckReadonly@String
+ID8=TJwComCustomSecurity.CoInitializeSecurity@Pointer@LONG@PSOLE_AUTHENTICATION_SERVICE@TJwComAuthenticationLevel@TJwComImpersonationLevel@Pointer@TJwComAuthenticationCapabilities@Boolean
+ID9=TJwComCustomSecurity.EndUpdate
 
 [Configurations\Configuration 1\Export Symbols]
 Classes=1
@@ -12915,8 +12999,8 @@ ID5=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
 [Configurations\Configuration 1\Output Options]
 AdditionalInformationFormatStr=%NAME% %NUMBER%
 AddVisibilitySpecifierForCppPascal=0
-Author=
-AuthorEmail=
+Author=JEDI WSCL Authors
+AuthorEmail=mail@delphi-jedi.net
 AutoDocText0=The following tables list the members exposed by %NAME%.
 AutoDocText1=The %CATEGORYL% of the %NAME% class are listed here.
 AutoDocText2=The %CATEGORYL% members of the %NAME% class are listed here.
@@ -12966,7 +13050,7 @@ TableWidthLegend=20
 TableWidthNavigation=100
 TableWidthParameters=100
 TableWidthReports=100
-Title=
+Title=JEDI Windows Security Code Library Help
 UseInheritedPropertyDetails=1
 
 [Configurations\Configuration 1\Output Options\Indicator Images]
@@ -22992,7 +23076,7 @@ HTMLFileExtension=.html
 HTMLFilenaming=0
 HTMLFileTemplate=
 InsertCustomHEADCode=0
-OutputDir=bin\chm
+OutputDir=E:\Temp\JWSCL DOC\HTML Help\
 OutputOptions=6
 OutputTOCLevels=0
 PrintFlagsInIndex=0
@@ -23028,11 +23112,11 @@ Help2PluginNamespace=0
 Help2PluginNamespaceName=MS.VSIPCC+
 Help2RegisterType=0
 Help2UnregisterNamespace=1
-HelpCompiler=C:\Program Files\HTML Help Workshop\hhc.exe
+HelpCompiler=E:\Programme\HTML Help Workshop\hhc.exe
 HelpProjectFileAutomatic=1
 HTMLHelp2Filename=
 HTMLHelpDisplayFontScaleButton=0
-HTMLHelpFilename=
+HTMLHelpFilename=E:\Temp\JWSCL DOC\HTML Help\Bin\JWSCL.chm
 SaveUserPosition=1
 SupportEnhancedDecompilation=0
 WindowPosition_Bottom=0
@@ -23137,7 +23221,7 @@ LinkDatabasePrefix=
 NavigationLegendOptions4=0
 
 [Configurations\Configuration 2\{D3A588E0-9472-11D3-BDD1-0080C8BA053D}\OutputNavigation\Main]
-Count=127
+Count=131
 DisplayText_0=__automated Data Members
 DisplayText_1=__automated Events
 DisplayText_10=__published Nested Types
@@ -23170,7 +23254,11 @@ DisplayText_123=Types
 DisplayText_124=Unions
 DisplayText_125=Units
 DisplayText_126=Variables
+DisplayText_127=Body Source
+DisplayText_128=Class Hierarchy
+DisplayText_129=Example
 DisplayText_13=AutoDoc Class Member Overview Link
+DisplayText_130=See Also
 DisplayText_14=AutoDoc Member Links
 DisplayText_15=Automated Data Members
 DisplayText_16=Automated Events
@@ -23297,7 +23385,11 @@ ID_123=31
 ID_124=31
 ID_125=31
 ID_126=31
+ID_127=32
+ID_128=33
+ID_129=7
 ID_13=31
+ID_130=9
 ID_14=31
 ID_15=31
 ID_16=31
@@ -23424,7 +23516,11 @@ Text_123=Types
 Text_124=Unions
 Text_125=Units
 Text_126=Variables
+Text_127=Body Source
+Text_128=Class Hierarchy
+Text_129=Example
 Text_13=AutoDoc Class Member Overview Link
+Text_130=See Also
 Text_14=AutoDoc Member Links
 Text_15=Automated Data Members
 Text_16=Automated Events
@@ -23551,7 +23647,11 @@ Visible_123=1
 Visible_124=1
 Visible_125=1
 Visible_126=1
+Visible_127=1
+Visible_128=1
+Visible_129=1
 Visible_13=1
+Visible_130=1
 Visible_14=1
 Visible_15=1
 Visible_16=1
@@ -23654,7 +23754,7 @@ Visible_0=1
 Visible_1=1
 
 [Configurations\Configuration 2\{D3A588E0-9472-11D3-BDD1-0080C8BA053D}\OutputNavigation\Text]
-Count=127
+Count=131
 DisplayText_0=__automated Data Members
 DisplayText_1=__automated Events
 DisplayText_10=__published Nested Types
@@ -23687,7 +23787,11 @@ DisplayText_123=Types
 DisplayText_124=Unions
 DisplayText_125=Units
 DisplayText_126=Variables
+DisplayText_127=Body Source
+DisplayText_128=Class Hierarchy
+DisplayText_129=Example
 DisplayText_13=AutoDoc Class Member Overview Link
+DisplayText_130=See Also
 DisplayText_14=AutoDoc Member Links
 DisplayText_15=Automated Data Members
 DisplayText_16=Automated Events
@@ -23814,7 +23918,11 @@ ID_123=31
 ID_124=31
 ID_125=31
 ID_126=31
+ID_127=32
+ID_128=33
+ID_129=7
 ID_13=31
+ID_130=9
 ID_14=31
 ID_15=31
 ID_16=31
@@ -23941,7 +24049,11 @@ Text_123=Types
 Text_124=Unions
 Text_125=Units
 Text_126=Variables
+Text_127=Body Source
+Text_128=Class Hierarchy
+Text_129=Example
 Text_13=AutoDoc Class Member Overview Link
+Text_130=See Also
 Text_14=AutoDoc Member Links
 Text_15=Automated Data Members
 Text_16=Automated Events
@@ -24068,7 +24180,11 @@ Visible_123=1
 Visible_124=1
 Visible_125=1
 Visible_126=1
+Visible_127=1
+Visible_128=1
+Visible_129=1
 Visible_13=1
+Visible_130=1
 Visible_14=1
 Visible_15=1
 Visible_16=1
@@ -24727,7 +24843,7 @@ Export_32=1
 Export_33=1
 Export_34=1
 Export_35=1
-Export_36=0
+Export_36=1
 Export_37=1
 Export_38=1
 Export_4=1
@@ -25569,22 +25685,106 @@ BodySourceUseAutolinking=0
 BodySourceUseSyntaxHighlight=0
 
 [Configurations\Configuration 2\Disabled Topics]
-Count=9
-ID0=Compilers.inc
-ID1=jedi.inc
-ID2=Jwscl.inc
-ID3=TJwAutoLock.fLeaveFlag
-ID4=TJwProcessEnumerator.Create@TJwWTSProcessList
-ID5=TJwSecureGeneralObject.Dummy
-ID6=TJwSecureRegistryKey.Dummy
-ID7=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
-ID8=TJwSessionsEnumerator.Create@TJwWTSSessionList
+Count=81
+ID0=!!MEMBERTYPE_Fields_TJwComClientSecurity
+ID1=!!MEMBERTYPE_Fields_TJwComCustomSecurity
+ID10=IJwComServerSecurity.GetAuthenticationLevel
+ID11=IJwComServerSecurity.GetAuthenticationService
+ID12=IJwComServerSecurity.GetAuthManager
+ID13=IJwComServerSecurity.GetAuthorizationService
+ID14=IJwComServerSecurity.GetCapabilites
+ID15=IJwComServerSecurity.GetImpersonationLevel
+ID16=IJwComServerSecurity.GetReadOnlyProperties
+ID17=IJwComServerSecurity.GetUserName
+ID18=IJwComServerSecurity.GetWinNTIdentity
+ID19=IJwComServerSecurity.SetAuthContext@TJwAuthContext
+ID2=!!MEMBERTYPE_Fields_TJwComRegistrySecurity
+ID20=IJwComServerSecurity.SetAuthenticationInfo@RPC_AUTH_IDENTITY_HANDLE
+ID21=IJwComServerSecurity.SetAuthenticationLevel@TJwComAuthenticationLevel
+ID22=IJwComServerSecurity.SetAuthenticationService@TJwComAuthenticationService
+ID23=IJwComServerSecurity.SetAuthManager@TJwAuthResourceManager
+ID24=IJwComServerSecurity.SetAuthorizationService@TJwComAuthorizationService
+ID25=IJwComServerSecurity.SetCapabilites@TJwComAuthenticationCapabilities
+ID26=IJwComServerSecurity.SetImpersonationLevel@TJwComImpersonationLevel
+ID27=jedi.inc
+ID28=Jwscl.inc
+ID29=TJwAutoLock.fLeaveFlag
+ID3=!!MEMBERTYPE_Fields_TJwComServerSecurity
+ID30=TJwComClientSecurity.AuthWinNT@string@string@string
+ID31=TJwComClientSecurity.Create@TJwComClientSecurity
+ID32=TJwComClientSecurity.Destroy
+ID33=TJwComClientSecurity.fProxy
+ID34=TJwComCustomSecurity.CreateAuthInfo@TJwAuthInfoType
+ID35=TJwComCustomSecurity.fAuthenticationInfo
+ID36=TJwComCustomSecurity.fAuthenticationLevel
+ID37=TJwComCustomSecurity.fAuthenticationService
+ID38=TJwComCustomSecurity.fAuthorizationService
+ID39=TJwComCustomSecurity.fCapabilites
+ID4=!!MEMBERTYPE_Fields_TJwComWinNTIdentity
+ID40=TJwComCustomSecurity.fImpersonationLevel
+ID41=TJwComCustomSecurity.fProxy
+ID42=TJwComCustomSecurity.fReadOnly
+ID43=TJwComCustomSecurity.fServerPrincipalName
+ID44=TJwComCustomSecurity.fUpdating
+ID45=TJwComCustomSecurity.GetAuthenticationInfo
+ID46=TJwComCustomSecurity.GetAuthenticationLevel
+ID47=TJwComCustomSecurity.GetAuthenticationService
+ID48=TJwComCustomSecurity.GetAuthorizationService
+ID49=TJwComCustomSecurity.GetCapabilites
+ID5=!!MEMBERTYPE_Fields_TJwServerAccessControl
+ID50=TJwComCustomSecurity.GetImpersonationLevel
+ID51=TJwComCustomSecurity.GetReadOnlyProperties
+ID52=TJwComCustomSecurity.GetServerPrincipalName
+ID53=TJwComCustomSecurity.SetAuthenticationInfo@RPC_AUTH_IDENTITY_HANDLE
+ID54=TJwComCustomSecurity.SetAuthenticationLevel@TJwComAuthenticationLevel
+ID55=TJwComCustomSecurity.SetAuthenticationService@TJwComAuthenticationService
+ID56=TJwComCustomSecurity.SetAuthorizationService@TJwComAuthorizationService
+ID57=TJwComCustomSecurity.SetCapabilites@TJwComAuthenticationCapabilities
+ID58=TJwComCustomSecurity.SetImpersonationLevel@TJwComImpersonationLevel
+ID59=TJwComCustomSecurity.SetReadOnlyProperties@Boolean
+ID6=!!MEMBERTYPE_Fields_TJwWTSProcess
+ID60=TJwComCustomSecurity.SetServerPrincipalName@TJwString
+ID61=TJwComRegistrySecurity.Destroy
+ID62=TJwComServerSecurity.Destroy
+ID63=TJwComServerSecurity.GetAuthContext
+ID64=TJwComServerSecurity.GetServerSecurity@TJwServerImpersonationType
+ID65=TJwComServerSecurity.GetToken
+ID66=TJwComServerSecurity.GetUserName
+ID67=TJwComWinNTIdentity.Destroy
+ID68=TJwProcessEnumerator.Create@TJwWTSProcessList
+ID69=TJwSecureGeneralObject.Dummy
+ID7=Compilers.inc
+ID70=TJwSecureRegistryKey.Dummy
+ID71=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
+ID72=TJwServerAccessControl.Destroy
+ID73=TJwSessionsEnumerator.Create@TJwWTSSessionList
+ID74=TJwWindowsVersion._IsNewUnknown@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID75=TJwWindowsVersion._IsServer2003R2@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID76=TJwWindowsVersion._IsWin98SE@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID77=TJwWindowsVersion.GetCachedWindowsType
+ID78=TJwWindowsVersion.ResetCachedWindowsType
+ID79=TJwWindowsVersion.SetCachedWindowsType@Integer@Boolean
+ID8=IJwComServerSecurity.GetAuthContext
+ID80=TJwWTSSessionStatistics
+ID9=IJwComServerSecurity.GetAuthenticationInfo
 
 [Configurations\Configuration 2\Enabled Topics]
-Count=3
-ID0=!!FILES
-ID1=!!SYMREF
-ID2=TJwProcessEnumerator
+Count=15
+ID0=!!SYMREF
+ID1=TJwComCustomSecurity.AuthenticationInfo
+ID10=TJwComCustomSecurity.ImpersonationLevel
+ID11=TJwComCustomSecurity.ReadOnlyProperties
+ID12=TJwComCustomSecurity.ServerPrincipalName
+ID13=TJwProcessEnumerator
+ID14=TJwWTSProcess.FData
+ID2=TJwComCustomSecurity.AuthenticationLevel
+ID3=TJwComCustomSecurity.AuthenticationService
+ID4=TJwComCustomSecurity.AuthorizationService
+ID5=TJwComCustomSecurity.BeginUpdate
+ID6=TJwComCustomSecurity.Capabilites
+ID7=TJwComCustomSecurity.CheckReadonly@String
+ID8=TJwComCustomSecurity.CoInitializeSecurity@Pointer@LONG@PSOLE_AUTHENTICATION_SERVICE@TJwComAuthenticationLevel@TJwComImpersonationLevel@Pointer@TJwComAuthenticationCapabilities@Boolean
+ID9=TJwComCustomSecurity.EndUpdate
 
 [Configurations\Configuration 2\Export Symbols]
 Classes=1
@@ -26060,8 +26260,8 @@ ID5=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
 [Configurations\Configuration 2\Output Options]
 AdditionalInformationFormatStr=%NAME% %NUMBER%
 AddVisibilitySpecifierForCppPascal=0
-Author=
-AuthorEmail=
+Author=JEDI WSCL Authors
+AuthorEmail=mail@delphi-jedi.net
 AutoDocText0=The following tables list the members exposed by %NAME%.
 AutoDocText1=The %CATEGORYL% of the %NAME% class are listed here.
 AutoDocText2=The %CATEGORYL% members of the %NAME% class are listed here.
@@ -26111,7 +26311,7 @@ TableWidthLegend=20
 TableWidthNavigation=100
 TableWidthParameters=100
 TableWidthReports=100
-Title=
+Title=JEDI Windows Security Code Library Help
 UseInheritedPropertyDetails=1
 
 [Configurations\Configuration 2\Output Options\Indicator Images]
@@ -36137,7 +36337,7 @@ HTMLFileExtension=.html
 HTMLFilenaming=0
 HTMLFileTemplate=
 InsertCustomHEADCode=0
-OutputDir=bin\xhs
+OutputDir=E:\temp\JWSCL DOC\HELP 2
 OutputOptions=6
 OutputTOCLevels=0
 PrintFlagsInIndex=0
@@ -36162,7 +36362,7 @@ CustomHelpProjectFile=
 DontIncludeFolders=0
 Help2AdditionalXMLData=
 Help2Collection=
-Help2Compiler=e:\proggen\Visual Studio 2005 SDK\2007.02\VisualStudioIntegration\Archive\HelpIntegration\hxcomp.exe
+Help2Compiler=E:\Programme\HelpIntegration\hxcomp.exe
 Help2CompileResult=0
 Help2Dexplore=
 Help2GenericInfoType=kbRef
@@ -38714,22 +38914,106 @@ BodySourceUseAutolinking=0
 BodySourceUseSyntaxHighlight=0
 
 [Configurations\Configuration 3\Disabled Topics]
-Count=9
-ID0=Compilers.inc
-ID1=jedi.inc
-ID2=Jwscl.inc
-ID3=TJwAutoLock.fLeaveFlag
-ID4=TJwProcessEnumerator.Create@TJwWTSProcessList
-ID5=TJwSecureGeneralObject.Dummy
-ID6=TJwSecureRegistryKey.Dummy
-ID7=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
-ID8=TJwSessionsEnumerator.Create@TJwWTSSessionList
+Count=81
+ID0=!!MEMBERTYPE_Fields_TJwComClientSecurity
+ID1=!!MEMBERTYPE_Fields_TJwComCustomSecurity
+ID10=IJwComServerSecurity.GetAuthenticationLevel
+ID11=IJwComServerSecurity.GetAuthenticationService
+ID12=IJwComServerSecurity.GetAuthManager
+ID13=IJwComServerSecurity.GetAuthorizationService
+ID14=IJwComServerSecurity.GetCapabilites
+ID15=IJwComServerSecurity.GetImpersonationLevel
+ID16=IJwComServerSecurity.GetReadOnlyProperties
+ID17=IJwComServerSecurity.GetUserName
+ID18=IJwComServerSecurity.GetWinNTIdentity
+ID19=IJwComServerSecurity.SetAuthContext@TJwAuthContext
+ID2=!!MEMBERTYPE_Fields_TJwComRegistrySecurity
+ID20=IJwComServerSecurity.SetAuthenticationInfo@RPC_AUTH_IDENTITY_HANDLE
+ID21=IJwComServerSecurity.SetAuthenticationLevel@TJwComAuthenticationLevel
+ID22=IJwComServerSecurity.SetAuthenticationService@TJwComAuthenticationService
+ID23=IJwComServerSecurity.SetAuthManager@TJwAuthResourceManager
+ID24=IJwComServerSecurity.SetAuthorizationService@TJwComAuthorizationService
+ID25=IJwComServerSecurity.SetCapabilites@TJwComAuthenticationCapabilities
+ID26=IJwComServerSecurity.SetImpersonationLevel@TJwComImpersonationLevel
+ID27=jedi.inc
+ID28=Jwscl.inc
+ID29=TJwAutoLock.fLeaveFlag
+ID3=!!MEMBERTYPE_Fields_TJwComServerSecurity
+ID30=TJwComClientSecurity.AuthWinNT@string@string@string
+ID31=TJwComClientSecurity.Create@TJwComClientSecurity
+ID32=TJwComClientSecurity.Destroy
+ID33=TJwComClientSecurity.fProxy
+ID34=TJwComCustomSecurity.CreateAuthInfo@TJwAuthInfoType
+ID35=TJwComCustomSecurity.fAuthenticationInfo
+ID36=TJwComCustomSecurity.fAuthenticationLevel
+ID37=TJwComCustomSecurity.fAuthenticationService
+ID38=TJwComCustomSecurity.fAuthorizationService
+ID39=TJwComCustomSecurity.fCapabilites
+ID4=!!MEMBERTYPE_Fields_TJwComWinNTIdentity
+ID40=TJwComCustomSecurity.fImpersonationLevel
+ID41=TJwComCustomSecurity.fProxy
+ID42=TJwComCustomSecurity.fReadOnly
+ID43=TJwComCustomSecurity.fServerPrincipalName
+ID44=TJwComCustomSecurity.fUpdating
+ID45=TJwComCustomSecurity.GetAuthenticationInfo
+ID46=TJwComCustomSecurity.GetAuthenticationLevel
+ID47=TJwComCustomSecurity.GetAuthenticationService
+ID48=TJwComCustomSecurity.GetAuthorizationService
+ID49=TJwComCustomSecurity.GetCapabilites
+ID5=!!MEMBERTYPE_Fields_TJwServerAccessControl
+ID50=TJwComCustomSecurity.GetImpersonationLevel
+ID51=TJwComCustomSecurity.GetReadOnlyProperties
+ID52=TJwComCustomSecurity.GetServerPrincipalName
+ID53=TJwComCustomSecurity.SetAuthenticationInfo@RPC_AUTH_IDENTITY_HANDLE
+ID54=TJwComCustomSecurity.SetAuthenticationLevel@TJwComAuthenticationLevel
+ID55=TJwComCustomSecurity.SetAuthenticationService@TJwComAuthenticationService
+ID56=TJwComCustomSecurity.SetAuthorizationService@TJwComAuthorizationService
+ID57=TJwComCustomSecurity.SetCapabilites@TJwComAuthenticationCapabilities
+ID58=TJwComCustomSecurity.SetImpersonationLevel@TJwComImpersonationLevel
+ID59=TJwComCustomSecurity.SetReadOnlyProperties@Boolean
+ID6=!!MEMBERTYPE_Fields_TJwWTSProcess
+ID60=TJwComCustomSecurity.SetServerPrincipalName@TJwString
+ID61=TJwComRegistrySecurity.Destroy
+ID62=TJwComServerSecurity.Destroy
+ID63=TJwComServerSecurity.GetAuthContext
+ID64=TJwComServerSecurity.GetServerSecurity@TJwServerImpersonationType
+ID65=TJwComServerSecurity.GetToken
+ID66=TJwComServerSecurity.GetUserName
+ID67=TJwComWinNTIdentity.Destroy
+ID68=TJwProcessEnumerator.Create@TJwWTSProcessList
+ID69=TJwSecureGeneralObject.Dummy
+ID7=Compilers.inc
+ID70=TJwSecureRegistryKey.Dummy
+ID71=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
+ID72=TJwServerAccessControl.Destroy
+ID73=TJwSessionsEnumerator.Create@TJwWTSSessionList
+ID74=TJwWindowsVersion._IsNewUnknown@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID75=TJwWindowsVersion._IsServer2003R2@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID76=TJwWindowsVersion._IsWin98SE@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID77=TJwWindowsVersion.GetCachedWindowsType
+ID78=TJwWindowsVersion.ResetCachedWindowsType
+ID79=TJwWindowsVersion.SetCachedWindowsType@Integer@Boolean
+ID8=IJwComServerSecurity.GetAuthContext
+ID80=TJwWTSSessionStatistics
+ID9=IJwComServerSecurity.GetAuthenticationInfo
 
 [Configurations\Configuration 3\Enabled Topics]
-Count=3
-ID0=!!FILES
-ID1=!!SYMREF
-ID2=TJwProcessEnumerator
+Count=15
+ID0=!!SYMREF
+ID1=TJwComCustomSecurity.AuthenticationInfo
+ID10=TJwComCustomSecurity.ImpersonationLevel
+ID11=TJwComCustomSecurity.ReadOnlyProperties
+ID12=TJwComCustomSecurity.ServerPrincipalName
+ID13=TJwProcessEnumerator
+ID14=TJwWTSProcess.FData
+ID2=TJwComCustomSecurity.AuthenticationLevel
+ID3=TJwComCustomSecurity.AuthenticationService
+ID4=TJwComCustomSecurity.AuthorizationService
+ID5=TJwComCustomSecurity.BeginUpdate
+ID6=TJwComCustomSecurity.Capabilites
+ID7=TJwComCustomSecurity.CheckReadonly@String
+ID8=TJwComCustomSecurity.CoInitializeSecurity@Pointer@LONG@PSOLE_AUTHENTICATION_SERVICE@TJwComAuthenticationLevel@TJwComImpersonationLevel@Pointer@TJwComAuthenticationCapabilities@Boolean
+ID9=TJwComCustomSecurity.EndUpdate
 
 [Configurations\Configuration 3\Export Symbols]
 Classes=1
@@ -39205,8 +39489,8 @@ ID5=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
 [Configurations\Configuration 3\Output Options]
 AdditionalInformationFormatStr=%NAME% %NUMBER%
 AddVisibilitySpecifierForCppPascal=0
-Author=
-AuthorEmail=
+Author=JEDI WSCL Authors
+AuthorEmail=mail@delphi-jedi.net
 AutoDocText0=The following tables list the members exposed by %NAME%.
 AutoDocText1=The %CATEGORYL% of the %NAME% class are listed here.
 AutoDocText2=The %CATEGORYL% members of the %NAME% class are listed here.
@@ -39256,7 +39540,7 @@ TableWidthLegend=20
 TableWidthNavigation=100
 TableWidthParameters=100
 TableWidthReports=100
-Title=
+Title=JEDI Windows Security Code Library Help
 UseInheritedPropertyDetails=1
 
 [Configurations\Configuration 3\Output Options\Indicator Images]
@@ -39876,7 +40160,7 @@ Links_NoSameTitleText=1
 Links_SuppressLinksFormatInCode=1
 List_Bullets_Symbol=1
 MaxContentLevel=4
-OutputDir=$(USRDOCSOUTPUT)
+OutputDir=E:\temp\JWSCL DOC\PDF
 OutputFilename=
 OverviewColumns=2
 ShowOptions=243
@@ -48781,22 +49065,106 @@ BodySourceUseAutolinking=0
 BodySourceUseSyntaxHighlight=0
 
 [Configurations\Configuration 4\Disabled Topics]
-Count=9
-ID0=Compilers.inc
-ID1=jedi.inc
-ID2=Jwscl.inc
-ID3=TJwAutoLock.fLeaveFlag
-ID4=TJwProcessEnumerator.Create@TJwWTSProcessList
-ID5=TJwSecureGeneralObject.Dummy
-ID6=TJwSecureRegistryKey.Dummy
-ID7=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
-ID8=TJwSessionsEnumerator.Create@TJwWTSSessionList
+Count=81
+ID0=!!MEMBERTYPE_Fields_TJwComClientSecurity
+ID1=!!MEMBERTYPE_Fields_TJwComCustomSecurity
+ID10=IJwComServerSecurity.GetAuthenticationLevel
+ID11=IJwComServerSecurity.GetAuthenticationService
+ID12=IJwComServerSecurity.GetAuthManager
+ID13=IJwComServerSecurity.GetAuthorizationService
+ID14=IJwComServerSecurity.GetCapabilites
+ID15=IJwComServerSecurity.GetImpersonationLevel
+ID16=IJwComServerSecurity.GetReadOnlyProperties
+ID17=IJwComServerSecurity.GetUserName
+ID18=IJwComServerSecurity.GetWinNTIdentity
+ID19=IJwComServerSecurity.SetAuthContext@TJwAuthContext
+ID2=!!MEMBERTYPE_Fields_TJwComRegistrySecurity
+ID20=IJwComServerSecurity.SetAuthenticationInfo@RPC_AUTH_IDENTITY_HANDLE
+ID21=IJwComServerSecurity.SetAuthenticationLevel@TJwComAuthenticationLevel
+ID22=IJwComServerSecurity.SetAuthenticationService@TJwComAuthenticationService
+ID23=IJwComServerSecurity.SetAuthManager@TJwAuthResourceManager
+ID24=IJwComServerSecurity.SetAuthorizationService@TJwComAuthorizationService
+ID25=IJwComServerSecurity.SetCapabilites@TJwComAuthenticationCapabilities
+ID26=IJwComServerSecurity.SetImpersonationLevel@TJwComImpersonationLevel
+ID27=jedi.inc
+ID28=Jwscl.inc
+ID29=TJwAutoLock.fLeaveFlag
+ID3=!!MEMBERTYPE_Fields_TJwComServerSecurity
+ID30=TJwComClientSecurity.AuthWinNT@string@string@string
+ID31=TJwComClientSecurity.Create@TJwComClientSecurity
+ID32=TJwComClientSecurity.Destroy
+ID33=TJwComClientSecurity.fProxy
+ID34=TJwComCustomSecurity.CreateAuthInfo@TJwAuthInfoType
+ID35=TJwComCustomSecurity.fAuthenticationInfo
+ID36=TJwComCustomSecurity.fAuthenticationLevel
+ID37=TJwComCustomSecurity.fAuthenticationService
+ID38=TJwComCustomSecurity.fAuthorizationService
+ID39=TJwComCustomSecurity.fCapabilites
+ID4=!!MEMBERTYPE_Fields_TJwComWinNTIdentity
+ID40=TJwComCustomSecurity.fImpersonationLevel
+ID41=TJwComCustomSecurity.fProxy
+ID42=TJwComCustomSecurity.fReadOnly
+ID43=TJwComCustomSecurity.fServerPrincipalName
+ID44=TJwComCustomSecurity.fUpdating
+ID45=TJwComCustomSecurity.GetAuthenticationInfo
+ID46=TJwComCustomSecurity.GetAuthenticationLevel
+ID47=TJwComCustomSecurity.GetAuthenticationService
+ID48=TJwComCustomSecurity.GetAuthorizationService
+ID49=TJwComCustomSecurity.GetCapabilites
+ID5=!!MEMBERTYPE_Fields_TJwServerAccessControl
+ID50=TJwComCustomSecurity.GetImpersonationLevel
+ID51=TJwComCustomSecurity.GetReadOnlyProperties
+ID52=TJwComCustomSecurity.GetServerPrincipalName
+ID53=TJwComCustomSecurity.SetAuthenticationInfo@RPC_AUTH_IDENTITY_HANDLE
+ID54=TJwComCustomSecurity.SetAuthenticationLevel@TJwComAuthenticationLevel
+ID55=TJwComCustomSecurity.SetAuthenticationService@TJwComAuthenticationService
+ID56=TJwComCustomSecurity.SetAuthorizationService@TJwComAuthorizationService
+ID57=TJwComCustomSecurity.SetCapabilites@TJwComAuthenticationCapabilities
+ID58=TJwComCustomSecurity.SetImpersonationLevel@TJwComImpersonationLevel
+ID59=TJwComCustomSecurity.SetReadOnlyProperties@Boolean
+ID6=!!MEMBERTYPE_Fields_TJwWTSProcess
+ID60=TJwComCustomSecurity.SetServerPrincipalName@TJwString
+ID61=TJwComRegistrySecurity.Destroy
+ID62=TJwComServerSecurity.Destroy
+ID63=TJwComServerSecurity.GetAuthContext
+ID64=TJwComServerSecurity.GetServerSecurity@TJwServerImpersonationType
+ID65=TJwComServerSecurity.GetToken
+ID66=TJwComServerSecurity.GetUserName
+ID67=TJwComWinNTIdentity.Destroy
+ID68=TJwProcessEnumerator.Create@TJwWTSProcessList
+ID69=TJwSecureGeneralObject.Dummy
+ID7=Compilers.inc
+ID70=TJwSecureRegistryKey.Dummy
+ID71=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
+ID72=TJwServerAccessControl.Destroy
+ID73=TJwSessionsEnumerator.Create@TJwWTSSessionList
+ID74=TJwWindowsVersion._IsNewUnknown@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID75=TJwWindowsVersion._IsServer2003R2@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID76=TJwWindowsVersion._IsWin98SE@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID77=TJwWindowsVersion.GetCachedWindowsType
+ID78=TJwWindowsVersion.ResetCachedWindowsType
+ID79=TJwWindowsVersion.SetCachedWindowsType@Integer@Boolean
+ID8=IJwComServerSecurity.GetAuthContext
+ID80=TJwWTSSessionStatistics
+ID9=IJwComServerSecurity.GetAuthenticationInfo
 
 [Configurations\Configuration 4\Enabled Topics]
-Count=3
-ID0=!!FILES
-ID1=!!SYMREF
-ID2=TJwProcessEnumerator
+Count=15
+ID0=!!SYMREF
+ID1=TJwComCustomSecurity.AuthenticationInfo
+ID10=TJwComCustomSecurity.ImpersonationLevel
+ID11=TJwComCustomSecurity.ReadOnlyProperties
+ID12=TJwComCustomSecurity.ServerPrincipalName
+ID13=TJwProcessEnumerator
+ID14=TJwWTSProcess.FData
+ID2=TJwComCustomSecurity.AuthenticationLevel
+ID3=TJwComCustomSecurity.AuthenticationService
+ID4=TJwComCustomSecurity.AuthorizationService
+ID5=TJwComCustomSecurity.BeginUpdate
+ID6=TJwComCustomSecurity.Capabilites
+ID7=TJwComCustomSecurity.CheckReadonly@String
+ID8=TJwComCustomSecurity.CoInitializeSecurity@Pointer@LONG@PSOLE_AUTHENTICATION_SERVICE@TJwComAuthenticationLevel@TJwComImpersonationLevel@Pointer@TJwComAuthenticationCapabilities@Boolean
+ID9=TJwComCustomSecurity.EndUpdate
 
 [Configurations\Configuration 4\Export Symbols]
 Classes=1
@@ -49913,9 +50281,9 @@ Value2.9=%NSSYM% %TYPEL%
 
 [Configurations\Configuration 5\{C81B476F-5DE3-416C-A73A-9674B8ECC110}\Basic]
 CreatePrintableDocumentation=0
-HelpCompiler=
+HelpCompiler=E:\Proggen\Help Workshop\hcrtf.exe
 HLPFilename=
-OutputFile=
+OutputFile=E:\temp\JWSCL DOC\HLP\bin
 
 [Configurations\Configuration 5\{C81B476F-5DE3-416C-A73A-9674B8ECC110}\Common Layout Options]
 DisplayShowAllAboveHeader=1
@@ -51272,8 +51640,8 @@ ShowDocumentation=1
 [Configurations\Configuration 5\{C81B476F-5DE3-416C-A73A-9674B8ECC110}\Help Project]
 CompressHelp=1
 CreateContentFile=1
-CreateDualHelpSupportFiles=1
-CreateMapFiles=1
+CreateDualHelpSupportFiles=0
+CreateMapFiles=0
 CustomHelpProjectFile=
 HelpProjectFileAutomatic=1
 WindowColorAddInfoContent=16777215
@@ -53728,22 +54096,106 @@ BodySourceUseAutolinking=0
 BodySourceUseSyntaxHighlight=0
 
 [Configurations\Configuration 5\Disabled Topics]
-Count=9
-ID0=Compilers.inc
-ID1=jedi.inc
-ID2=Jwscl.inc
-ID3=TJwAutoLock.fLeaveFlag
-ID4=TJwProcessEnumerator.Create@TJwWTSProcessList
-ID5=TJwSecureGeneralObject.Dummy
-ID6=TJwSecureRegistryKey.Dummy
-ID7=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
-ID8=TJwSessionsEnumerator.Create@TJwWTSSessionList
+Count=81
+ID0=!!MEMBERTYPE_Fields_TJwComClientSecurity
+ID1=!!MEMBERTYPE_Fields_TJwComCustomSecurity
+ID10=IJwComServerSecurity.GetAuthenticationLevel
+ID11=IJwComServerSecurity.GetAuthenticationService
+ID12=IJwComServerSecurity.GetAuthManager
+ID13=IJwComServerSecurity.GetAuthorizationService
+ID14=IJwComServerSecurity.GetCapabilites
+ID15=IJwComServerSecurity.GetImpersonationLevel
+ID16=IJwComServerSecurity.GetReadOnlyProperties
+ID17=IJwComServerSecurity.GetUserName
+ID18=IJwComServerSecurity.GetWinNTIdentity
+ID19=IJwComServerSecurity.SetAuthContext@TJwAuthContext
+ID2=!!MEMBERTYPE_Fields_TJwComRegistrySecurity
+ID20=IJwComServerSecurity.SetAuthenticationInfo@RPC_AUTH_IDENTITY_HANDLE
+ID21=IJwComServerSecurity.SetAuthenticationLevel@TJwComAuthenticationLevel
+ID22=IJwComServerSecurity.SetAuthenticationService@TJwComAuthenticationService
+ID23=IJwComServerSecurity.SetAuthManager@TJwAuthResourceManager
+ID24=IJwComServerSecurity.SetAuthorizationService@TJwComAuthorizationService
+ID25=IJwComServerSecurity.SetCapabilites@TJwComAuthenticationCapabilities
+ID26=IJwComServerSecurity.SetImpersonationLevel@TJwComImpersonationLevel
+ID27=jedi.inc
+ID28=Jwscl.inc
+ID29=TJwAutoLock.fLeaveFlag
+ID3=!!MEMBERTYPE_Fields_TJwComServerSecurity
+ID30=TJwComClientSecurity.AuthWinNT@string@string@string
+ID31=TJwComClientSecurity.Create@TJwComClientSecurity
+ID32=TJwComClientSecurity.Destroy
+ID33=TJwComClientSecurity.fProxy
+ID34=TJwComCustomSecurity.CreateAuthInfo@TJwAuthInfoType
+ID35=TJwComCustomSecurity.fAuthenticationInfo
+ID36=TJwComCustomSecurity.fAuthenticationLevel
+ID37=TJwComCustomSecurity.fAuthenticationService
+ID38=TJwComCustomSecurity.fAuthorizationService
+ID39=TJwComCustomSecurity.fCapabilites
+ID4=!!MEMBERTYPE_Fields_TJwComWinNTIdentity
+ID40=TJwComCustomSecurity.fImpersonationLevel
+ID41=TJwComCustomSecurity.fProxy
+ID42=TJwComCustomSecurity.fReadOnly
+ID43=TJwComCustomSecurity.fServerPrincipalName
+ID44=TJwComCustomSecurity.fUpdating
+ID45=TJwComCustomSecurity.GetAuthenticationInfo
+ID46=TJwComCustomSecurity.GetAuthenticationLevel
+ID47=TJwComCustomSecurity.GetAuthenticationService
+ID48=TJwComCustomSecurity.GetAuthorizationService
+ID49=TJwComCustomSecurity.GetCapabilites
+ID5=!!MEMBERTYPE_Fields_TJwServerAccessControl
+ID50=TJwComCustomSecurity.GetImpersonationLevel
+ID51=TJwComCustomSecurity.GetReadOnlyProperties
+ID52=TJwComCustomSecurity.GetServerPrincipalName
+ID53=TJwComCustomSecurity.SetAuthenticationInfo@RPC_AUTH_IDENTITY_HANDLE
+ID54=TJwComCustomSecurity.SetAuthenticationLevel@TJwComAuthenticationLevel
+ID55=TJwComCustomSecurity.SetAuthenticationService@TJwComAuthenticationService
+ID56=TJwComCustomSecurity.SetAuthorizationService@TJwComAuthorizationService
+ID57=TJwComCustomSecurity.SetCapabilites@TJwComAuthenticationCapabilities
+ID58=TJwComCustomSecurity.SetImpersonationLevel@TJwComImpersonationLevel
+ID59=TJwComCustomSecurity.SetReadOnlyProperties@Boolean
+ID6=!!MEMBERTYPE_Fields_TJwWTSProcess
+ID60=TJwComCustomSecurity.SetServerPrincipalName@TJwString
+ID61=TJwComRegistrySecurity.Destroy
+ID62=TJwComServerSecurity.Destroy
+ID63=TJwComServerSecurity.GetAuthContext
+ID64=TJwComServerSecurity.GetServerSecurity@TJwServerImpersonationType
+ID65=TJwComServerSecurity.GetToken
+ID66=TJwComServerSecurity.GetUserName
+ID67=TJwComWinNTIdentity.Destroy
+ID68=TJwProcessEnumerator.Create@TJwWTSProcessList
+ID69=TJwSecureGeneralObject.Dummy
+ID7=Compilers.inc
+ID70=TJwSecureRegistryKey.Dummy
+ID71=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
+ID72=TJwServerAccessControl.Destroy
+ID73=TJwSessionsEnumerator.Create@TJwWTSSessionList
+ID74=TJwWindowsVersion._IsNewUnknown@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID75=TJwWindowsVersion._IsServer2003R2@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID76=TJwWindowsVersion._IsWin98SE@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID77=TJwWindowsVersion.GetCachedWindowsType
+ID78=TJwWindowsVersion.ResetCachedWindowsType
+ID79=TJwWindowsVersion.SetCachedWindowsType@Integer@Boolean
+ID8=IJwComServerSecurity.GetAuthContext
+ID80=TJwWTSSessionStatistics
+ID9=IJwComServerSecurity.GetAuthenticationInfo
 
 [Configurations\Configuration 5\Enabled Topics]
-Count=3
-ID0=!!FILES
-ID1=!!SYMREF
-ID2=TJwProcessEnumerator
+Count=15
+ID0=!!SYMREF
+ID1=TJwComCustomSecurity.AuthenticationInfo
+ID10=TJwComCustomSecurity.ImpersonationLevel
+ID11=TJwComCustomSecurity.ReadOnlyProperties
+ID12=TJwComCustomSecurity.ServerPrincipalName
+ID13=TJwProcessEnumerator
+ID14=TJwWTSProcess.FData
+ID2=TJwComCustomSecurity.AuthenticationLevel
+ID3=TJwComCustomSecurity.AuthenticationService
+ID4=TJwComCustomSecurity.AuthorizationService
+ID5=TJwComCustomSecurity.BeginUpdate
+ID6=TJwComCustomSecurity.Capabilites
+ID7=TJwComCustomSecurity.CheckReadonly@String
+ID8=TJwComCustomSecurity.CoInitializeSecurity@Pointer@LONG@PSOLE_AUTHENTICATION_SERVICE@TJwComAuthenticationLevel@TJwComImpersonationLevel@Pointer@TJwComAuthenticationCapabilities@Boolean
+ID9=TJwComCustomSecurity.EndUpdate
 
 [Configurations\Configuration 5\Export Symbols]
 Classes=1
@@ -54219,8 +54671,8 @@ ID5=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
 [Configurations\Configuration 5\Output Options]
 AdditionalInformationFormatStr=%NAME% %NUMBER%
 AddVisibilitySpecifierForCppPascal=0
-Author=
-AuthorEmail=
+Author=JEDI WSCL Authors
+AuthorEmail=mail@delphi-jedi.net
 AutoDocText0=The following tables list the members exposed by %NAME%.
 AutoDocText1=The %CATEGORYL% of the %NAME% class are listed here.
 AutoDocText2=The %CATEGORYL% members of the %NAME% class are listed here.
@@ -54233,7 +54685,7 @@ ClassHierarchyTextLayoutFlatSeparator='    |'
 ClassHierarchyTextLayoutHangingIndent='    '
 ClassHierarchyTextLayoutOptions=2
 ContextIndexOptions=2595
-Copyright=%COPYRIGHT%. This help was created by Doc-O-Matic which is sponsored by <a href="http://toolsfactory.com/">toolsfactory software inc.</a>
+Copyright=
 CreateContentForFoldersGlobals=0
 CreateContentForFoldersMembers=0
 CustomBuildStepApp=
@@ -54270,7 +54722,7 @@ TableWidthLegend=20
 TableWidthNavigation=100
 TableWidthParameters=100
 TableWidthReports=100
-Title=
+Title=JEDI Windows Security Code Library Help
 UseInheritedPropertyDetails=1
 
 [Configurations\Configuration 5\Output Options\Indicator Images]
@@ -54862,7 +55314,7 @@ Value2.9=%NSSYM% %TYPEL%
 Encoding=UTF-8
 GenerateSymbolStructure=1
 GenerateTopicStructure=1
-OutputDir=bin\xml
+OutputDir=E:\temp\JWSCL DOC\XML
 OutputFilename=
 ShowDocumentation=1
 UseXMLDocTags=1
@@ -54944,22 +55396,106 @@ BodySourceUseAutolinking=0
 BodySourceUseSyntaxHighlight=0
 
 [Configurations\Configuration 6\Disabled Topics]
-Count=9
-ID0=Compilers.inc
-ID1=jedi.inc
-ID2=Jwscl.inc
-ID3=TJwAutoLock.fLeaveFlag
-ID4=TJwProcessEnumerator.Create@TJwWTSProcessList
-ID5=TJwSecureGeneralObject.Dummy
-ID6=TJwSecureRegistryKey.Dummy
-ID7=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
-ID8=TJwSessionsEnumerator.Create@TJwWTSSessionList
+Count=81
+ID0=!!MEMBERTYPE_Fields_TJwComClientSecurity
+ID1=!!MEMBERTYPE_Fields_TJwComCustomSecurity
+ID10=IJwComServerSecurity.GetAuthenticationLevel
+ID11=IJwComServerSecurity.GetAuthenticationService
+ID12=IJwComServerSecurity.GetAuthManager
+ID13=IJwComServerSecurity.GetAuthorizationService
+ID14=IJwComServerSecurity.GetCapabilites
+ID15=IJwComServerSecurity.GetImpersonationLevel
+ID16=IJwComServerSecurity.GetReadOnlyProperties
+ID17=IJwComServerSecurity.GetUserName
+ID18=IJwComServerSecurity.GetWinNTIdentity
+ID19=IJwComServerSecurity.SetAuthContext@TJwAuthContext
+ID2=!!MEMBERTYPE_Fields_TJwComRegistrySecurity
+ID20=IJwComServerSecurity.SetAuthenticationInfo@RPC_AUTH_IDENTITY_HANDLE
+ID21=IJwComServerSecurity.SetAuthenticationLevel@TJwComAuthenticationLevel
+ID22=IJwComServerSecurity.SetAuthenticationService@TJwComAuthenticationService
+ID23=IJwComServerSecurity.SetAuthManager@TJwAuthResourceManager
+ID24=IJwComServerSecurity.SetAuthorizationService@TJwComAuthorizationService
+ID25=IJwComServerSecurity.SetCapabilites@TJwComAuthenticationCapabilities
+ID26=IJwComServerSecurity.SetImpersonationLevel@TJwComImpersonationLevel
+ID27=jedi.inc
+ID28=Jwscl.inc
+ID29=TJwAutoLock.fLeaveFlag
+ID3=!!MEMBERTYPE_Fields_TJwComServerSecurity
+ID30=TJwComClientSecurity.AuthWinNT@string@string@string
+ID31=TJwComClientSecurity.Create@TJwComClientSecurity
+ID32=TJwComClientSecurity.Destroy
+ID33=TJwComClientSecurity.fProxy
+ID34=TJwComCustomSecurity.CreateAuthInfo@TJwAuthInfoType
+ID35=TJwComCustomSecurity.fAuthenticationInfo
+ID36=TJwComCustomSecurity.fAuthenticationLevel
+ID37=TJwComCustomSecurity.fAuthenticationService
+ID38=TJwComCustomSecurity.fAuthorizationService
+ID39=TJwComCustomSecurity.fCapabilites
+ID4=!!MEMBERTYPE_Fields_TJwComWinNTIdentity
+ID40=TJwComCustomSecurity.fImpersonationLevel
+ID41=TJwComCustomSecurity.fProxy
+ID42=TJwComCustomSecurity.fReadOnly
+ID43=TJwComCustomSecurity.fServerPrincipalName
+ID44=TJwComCustomSecurity.fUpdating
+ID45=TJwComCustomSecurity.GetAuthenticationInfo
+ID46=TJwComCustomSecurity.GetAuthenticationLevel
+ID47=TJwComCustomSecurity.GetAuthenticationService
+ID48=TJwComCustomSecurity.GetAuthorizationService
+ID49=TJwComCustomSecurity.GetCapabilites
+ID5=!!MEMBERTYPE_Fields_TJwServerAccessControl
+ID50=TJwComCustomSecurity.GetImpersonationLevel
+ID51=TJwComCustomSecurity.GetReadOnlyProperties
+ID52=TJwComCustomSecurity.GetServerPrincipalName
+ID53=TJwComCustomSecurity.SetAuthenticationInfo@RPC_AUTH_IDENTITY_HANDLE
+ID54=TJwComCustomSecurity.SetAuthenticationLevel@TJwComAuthenticationLevel
+ID55=TJwComCustomSecurity.SetAuthenticationService@TJwComAuthenticationService
+ID56=TJwComCustomSecurity.SetAuthorizationService@TJwComAuthorizationService
+ID57=TJwComCustomSecurity.SetCapabilites@TJwComAuthenticationCapabilities
+ID58=TJwComCustomSecurity.SetImpersonationLevel@TJwComImpersonationLevel
+ID59=TJwComCustomSecurity.SetReadOnlyProperties@Boolean
+ID6=!!MEMBERTYPE_Fields_TJwWTSProcess
+ID60=TJwComCustomSecurity.SetServerPrincipalName@TJwString
+ID61=TJwComRegistrySecurity.Destroy
+ID62=TJwComServerSecurity.Destroy
+ID63=TJwComServerSecurity.GetAuthContext
+ID64=TJwComServerSecurity.GetServerSecurity@TJwServerImpersonationType
+ID65=TJwComServerSecurity.GetToken
+ID66=TJwComServerSecurity.GetUserName
+ID67=TJwComWinNTIdentity.Destroy
+ID68=TJwProcessEnumerator.Create@TJwWTSProcessList
+ID69=TJwSecureGeneralObject.Dummy
+ID7=Compilers.inc
+ID70=TJwSecureRegistryKey.Dummy
+ID71=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
+ID72=TJwServerAccessControl.Destroy
+ID73=TJwSessionsEnumerator.Create@TJwWTSSessionList
+ID74=TJwWindowsVersion._IsNewUnknown@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID75=TJwWindowsVersion._IsServer2003R2@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID76=TJwWindowsVersion._IsWin98SE@TOSVersionInfoEx@PJwWindowsVersionDefinition@Boolean
+ID77=TJwWindowsVersion.GetCachedWindowsType
+ID78=TJwWindowsVersion.ResetCachedWindowsType
+ID79=TJwWindowsVersion.SetCachedWindowsType@Integer@Boolean
+ID8=IJwComServerSecurity.GetAuthContext
+ID80=TJwWTSSessionStatistics
+ID9=IJwComServerSecurity.GetAuthenticationInfo
 
 [Configurations\Configuration 6\Enabled Topics]
-Count=3
-ID0=!!FILES
-ID1=!!SYMREF
-ID2=TJwProcessEnumerator
+Count=15
+ID0=!!SYMREF
+ID1=TJwComCustomSecurity.AuthenticationInfo
+ID10=TJwComCustomSecurity.ImpersonationLevel
+ID11=TJwComCustomSecurity.ReadOnlyProperties
+ID12=TJwComCustomSecurity.ServerPrincipalName
+ID13=TJwProcessEnumerator
+ID14=TJwWTSProcess.FData
+ID2=TJwComCustomSecurity.AuthenticationLevel
+ID3=TJwComCustomSecurity.AuthenticationService
+ID4=TJwComCustomSecurity.AuthorizationService
+ID5=TJwComCustomSecurity.BeginUpdate
+ID6=TJwComCustomSecurity.Capabilites
+ID7=TJwComCustomSecurity.CheckReadonly@String
+ID8=TJwComCustomSecurity.CoInitializeSecurity@Pointer@LONG@PSOLE_AUTHENTICATION_SERVICE@TJwComAuthenticationLevel@TJwComImpersonationLevel@Pointer@TJwComAuthenticationCapabilities@Boolean
+ID9=TJwComCustomSecurity.EndUpdate
 
 [Configurations\Configuration 6\Export Symbols]
 Classes=1
@@ -55435,8 +55971,8 @@ ID5=TJwSecureRegistryKey.TreeRegKeySetNamedSecurityInfo_Execute@Pointer
 [Configurations\Configuration 6\Output Options]
 AdditionalInformationFormatStr=%NAME% %NUMBER%
 AddVisibilitySpecifierForCppPascal=0
-Author=
-AuthorEmail=
+Author=JEDI WSCL Authors
+AuthorEmail=mail@delphi-jedi.net
 AutoDocText0=The following tables list the members exposed by %NAME%.
 AutoDocText1=The %CATEGORYL% of the %NAME% class are listed here.
 AutoDocText2=The %CATEGORYL% members of the %NAME% class are listed here.
@@ -55486,7 +56022,7 @@ TableWidthLegend=20
 TableWidthNavigation=100
 TableWidthParameters=100
 TableWidthReports=100
-Title=
+Title=JEDI Windows Security Code Library Help
 UseInheritedPropertyDetails=1
 
 [Configurations\Configuration 6\Output Options\Indicator Images]
@@ -56105,7 +56641,7 @@ ExtraSectionIndent=
 InsertTrimLinesBeforeSectionHeadlines=0
 InsertValueDelimiterSpace=1
 ListIndent=2
-MaxLineLength=79
+MaxLineLength=115
 MinLinesForWall=0
 MinTableColWidth=10
 UseJavaDocBackslashTags=0
@@ -56127,121 +56663,155 @@ UseInheritedTopics=1
 UseInheritedUseUsing=0
 
 [External Topic Properties]
-Count=114
+Count=148
 ID0=!!SYMREF
 ID1=Compilers.inc
-ID10=JwsclAuthCtx.pas
-ID100=TJwTempResetEnum
-ID101=TJwTokenMandatoryPolicy
-ID102=TJwTreeSetType
-ID103=TJwUserDataCopy
-ID104=TJwWaitState
-ID105=TJwXMLAttribute
-ID106=TJwXMLAttrTag
-ID107=TJwXMLEventType
-ID108=TJwXMLLogTag
-ID109=TJwXMLTag
-ID11=JwsclComUtils, unit
-ID110=Topic1
-ID111=TThreadData
-ID112=TThreadMapRec
-ID113=TThreadNameInfo
-ID12=JwsclComUtils.pas
-ID13=JwsclConstants, unit
-ID14=JwsclConstants.pas
-ID15=TAce
-ID16=TAuthZSidContextFlag
-ID17=TFileVersionInfo
-ID18=TFNProgressRecord
-ID19=TInternalProcessData
+ID10=JwsclAuthCtx, unit
+ID100=TJwPrivilegeQueryType
+ID101=TJwPrivilegeSetType
+ID102=TJwProcessOutputInformation
+ID103=TJwProcessParameterType
+ID104=TJwProfileInfo
+ID105=TJwProfileMember
+ID106=TJwProgInvokeSetting
+ID107=TJwProtectMemoryFlag
+ID108=TJwReplyErrorEnum
+ID109=TJwRequestedTokenType
+ID11=JwsclAuthCtx.pas
+ID110=TJwRightsMapping
+ID111=TJwRightType
+ID112=TJwRootKeyEnum
+ID113=TJwRootRegKey
+ID114=TJwRootTuple
+ID115=TJwSecureObjectType
+ID116=TJwSecurityDescriptorControl
+ID117=TJwSecurityDesktopFlag
+ID118=TJwSecurityDialogFlag
+ID119=TJwSecurityInformationFlag
+ID12=JwsclComSecurity.pas
+ID120=TJwSecurityObjectInformation
+ID121=TJwSecurityObjectInformationFlag
+ID122=TJwSecurityPageType
+ID123=TJwSecurityResetType
+ID124=TJwShadowMode
+ID125=TJwShadowState
+ID126=TJwSharedHandle
+ID127=TJwShellExecuteFlag
+ID128=TJwShellInformation.GetKnownFolderPath@KNOWNFOLDERID@TJwWideString@DWORD@TJwSecurityToken
+ID129=TJwSidAttribute
+ID13=JwsclComUtils, unit
+ID130=TJwSidClassName
+ID131=TJwSidInfoRecord
+ID132=TJwSidMap
+ID133=TJwSignalType
+ID134=TJwTempResetEnum
+ID135=TJwTokenMandatoryPolicy
+ID136=TJwTreeSetType
+ID137=TJwUserDataCopy
+ID138=TJwWaitState
+ID139=TJwXMLAttribute
+ID14=JwsclComUtils.pas
+ID140=TJwXMLAttrTag
+ID141=TJwXMLEventType
+ID142=TJwXMLLogTag
+ID143=TJwXMLTag
+ID144=Topic1
+ID145=TThreadData
+ID146=TThreadMapRec
+ID147=TThreadNameInfo
+ID15=JwsclConstants, unit
+ID16=JwsclConstants.pas
+ID17=JwsclCredentials.pas
+ID18=JwsclCryptProvider.pas
+ID19=JwsclDescriptor.pas
 ID2=conclusion.txt
-ID20=TIntTuple
-ID21=TJwAccessControlListType
-ID22=TJwAceFlag
-ID23=TJwAceType
-ID24=TJwACLProtection
-ID25=TJwACLProtectionState
-ID26=TJwAuthZResourceManagerFlag
-ID27=TJwCallbackData
-ID28=TJwCopyFlag
-ID29=TJwCreateProcessInfo
-ID3=introduction.txt
-ID30=TJwCreateProcessOut
-ID31=TJwCreateProcessParameters
-ID32=TJwCredentialFlag
-ID33=TJwCryptProtectFlag
-ID34=TJwCryptProtectOnPromptFlag
-ID35=TJwCSPCreationFlag
-ID36=TJwCSPType
-ID37=TJwDesktopCreationFlag
-ID38=TJwEncryptionAlgorithm
-ID39=TJwEnterType
-ID4=jedi.inc
-ID40=TJwEnumAlgorithmsEntry
-ID41=TJwEnumProviderEntry
-ID42=TJwEqualAceType
-ID43=TJwEventType
-ID44=TJwExceptionMapping
-ID45=TJwGetAccessCheckType
-ID46=TJwGetInheritFlagsType
-ID47=TJwGetMemBlob
-ID48=TJwHashAlgorithm
-ID49=TJwInheritedFromRecord
-ID5=Jwscl.inc
-ID50=TJwInheritFlag
-ID51=TJwIntegrityLabelType
-ID52=TJwJobLimit
-ID53=TJwJobMessage
-ID54=TJwJobTermination
-ID55=TJwJobUiLimit
-ID56=TJwKeyExportKind
-ID57=TJwKeyFlag
-ID58=TJwKeyPairType
-ID59=TJwLogType
-ID6=JwsclAccounts.pas
-ID60=TJwMandatoryPolicy
-ID61=TJwMemoryType
-ID62=TJwMemoryType.mtAlloc
-ID63=TJwMemoryType.mtDeAlloc
-ID64=TJwMsgRec
-ID65=TJwPointerType
-ID66=TJwPrivCheck
-ID67=TJwPrivilegeQueryType
-ID68=TJwPrivilegeSetType
-ID69=TJwProcessOutputInformation
-ID7=JwsclAcl, unit
-ID70=TJwProcessParameterType
-ID71=TJwProfileInfo
-ID72=TJwProfileMember
-ID73=TJwProgInvokeSetting
-ID74=TJwProtectMemoryFlag
-ID75=TJwReplyErrorEnum
-ID76=TJwRequestedTokenType
-ID77=TJwRightsMapping
-ID78=TJwRightType
-ID79=TJwRootKeyEnum
-ID8=JwsclAcl.pas
-ID80=TJwRootRegKey
-ID81=TJwRootTuple
-ID82=TJwSecureObjectType
-ID83=TJwSecurityDescriptorControl
-ID84=TJwSecurityDesktopFlag
-ID85=TJwSecurityDialogFlag
-ID86=TJwSecurityInformationFlag
-ID87=TJwSecurityObjectInformation
-ID88=TJwSecurityObjectInformationFlag
-ID89=TJwSecurityPageType
-ID9=JwsclAuthCtx, unit
-ID90=TJwSecurityResetType
-ID91=TJwShadowMode
-ID92=TJwShadowState
-ID93=TJwSharedHandle
-ID94=TJwShellExecuteFlag
-ID95=TJwSidAttribute
-ID96=TJwSidClassName
-ID97=TJwSidInfoRecord
-ID98=TJwSidMap
-ID99=TJwSignalType
+ID20=JwsclDesktops.pas
+ID21=JwsclElevation.pas
+ID22=JwsclEncryption.pas
+ID23=JwsclEnumerations.pas
+ID24=JwsclEurekaLogUtils.pas
+ID25=JwsclExceptionMappings.inc
+ID26=JwsclExceptions.pas
+ID27=JwsclFirewall.pas
+ID28=JwsclImpersonation.pas
+ID29=JwsclKnownSid.pas
+ID3=Features
+ID30=JwsclLogging.pas
+ID31=JwsclLsa.pas
+ID32=JwsclMapping.pas
+ID33=JwsclPrivileges.PAS
+ID34=JwsclProcess.pas
+ID35=JwsclResource.pas
+ID36=JwsclSecureObjects.pas
+ID37=JwsclSecurityDialogs.pas
+ID38=JwsclSid.pas
+ID39=JwsclSimpleDescriptor.pas
+ID4=introduction.txt
+ID40=JwsclStreams.pas
+ID41=JwsclStrings.pas
+ID42=JwsclTerminalServer.pas
+ID43=JwsclToken.pas
+ID44=JwsclTypes.pas
+ID45=JwsclUtils.pas
+ID46=JwsclVersion.pas
+ID47=JwsclWinStations.pas
+ID48=TAce
+ID49=TAuthZSidContextFlag
+ID5=jedi.inc
+ID50=TFileVersionInfo
+ID51=TFNProgressRecord
+ID52=TInternalProcessData
+ID53=TIntTuple
+ID54=TJwAccessControlListType
+ID55=TJwAceFlag
+ID56=TJwAceType
+ID57=TJwACLProtection
+ID58=TJwACLProtectionState
+ID59=TJwAuthZResourceManagerFlag
+ID6=Jwscl.inc
+ID60=TJwCallbackData
+ID61=TJwCopyFlag
+ID62=TJwCreateProcessInfo
+ID63=TJwCreateProcessOut
+ID64=TJwCreateProcessParameters
+ID65=TJwCredentialFlag
+ID66=TJwCryptProtectFlag
+ID67=TJwCryptProtectOnPromptFlag
+ID68=TJwCSPCreationFlag
+ID69=TJwCSPType
+ID7=JwsclAccounts.pas
+ID70=TJwDesktopCreationFlag
+ID71=TJwEncryptionAlgorithm
+ID72=TJwEnterType
+ID73=TJwEnumAlgorithmsEntry
+ID74=TJwEnumProviderEntry
+ID75=TJwEqualAceType
+ID76=TJwEventType
+ID77=TJwExceptionMapping
+ID78=TJwGetAccessCheckType
+ID79=TJwGetInheritFlagsType
+ID8=JwsclAcl, unit
+ID80=TJwGetMemBlob
+ID81=TJwHashAlgorithm
+ID82=TJwInheritedFromRecord
+ID83=TJwInheritFlag
+ID84=TJwIntegrityLabelType
+ID85=TJwJobLimit
+ID86=TJwJobMessage
+ID87=TJwJobTermination
+ID88=TJwJobUiLimit
+ID89=TJwKeyExportKind
+ID9=JwsclAcl.pas
+ID90=TJwKeyFlag
+ID91=TJwKeyPairType
+ID92=TJwLogType
+ID93=TJwMandatoryPolicy
+ID94=TJwMemoryType
+ID95=TJwMemoryType.mtAlloc
+ID96=TJwMemoryType.mtDeAlloc
+ID97=TJwMsgRec
+ID98=TJwPointerType
+ID99=TJwPrivCheck
 
 [External Topic Properties\!!SYMREF]
 Count=1
@@ -56258,6 +56828,13 @@ Count=1
 ETPCommand0=2
 ETPTopicOrder0=1
 
+[External Topic Properties\Features]
+Count=2
+ETPCommand0=2
+ETPCommand1=3
+ETPGroup1=introduction.txt
+ETPTopicOrder0=3
+
 [External Topic Properties\introduction.txt]
 Count=2
 ETPCommand0=2
@@ -56268,19 +56845,19 @@ ETPTopicOrder0=0
 [External Topic Properties\jedi.inc]
 Count=1
 ETPCommand0=2
-ETPTopicOrder0=2
+ETPTopicOrder0=0
 
 [External Topic Properties\Jwscl.inc]
 Count=2
 ETPCommand0=2
 ETPCommand1=3
 ETPGroup1=!!FILES
-ETPTopicOrder0=12
+ETPTopicOrder0=1
 
 [External Topic Properties\JwsclAccounts.pas]
 Count=1
 ETPCommand0=2
-ETPTopicOrder0=1
+ETPTopicOrder0=2
 
 [External Topic Properties\JwsclAcl, unit]
 Count=2
@@ -56292,7 +56869,7 @@ ETPTopicOrder0=5
 [External Topic Properties\JwsclAcl.pas]
 Count=1
 ETPCommand0=2
-ETPTopicOrder0=4
+ETPTopicOrder0=3
 
 [External Topic Properties\JwsclAuthCtx, unit]
 Count=2
@@ -56304,7 +56881,14 @@ ETPTopicOrder0=7
 [External Topic Properties\JwsclAuthCtx.pas]
 Count=1
 ETPCommand0=2
-ETPTopicOrder0=6
+ETPTopicOrder0=4
+
+[External Topic Properties\JwsclComSecurity.pas]
+Count=2
+ETPCommand0=2
+ETPCommand1=3
+ETPGroup1=!!FILES
+ETPTopicOrder0=5
 
 [External Topic Properties\JwsclComUtils, unit]
 Count=2
@@ -56316,7 +56900,7 @@ ETPTopicOrder0=9
 [External Topic Properties\JwsclComUtils.pas]
 Count=1
 ETPCommand0=2
-ETPTopicOrder0=8
+ETPTopicOrder0=6
 
 [External Topic Properties\JwsclConstants, unit]
 Count=2
@@ -56328,7 +56912,162 @@ ETPTopicOrder0=11
 [External Topic Properties\JwsclConstants.pas]
 Count=1
 ETPCommand0=2
+ETPTopicOrder0=7
+
+[External Topic Properties\JwsclCredentials.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=8
+
+[External Topic Properties\JwsclCryptProvider.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=9
+
+[External Topic Properties\JwsclDescriptor.pas]
+Count=1
+ETPCommand0=2
 ETPTopicOrder0=10
+
+[External Topic Properties\JwsclDesktops.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=11
+
+[External Topic Properties\JwsclElevation.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=12
+
+[External Topic Properties\JwsclEncryption.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=13
+
+[External Topic Properties\JwsclEnumerations.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=14
+
+[External Topic Properties\JwsclEurekaLogUtils.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=15
+
+[External Topic Properties\JwsclExceptionMappings.inc]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=16
+
+[External Topic Properties\JwsclExceptions.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=17
+
+[External Topic Properties\JwsclFirewall.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=18
+
+[External Topic Properties\JwsclImpersonation.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=19
+
+[External Topic Properties\JwsclKnownSid.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=20
+
+[External Topic Properties\JwsclLogging.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=21
+
+[External Topic Properties\JwsclLsa.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=22
+
+[External Topic Properties\JwsclMapping.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=23
+
+[External Topic Properties\JwsclPrivileges.PAS]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=24
+
+[External Topic Properties\JwsclProcess.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=25
+
+[External Topic Properties\JwsclResource.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=26
+
+[External Topic Properties\JwsclSecureObjects.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=27
+
+[External Topic Properties\JwsclSecurityDialogs.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=28
+
+[External Topic Properties\JwsclSid.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=29
+
+[External Topic Properties\JwsclSimpleDescriptor.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=30
+
+[External Topic Properties\JwsclStreams.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=31
+
+[External Topic Properties\JwsclStrings.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=32
+
+[External Topic Properties\JwsclTerminalServer.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=33
+
+[External Topic Properties\JwsclToken.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=34
+
+[External Topic Properties\JwsclTypes.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=35
+
+[External Topic Properties\JwsclUtils.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=36
+
+[External Topic Properties\JwsclVersion.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=37
+
+[External Topic Properties\JwsclWinStations.pas]
+Count=1
+ETPCommand0=2
+ETPTopicOrder0=38
 
 [External Topic Properties\TAce]
 Count=1
@@ -56734,6 +57473,11 @@ Count=1
 ETPCommand0=2
 ETPTopicOrder0=77
 
+[External Topic Properties\TJwShellInformation.GetKnownFolderPath@KNOWNFOLDERID@TJwWideString@DWORD@TJwSecurityToken]
+Count=1
+ETPCommand0=13
+ETPContentsEntry0=0
+
 [External Topic Properties\TJwSidAttribute]
 Count=1
 ETPCommand0=2
@@ -56867,15 +57611,15 @@ ID9=.dsp
 Author=JEDI Windows Security Code Library Authors
 AuthorEmail=mail@delphi-jedi.net
 CategorizeTypeDefStructsAsStructs=1
-Copyright=Copyright (c) 2008. All rights reserved.
+Copyright=Copyright (c) 2010. All rights reserved.
 FoldersThreshold=0
 Keywords=
 Summary=
 Symbol Hierarchy Folders=903
-Title=JWSCL Documentation BETA revision 716 (trunk)
+Title=JWSCL Documentation
 TypeDefStructsAsStructs=1
 VersionBuild=0
-VersionMajor=616
+VersionMajor=897
 VersionMinor=0
 VersionRelease=0
 
@@ -56945,9 +57689,11 @@ UseParameterListInlineComments=1
 WallCharacters="#$%&'*+-/=@[\]^_`{|}~
 
 [Parsing\ConditionalDefines]
-Count=2
+Count=4
 Define_0=UNICODE
 Define_1=VISTA
+Define_2=WINVISTA_UP
+Define_3=WIN7
 HandleConditionalDefines=1
 
 [Parsing\Excluded Source Files]
@@ -56958,7 +57704,7 @@ Count=0
 
 [Project File Info]
 Template=
-Version=604
+Version=605
 
 [Section\0]
 Count=3
@@ -57577,75 +58323,79 @@ ID9=9
 SavedValues=1
 
 [Source Files]
-Count=68
+Count=72
 File0=..\conclusion.dtx
-File1=..\introduction.dtx
-File10=..\..\source\JwsclConstants.dtx
-File11=..\..\source\JwsclConstants.pas
-File12=..\..\source\JwsclCredentials.dtx
-File13=..\..\source\JwsclCredentials.pas
-File14=..\..\source\JwsclCryptProvider.dtx
-File15=..\..\source\JwsclCryptProvider.pas
-File16=..\..\source\JwsclDescriptor.dtx
-File17=..\..\source\JwsclDescriptor.pas
-File18=..\..\source\JwsclDesktops.dtx
-File19=..\..\source\JwsclDesktops.pas
-File2=..\..\source\JwsclAccounts.dtx
-File20=..\..\source\JwsclElevation.pas
-File21=..\..\source\JwsclEncryption.pas
-File22=..\..\source\JwsclEnumerations.pas
-File23=..\..\source\JwsclEurekaLogUtils.dtx
-File24=..\..\source\JwsclEurekaLogUtils.pas
-File25=..\..\source\JwsclExceptions.dtx
-File26=..\..\source\JwsclExceptions.pas
-File27=..\..\source\JwsclFirewall.pas
-File28=..\..\source\JwsclImpersonation.dtx
-File29=..\..\source\JwsclImpersonation.pas
-File3=..\..\source\JwsclAccounts.pas
-File30=..\..\source\JwsclKnownSid.dtx
-File31=..\..\source\JwsclKnownSid.pas
-File32=..\..\source\JwsclLogging.dtx
-File33=..\..\source\JwsclLogging.pas
-File34=..\..\source\JwsclLsa.dtx
-File35=..\..\source\JwsclLsa.pas
-File36=..\..\source\JwsclMapping.dtx
-File37=..\..\source\JwsclMapping.pas
-File38=..\..\source\JwsclPrivileges.dtx
-File39=..\..\source\JwsclPrivileges.PAS
-File4=..\..\source\JwsclAcl.dtx
-File40=..\..\source\JwsclProcess.dtx
-File41=..\..\source\JwsclProcess.pas
-File42=..\..\source\JwsclResource.dtx
-File43=..\..\source\JwsclResource.pas
-File44=..\..\source\JwsclSecureObjects.dtx
-File45=..\..\source\JwsclSecureObjects.pas
-File46=..\..\source\JwsclSecurePrivateObjects.dtx
-File47=..\..\source\JwsclSecureUserObjects.dtx
-File48=..\..\source\JwsclSecurityDialogs.dtx
-File49=..\..\source\JwsclSecurityDialogs.pas
-File5=..\..\source\JwsclAcl.pas
-File50=..\..\source\JwsclSid.dtx
-File51=..\..\source\JwsclSid.pas
-File52=..\..\source\JwsclSimpleDescriptor.pas
-File53=..\..\source\JwsclStreams.pas
-File54=..\..\source\JwsclStrings.dtx
-File55=..\..\source\JwsclStrings.pas
-File56=..\..\source\JwsclTerminalServer.dtx
-File57=..\..\source\JwsclTerminalServer.pas
-File58=..\..\source\JwsclToken.dtx
-File59=..\..\source\JwsclToken.pas
-File6=..\..\source\JwsclAuthCtx.dtx
-File60=..\..\source\JwsclTypes.dtx
-File61=..\..\source\JwsclTypes.pas
-File62=..\..\source\JwsclUtils.dtx
-File63=..\..\source\JwsclUtils.pas
-File64=..\..\source\JwsclVersion.dtx
-File65=..\..\source\JwsclVersion.pas
-File66=..\..\source\JwsclWinStations.dtx
-File67=..\..\source\JwsclWinStations.pas
-File7=..\..\source\JwsclAuthCtx.pas
-File8=..\..\source\JwsclComUtils.dtx
-File9=..\..\source\JwsclComUtils.pas
+File1=MethodSnippet.dom-snippet
+File10=..\..\source\JwsclComSecurity.dtx
+File11=..\..\source\JwsclComSecurity.pas
+File12=..\..\source\JwsclComUtils.dtx
+File13=..\..\source\JwsclComUtils.pas
+File14=..\..\source\JwsclConstants.dtx
+File15=..\..\source\JwsclConstants.pas
+File16=..\..\source\JwsclCredentials.dtx
+File17=..\..\source\JwsclCredentials.pas
+File18=..\..\source\JwsclCryptProvider.dtx
+File19=..\..\source\JwsclCryptProvider.pas
+File2=..\introduction.dtx
+File20=..\..\source\JwsclDescriptor.dtx
+File21=..\..\source\JwsclDescriptor.pas
+File22=..\..\source\JwsclDesktops.dtx
+File23=..\..\source\JwsclDesktops.pas
+File24=..\..\source\JwsclElevation.pas
+File25=..\..\source\JwsclEncryption.pas
+File26=..\..\source\JwsclEnumerations.pas
+File27=..\..\source\JwsclEurekaLogUtils.dtx
+File28=..\..\source\JwsclEurekaLogUtils.pas
+File29=..\..\source\JwsclExceptions.dtx
+File3=..\..\source\features.dtx
+File30=..\..\source\JwsclExceptions.pas
+File31=..\..\source\JwsclFirewall.pas
+File32=..\..\source\JwsclImpersonation.dtx
+File33=..\..\source\JwsclImpersonation.pas
+File34=..\..\source\JwsclKnownSid.dtx
+File35=..\..\source\JwsclKnownSid.pas
+File36=..\..\source\JwsclLogging.dtx
+File37=..\..\source\JwsclLogging.pas
+File38=..\..\source\JwsclLsa.dtx
+File39=..\..\source\JwsclLsa.pas
+File4=..\..\source\JwsclAccounts.dtx
+File40=..\..\source\JwsclMapping.dtx
+File41=..\..\source\JwsclMapping.pas
+File42=..\..\source\JwsclPrivileges.dtx
+File43=..\..\source\JwsclPrivileges.PAS
+File44=..\..\source\JwsclProcess.dtx
+File45=..\..\source\JwsclProcess.pas
+File46=..\..\source\JwsclResource.dtx
+File47=..\..\source\JwsclResource.pas
+File48=..\..\source\JwsclSecureObjects.dtx
+File49=..\..\source\JwsclSecureObjects.pas
+File5=..\..\source\JwsclAccounts.pas
+File50=..\..\source\JwsclSecurePrivateObjects.dtx
+File51=..\..\source\JwsclSecureUserObjects.dtx
+File52=..\..\source\JwsclSecurityDialogs.dtx
+File53=..\..\source\JwsclSecurityDialogs.pas
+File54=..\..\source\JwsclSid.dtx
+File55=..\..\source\JwsclSid.pas
+File56=..\..\source\JwsclSimpleDescriptor.pas
+File57=..\..\source\JwsclStreams.pas
+File58=..\..\source\JwsclStrings.dtx
+File59=..\..\source\JwsclStrings.pas
+File6=..\..\source\JwsclAcl.dtx
+File60=..\..\source\JwsclTerminalServer.dtx
+File61=..\..\source\JwsclTerminalServer.pas
+File62=..\..\source\JwsclToken.dtx
+File63=..\..\source\JwsclToken.pas
+File64=..\..\source\JwsclTypes.dtx
+File65=..\..\source\JwsclTypes.pas
+File66=..\..\source\JwsclUtils.dtx
+File67=..\..\source\JwsclUtils.pas
+File68=..\..\source\JwsclVersion.dtx
+File69=..\..\source\JwsclVersion.pas
+File7=..\..\source\JwsclAcl.pas
+File70=..\..\source\JwsclWinStations.dtx
+File71=..\..\source\JwsclWinStations.pas
+File8=..\..\source\JwsclAuthCtx.dtx
+File9=..\..\source\JwsclAuthCtx.pas
 
 [Source Include Directories]
 Count=0
@@ -57680,11 +58430,11 @@ SectionID=18
 Sort=0
 
 [Topic Reports\1]
-Active=0
+Active=1
 CriteriaCount=1
 Name=Todo
 PrintHeader=1
-PrintOptionCount=2
+PrintOptionCount=4
 ReportBase=0
 ReportMatch=0
 TargetTopicID=
@@ -57696,14 +58446,24 @@ Match=0
 SectionID=12
 
 [Topic Reports\1\PrintOption_0]
-Kind=1
+Kind=0
 SectionID=-1
 Sort=1
 
 [Topic Reports\1\PrintOption_1]
+Kind=5
+SectionID=-1
+Sort=1
+
+[Topic Reports\1\PrintOption_2]
+Kind=3
+SectionID=-1
+Sort=1
+
+[Topic Reports\1\PrintOption_3]
 Kind=4
-SectionID=12
-Sort=0
+SectionID=1
+Sort=1
 
 [Topic Reports\2]
 Active=1

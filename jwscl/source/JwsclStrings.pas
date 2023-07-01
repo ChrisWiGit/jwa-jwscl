@@ -16,13 +16,13 @@ Software distributed under the License is distributed on an "AS IS" basis, WITHO
 ANY KIND, either express or implied. See the License for the specific language governing rights
 and limitations under the License.
 
-Alternatively, the contents of this file may be used under the terms of the  
-GNU Lesser General Public License (the  "LGPL License"), in which case the   
-provisions of the LGPL License are applicable instead of those above.        
-If you wish to allow use of your version of this file only under the terms   
-of the LGPL License and not to allow others to use your version of this file 
-under the MPL, indicate your decision by deleting  the provisions above and  
-replace  them with the notice and other provisions required by the LGPL      
+Alternatively, the contents of this file may be used under the terms of the
+GNU Lesser General Public License (the  "LGPL License"), in which case the
+provisions of the LGPL License are applicable instead of those above.
+If you wish to allow use of your version of this file only under the terms
+of the LGPL License and not to allow others to use your version of this file
+under the MPL, indicate your decision by deleting  the provisions above and
+replace  them with the notice and other provisions required by the LGPL
 License.  If you do not delete the provisions above, a recipient may use
 your version of this file under either the MPL or the LGPL License.
 
@@ -34,11 +34,20 @@ The Original Code is JwsclAnsiUniCode.pas.
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-08-29 14:26:48 +0000 (Sun, 29 Aug 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1006 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/JwsclStrings.pas $
+</table>
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclStrings;
 {$INCLUDE ..\includes\Jwscl.inc}
-// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
 
 interface
 
@@ -55,29 +64,29 @@ type
    It creates a new type. But we need just renamed types.
   }
 
-  {$IFDEF UNICODE}
-  {<B>TJwString</B> defines an unicode string type if compiler directive UNICODE is defined; otherwise ansicod
+{$IFDEF UNICODE}
+  {<B>TJwString</B> defines an unicode string type if compiler directive UNICODE is defined; otherwise ansicode
   Delphi 2009 uses the more efficient UnicodeString type.
 
   However this type must not be used for COM Methods! A cast to WideString is necessary before!
-  
+
   If you get an error here for <= Delphi2007 you must make sure that
   you're using an updated version of jedi.inc (included by jwscl.inc)
   that supports the DELPHI2009_UP switch!
   }
-  TJwString = {$IFDEF DELPHI2009_UP}UnicodeString;{$ELSE}WideString;{$ENDIF DELPHI2009_UP} 
+  TJwString = {$IFDEF DELPHI2009_UP}UnicodeString;{$ELSE}WideString;{$ENDIF DELPHI2009_UP}
   //<B>TJwPChar</B> defines an unicode pointer to wide char type if compiler directive UNICODE is defined; otherwise ansicode
   TJwPChar  = PWideChar;
   //<B>TJwChar</B> defines an unicode wide char type if compiler directive UNICODE is defined; otherwise ansicode
   TJwChar   = WideChar;
-  {$ELSE}
+{$ELSE}
   //<B>TJwString</B> defines an ansicode string type if compiler directive UNICODE is not defined; otherwise unicode
   TJwString = AnsiString;
   //<B>TJwPChar</B> defines an ansicode pointer to ansi char type if compiler directive UNICODE is not defined; otherwise unicode
   TJwPChar  = PAnsiChar;
   //<B>TJwChar</B> defines an ansicode char type if compiler directive UNICODE is not defined; otherwise unicode
   TJwChar   = AnsiChar;
-  {$ENDIF UNICODE}
+{$ENDIF UNICODE}
 
   {<B>TJwTJwStringArray</B> defines an dynamic array of TJwString.
    It can be either ansi or unicode strings}
@@ -85,32 +94,33 @@ type
 
   TJwWideStringArray = array of WideString;
 
-  TJwWideString = WideString;
+  TJwWideString = {$IFDEF DELPHI2009_UP}UnicodeString;{$ELSE}WideString;{$ENDIF DELPHI2009_UP}
   TJwAnsiString = AnsiString;
 
 
 const
   {<B>TJwCharSize</B> defines the size of an char in an ansi- or unicode compilation. }
-  TJwCharSize = SizeOf(TJwChar);
+  TJwCharSize = SizeOf({$IFDEF UNICODE}WideChar{$ELSE}AnsiChar{$ENDIF UNICODE});
+
 
 { JwCompareString compare two TJwString values using ANSICODE or UNICODE settings
   depending on the UNICODE compiler directive. The comparison is done using the
   locale user setting.
-  
-  
-  
-  
+
+
+
+
   Parameters
   S1 :          Receives the first string.
   S2 :          Receives the second string.
   IgnoreCase :  If set to to true the strings will be compared ignoring case
                 sensitivity.
-  
-  
-  
+
+
+
   Returns
   The function has the following results:
-  
+
   <table 15c%>
   Value   \Description
   ------  -------------------------------------------------------------------------
@@ -119,14 +129,15 @@ const
            are identical.
   1       S2 is less in lexical value than S1.
   </table>
-  
-  
-  
-  
-  
+
+
+
+
+
   See Also
   <extlink http://msdn.microsoft.com/en-us/library/ms647476.aspx>CompareString
   Function (MSDN)</extlink>                                                         }
+
 function JwCompareString(const S1, S2: TJwString;
   const IgnoreCase: boolean = False): integer;
 
@@ -147,8 +158,8 @@ procedure JwReplaceBreaks(var Str : TJwString);
 @param Index defines the string index to be loaded.
 @param PrimaryLanguageId defines the primary language id.
 use PRIMARYLANGID(GetUserDefaultUILanguage), SUBLANGID(GetUserDefaultUILanguage)
-to get user language. 
-@param SubLanguageId defines the sub language id. 
+to get user language.
+@param SubLanguageId defines the sub language id.
 @param Instance defines the location of the resource. Can be null to use current module.
 @return Returns the resource string.
 raises
@@ -166,9 +177,20 @@ function LoadLocalizedStringArray(const Index : TResourceIndexArray; LanguageId 
  Instance : HInst) : TResourceTStringArray;}
 
 
-{<B>JwCreateUnicodeString</B>Returns a pointer to an Initialized counted
-Unicode string}
-function JwCreateUnicodeString(const NewString: WideString): PUnicodeString;
+{<B>JwCreateUnicodeString</B>Returns a pointer to an initialized unicode string
+@param NewString
+@param AbsoluteStr Defines whether the new unicode string is a continues block of memory (FALSE)
+    or the string pointer of PUnicodeString points to a source string.
+}
+function JwCreateUnicodeString(const NewString: WideString; AbsoluteStr : boolean = true): PUnicodeString;
+
+{
+<B>JwCreateUnicodeStringSelfRelativ</B>Returns a pointer to an initialized unicode string.
+
+The new unicode string is a continues block of memory that has an empty string with StrLen count of chars.
+}
+function JwCreateUnicodeStringSelfRelative(const StrLen: Cardinal): PUnicodeString;
+
 {<B>JwCreateUnicodeString</B>Initializes a counted Unicode string}
 function JwCreateTUnicodeString(const NewString: WideString): TUnicodeString;
 
@@ -191,7 +213,7 @@ This routine does the same like:
 aJwString := TJWString(TJwPChar(aPWideChar));
 </code>
 }
-function JwPWideCharToJwString(const APWideChar: PWideChar): TJwString;
+//function JwPWideCharToJwString(const APWideChar: PWideChar): TJwString;
 
 {<B>JwOutputDebugString</B> calls API OutputDebugString but works with TJwString}
 procedure JwOutputDebugString(const Value : TJwString; const Args : array of const);
@@ -223,10 +245,31 @@ begin
 {$ENDIF DEBUG}
 end;
 
-function JwCreateUnicodeString(const NewString: WideString): PUnicodeString;
+function JwCreateUnicodeStringSelfRelative(const StrLen: Cardinal): PUnicodeString;
+var Size : Cardinal;
 begin
-  Result := nil; //removes compiler warning "undefined result"
-  RtlInitUnicodeString(Result, PWideChar(NewString));
+  Size := sizeof(TUnicodeString) + (StrLen+2) * sizeof(WideChar);
+  GetMem(result, Size);
+  ZeroMemory(result, Size);
+  result.Length := StrLen;
+  result.MaximumLength := result.Length + 2;
+end;
+
+function JwCreateUnicodeString(const NewString: WideString; AbsoluteStr : boolean): PUnicodeString;
+begin
+  if not AbsoluteStr then
+  begin
+    GetMem(result, sizeof(TUnicodeString) + (Length(NewString)+2) * sizeof(WideChar));
+    result.Length := Length(NewString);
+    result.MaximumLength := result.Length + 2;
+    CopyMemory(@result.Buffer, @NewString[1], result.Length * sizeof(WideChar));
+  end
+  else
+  begin
+    GetMem(Result, sizeof(TUnicodeString));
+    ZeroMemory(Result, sizeof(TUnicodeString));
+    RtlInitUnicodeString(Result, PWideChar(NewString));
+  end;
 end;
 
 function JwCreateTUnicodeString(const NewString: WideString): TUnicodeString;
@@ -335,6 +378,7 @@ begin
   end;
 end;
 
+
 function JwCompareString(const S1, S2: TJwString;
   const IgnoreCase: boolean = False): integer;
 var
@@ -376,10 +420,10 @@ begin
   FillChar(aString, sizeof(aString), 0);
 end;
 
-function JwPWideCharToJwString(const APWideChar: PWideChar): TJwString;
+{function JwPWideCharToJwString(const APWideChar: PWideChar): TJwString;
 begin
   Result := APWideChar;
-end;
+end;}
 
 function LoadLocalizedString(const Index : Cardinal; const PrimaryLanguageId, SubLanguageId : Word;
  Instance : HInst = 0) : TJwString;
@@ -472,7 +516,7 @@ begin
       begin
         i := 1;
         i2 := 0;
-        
+
         Inc(pS); //get the first string entry
         Len := Integer(pS^); //get string length
         Inc(pS); //skip string length
@@ -495,7 +539,7 @@ begin
             SetLength(result[i2], Len);
             Inc(i2);
           end;
-          
+
           Inc(pS, Len); //skip string
           Inc(i);
         end;
@@ -505,14 +549,21 @@ begin
     end;
   end
   else
-    RaiseLastOSError; 
+    RaiseLastOSError;
 end;
         *)
-        
+
 
 {$ENDIF SL_INTERFACE_SECTION}
 
 {$IFNDEF SL_OMIT_SECTIONS}
+initialization
+{$IFDEF UNICODE}
+ASSERT(TJwCharSize >= 2,'JWSCL ASSERT: Charsize in Unicode is wrong. Must be >= 2. Make a rebuild of your project!');
+{$ELSE}
+ASSERT(TJwCharSize = 1,'JWSCL ASSERT: Charsize in Ansicode is wrong. Must be = 1. Make a rebuild of your project!');
+{$ENDIF}
+
 
 end.
 

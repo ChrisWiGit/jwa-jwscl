@@ -34,12 +34,20 @@ The Original Code is JwsclPrivileges.pas.
 The Initial Developer of the Original Code is Christian Wimmer.
 Portions created by Christian Wimmer are Copyright (C) Christian Wimmer. All rights reserved.
 
+Version
+The following values are automatically injected by Subversion on commit.
+<table>
+\Description                                                        Value
+------------------------------------------------------------------  ------------
+Last known date the file has changed in the repository              \$Date: 2010-08-29 14:26:48 +0000 (Sun, 29 Aug 2010) $
+Last known revision number the file has changed in the repository   \$Revision: 1006 $
+Last known author who changed the file in the repository.           \$Author: dezipaitor $
+Full URL to the latest version of the file in the repository.       \$HeadURL: file:///svn/p/jedi-apilib/code/jwscl/branches/0.9.4a/source/JwsclPrivileges.PAS $
+</table>
 }
 {$IFNDEF SL_OMIT_SECTIONS}
 unit JwsclPrivileges;
 {$INCLUDE ..\includes\Jwscl.inc}
-// Last modified: $Date: 2007-09-10 10:00:00 +0100 $
-//do not move header comment from above unit declaration!
 
 interface
 
@@ -81,13 +89,13 @@ type
      @param defines a list of privileges to be enabled.
      @param SetType defines whether the privileges should be enabled or disabled.
       Define pst_EnableIfAvail if you dont want to raise an exception if the
-      privlege does not exist. 
+      privlege does not exist.
      raises
  EJwsclPrivilegeException:  will be raised if the privilege is not available and query is pst_Enable,
         otherwise the return value is false. If query is pst_EnableIfAvail the return is false, if the privilege could not be enabled.
         In this case no exception is raised.
         If an exception is raised all privileges enabled to this point are
-        disabled 
+        disabled
     }
     constructor Create(const Privileges : array of TJwString; const SetType : TJwPrivilegeSetType);
     destructor Destroy; override;
@@ -121,14 +129,14 @@ type
      @param defines a list of privileges to be enabled.
      @param SetType defines whether the privileges should be enabled or disabled.
       Define pst_EnableIfAvail if you dont want to raise an exception if the
-      privlege does not exist. 
+      privlege does not exist.
      raises
  EJwsclPrivilegeException:  will be raised if the privilege is not available and query is pst_Enable,
         otherwise the return value is false. If query is pst_EnableIfAvail the return is false, if the privilege could not be enabled.
         In this case no exception is raised.
         If an exception is raised all privileges enabled to this point are
-        disabled 
-    
+        disabled
+
   }
   function JwGetPrivilegeScope(const Privileges : array of TJwString;
     const SetType : TJwPrivilegeSetType = pst_Enable) : IJwPrivilegeScope;
@@ -188,12 +196,6 @@ begin
 end;
 
 
-procedure Test;
-var P : IJwPrivilegeScope;
-begin
-  P := JwGetPrivilegeScope([SE_SHUTDOWN_NAME, SE_TCB_NAME, SE_SECURITY_NAME]);
-  if P = nil then;
-end;
 
 
 initialization
