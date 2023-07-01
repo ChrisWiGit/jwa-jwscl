@@ -83,7 +83,14 @@ type
   EJwaLoadLibraryError = class(EJwaError);
   EJwaGetProcAddressError = class(EJwaError);
 
-procedure GetProcedureAddress(var P: Pointer; const ModuleName, ProcName: AnsiString);
+{GetProcedureAddress loads a function using a module name and an function name.
+WARNING: Do not load a function defined by its index like PAnsiChar(123) in ProcName.
+ Instead simply use the number and thus the other GetProcedureAddress.
+}
+procedure GetProcedureAddress(var P: Pointer; const ModuleName, ProcName: AnsiString); overload;
+
+{GetProcedureAddress loads a function using a module name and an function index.}
+procedure GetProcedureAddress(var P: Pointer; const ModuleName : AnsiString; ProcNumber : DWORD); overload;
 
 type
   // (rom) moved from JwaRpc.pas
@@ -415,7 +422,7 @@ const
 //
 
 type
-  CCHAR = Char;
+  CCHAR = AnsiChar;
   {$EXTERNALSYM CCHAR}
   CSHORT = Shortint;
   {$EXTERNALSYM CSHORT}
@@ -705,9 +712,9 @@ type
 // Pointer to an Asciiz string
 //
 
-  PSZ = ^CHAR;
+  PSZ = ^AnsiChar;
   {$EXTERNALSYM PSZ}
-  PCSZ = ^CHAR;
+  PCSZ = ^AnsiChar;
   {$EXTERNALSYM PCSZ}
 
 //
@@ -749,7 +756,7 @@ type
   TCString = CSTRING;
 
 const
-  ANSI_NULL = CHAR(0);
+  ANSI_NULL = AnsiChar(0);
   {$EXTERNALSYM ANSI_NULL}
   UNICODE_NULL = WCHAR(0);
   {$EXTERNALSYM UNICODE_NULL}
@@ -1181,7 +1188,7 @@ const
 
 type
 
-//unsigned char       BYTE;
+//unsigned AnsiChar       BYTE;
 //unsigned short      WORD;
 
   FLOAT = Single;
@@ -1830,8 +1837,9 @@ function GetProcAddress(hModule: HMODULE; lpProcName: LPCSTR): FARPROC; stdcall;
 {$ENDIF JWA_INCLUDEMODE}
 
 const
-  RsELibraryNotFound = 'Library not found: %s';
-  RsEFunctionNotFound = 'Function not found: %s.%s';
+  RsELibraryNotFound = 'Library not found: %0:s';
+  RsEFunctionNotFound = 'Function not found: %0:s.%1:s';
+  RsEFunctionNotFound2 = 'Function not found: %0:s.%1:d';
 
 procedure GetProcedureAddress(var P: Pointer; const ModuleName, ProcName: AnsiString);
 var
@@ -1856,6 +1864,32 @@ begin
                     {$ENDIF JWA_INCLUDEMODE}(ModuleHandle, PAnsiChar(ProcName)));
     if not Assigned(P) then
       raise EJwaGetProcAddressError.CreateFmt(RsEFunctionNotFound, [ModuleName, ProcName]);
+  end;
+end;
+
+procedure GetProcedureAddress(var P: Pointer; const ModuleName : AnsiString; ProcNumber : DWORD);
+var
+  ModuleHandle: HMODULE;
+begin
+  if not Assigned(P) then
+  begin
+    ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_GetModuleHandle
+                    {$ELSE}GetModuleHandleA
+                    {$ENDIF JWA_INCLUDEMODE}
+                    (PAnsiChar(AnsiString(ModuleName)));
+    if ModuleHandle = 0 then
+    begin
+      ModuleHandle := {$IFDEF JWA_INCLUDEMODE}jwaWinType_LoadLibrary
+                    {$ELSE}LoadLibraryA
+                    {$ENDIF JWA_INCLUDEMODE}(PAnsiChar(ModuleName));
+      if ModuleHandle = 0 then
+        raise EJwaLoadLibraryError.CreateFmt(RsELibraryNotFound, [ModuleName]);
+    end;
+    P := Pointer({$IFDEF JWA_INCLUDEMODE}jwaWinType_GetProcAddress
+                    {$ELSE}GetProcAddress
+                    {$ENDIF JWA_INCLUDEMODE}(ModuleHandle, PAnsiChar(ProcNumber)));
+    if not Assigned(P) then
+      raise EJwaGetProcAddressError.CreateFmt(RsEFunctionNotFound2, [ModuleName, ProcNumber]);
   end;
 end;
 

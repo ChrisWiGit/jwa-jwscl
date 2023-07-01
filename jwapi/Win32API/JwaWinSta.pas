@@ -459,6 +459,8 @@ function WinStationBroadcastSystemMessage(hServer: HANDLE;
 function WinStationCallBack(hServer:HANDLE; SessionId: DWORD;
 	pPhoneNumber: LPWSTR): BOOL; stdcall;
 
+procedure WinStationCloseServer(hServer: HANDLE); stdcall;
+
 function WinStationConnectW(hServer: Handle; SessionId: DWORD;
   TargetSessionId: DWORD; pPassword: LPWSTR;
   bWait: BOOL): Boolean; stdcall;
@@ -503,6 +505,10 @@ function WinStationNameFromLogonIdA(hServer: HANDLE; SessionId: ULONG;
 function WinStationNameFromLogonIdW(hServer: HANDLE; SessionId: ULONG;
   pWinStationName: LPWSTR): Boolean; stdcall;
 
+function WinStationOpenServerA(pServerName: LPSTR): HANDLE; stdcall;
+
+function WinStationOpenServerW(pServerName: LPWSTR): HANDLE; stdcall;
+
 function WinStationQueryInformationW(hServer: HANDLE; SessionId: DWORD;
   WinStationInformationClass: Cardinal; pWinStationInformation: PVOID;
   WinStationInformationLength: DWORD; var pReturnLength: DWORD):
@@ -513,6 +519,9 @@ function WinStationQueryLogonCredentialsW(
 
 function WinstationQueryUserToken(hServer: HANDLE; SessionId: DWORD;
   var hToken: HANDLE): Boolean;
+
+function WinStationRegisterConsoleNotification(hServer: HANDLE; hwnd: HWND;
+  dwFlags: Cardinal): Boolean; stdcall;
 
 // WinStationRename needs Admin rights and always returns true
 // need to check GetLastError
@@ -563,6 +572,9 @@ function WinStationShutDownSystem(hSERVER: HANDLE;
 function WinStationTerminateProcess(hServer: Handle; dwPID: DWORD;
   dwExitCode: DWORD): Boolean; stdcall;
 
+function WinStationUnRegisterConsoleNotification(hServer: HANDLE;
+  hwnd: THANDLE): Boolean; stdcall;
+
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
@@ -600,6 +612,7 @@ function QueryCurrentWinStationVistaRTM; external utildll name 'QueryCurrentWinS
 function StrConnectState; external utildll name 'StrConnectState';
 function WinStationBroadcastSystemMessage; external winstadll name 'WinStationBroadcastSystemMessage';
 function WinStationCallBack; external winstadll name 'WinStationCallBack';
+procedure WinStationCloseServer; external winstadll name 'WinStationCloseServer';
 function WinStationConnectW; external winstadll name 'WinStationConnectW';
 function WinStationDisconnect; external winstadll name 'WinStationDisconnect';
 function WinStationEnumerateA; external winstadll name 'WinStationEnumerateA';
@@ -611,7 +624,10 @@ function WinStationGetProcessSid; external winstadll name 'WinStationGetProcessS
 function WinStationGetTermSrvCountersValue; external winstadll name 'WinStationGetTermSrvCountersValue';
 function WinStationNameFromLogonIdA; external winstadll name 'WinStationNameFromLogonIdA';
 function WinStationNameFromLogonIdW; external winstadll name 'WinStationNameFromLogonIdW';
+function WinStationOpenServerA; external winstadll name 'WinStationOpenServerA';
+function WinStationOpenServerW; external winstadll name 'WinStationOpenServerW';
 function WinStationQueryLogonCredentialsW; external winstadll name 'WinStationQueryLogonCredentialsW';
+function WinStationRegisterConsoleNotification; external winstadll name 'WinStationRegisterConsoleNotification';
 function WinStationRenameA; external winstadll name 'WinStationRenameA';
 function WinStationRenameW; external winstadll name 'WinStationRenameW';
 function WinStationSendMessageA; external winstadll name 'WinStationSendMessageA';
@@ -624,6 +640,7 @@ function WinStationShadowStop; external winstadll name 'WinStationShadowStop';
 function WinStationShutDownSystem; external winstadll name 'WinStationShutDownSystem';
 function WinStationQueryInformationW; external winstadll name 'WinStationQueryInformationW';
 function WinStationTerminateProcess; external winstadll name 'WinStationTerminateProcess';
+function WinStationUnRegisterConsoleNotification; external winstadll name 'WinStationUnRegisterConsoleNotification';
 {$ELSE}
 
 var
@@ -835,6 +852,18 @@ begin
   end;
 end;
 
+var
+  __WinStationCloseServer: Pointer;
+
+procedure WinStationCloseServer;
+begin
+  GetProcedureAddress(__WinStationCloseServer, winstadll, 'WinStationCloseServer');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [__WinStationCloseServer]
+  end;
+end;
 
 var
   __WinStationConnectW: Pointer;
@@ -982,6 +1011,32 @@ begin
 end;
 
 var
+  __WinStationOpenServerA: Pointer;
+
+function WinStationOpenServerA;
+begin
+  GetProcedureAddress(__WinStationOpenServerA, winstadll, 'WinStationOpenServerA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [__WinStationOpenServerA]
+  end;
+end;
+
+var
+  __WinStationOpenServerW: Pointer;
+
+function WinStationOpenServerW;
+begin
+  GetProcedureAddress(__WinStationOpenServerA, winstadll, 'WinStationOpenServerW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [__WinStationOpenServerW]
+  end;
+end;
+
+var
   __WinStationQueryLogonCredentialsW: Pointer;
 
 function WinStationQueryLogonCredentialsW;
@@ -1030,6 +1085,19 @@ begin
         MOV     ESP, EBP
         POP     EBP
         JMP     [__WinStationQueryInformationW]
+  end;
+end;
+
+var
+  __WinStationRegisterConsoleNotification: Pointer;
+
+function WinStationRegisterConsoleNotification;
+begin
+  GetProcedureAddress(__WinStationRegisterConsoleNotification, winstadll, 'WinStationRegisterConsoleNotification');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [__WinStationRegisterConsoleNotification]
   end;
 end;
 
@@ -1149,6 +1217,19 @@ begin
         MOV     ESP, EBP
         POP     EBP
         JMP     [__WinStationTerminateProcess]
+  end;
+end;
+
+var
+  __WinStationUnRegisterConsoleNotification: Pointer;
+
+function WinStationUnRegisterConsoleNotification;
+begin
+  GetProcedureAddress(__WinStationUnRegisterConsoleNotification, winstadll, 'WinStationUnRegisterConsoleNotification');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [__WinStationUnRegisterConsoleNotification]
   end;
 end;
 {$ENDIF DYNAMIC_LINK}

@@ -1185,7 +1185,7 @@ type
   _FAX_CONTEXT_INFOA = record
     SizeOfStruct: DWORD; // Size of this structure
     hDC: HDC; // Device Context
-    ServerName: array [0..MAX_COMPUTERNAME_LENGTH] of CHAR; // Server name
+    ServerName: array [0..MAX_COMPUTERNAME_LENGTH] of AnsiChar; // Server name
   end;
   {$EXTERNALSYM _FAX_CONTEXT_INFOA}
   FAX_CONTEXT_INFOA = _FAX_CONTEXT_INFOA;
@@ -1510,7 +1510,7 @@ const
 
 {$IFNDEF JWA_OMIT_SECTIONS}
 implementation
-//uses ...
+uses JwaWinDllNames;
 {$ENDIF JWA_OMIT_SECTIONS}
 
 

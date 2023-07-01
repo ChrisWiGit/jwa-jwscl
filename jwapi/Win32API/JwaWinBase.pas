@@ -353,10 +353,10 @@ type
   {$EXTERNALSYM _SECURITY_ATTRIBUTES}
   SECURITY_ATTRIBUTES = _SECURITY_ATTRIBUTES;
   {$EXTERNALSYM SECURITY_ATTRIBUTES}
-  LPSECURITY_ATTRIBUTES = ^SECURITY_ATTRIBUTES;
+  LPSECURITY_ATTRIBUTES = PSECURITY_ATTRIBUTES;
   {$EXTERNALSYM LPSECURITY_ATTRIBUTES}
   TSecurityAttributes = SECURITY_ATTRIBUTES;
-  PSecurityAttributes = PSECURITY_ATTRIBUTES;
+  PSecurityAttributes = LPSECURITY_ATTRIBUTES;
 
   PPROCESS_INFORMATION = ^PROCESS_INFORMATION;
   {$EXTERNALSYM PPROCESS_INFORMATION}
@@ -369,10 +369,10 @@ type
   {$EXTERNALSYM _PROCESS_INFORMATION}
   PROCESS_INFORMATION = _PROCESS_INFORMATION;
   {$EXTERNALSYM PROCESS_INFORMATION}
-  LPPROCESS_INFORMATION = ^PROCESS_INFORMATION;
+  LPPROCESS_INFORMATION = PPROCESS_INFORMATION;
   {$EXTERNALSYM LPPROCESS_INFORMATION}
   TProcessInformation = PROCESS_INFORMATION;
-  PProcessInformation = PPROCESS_INFORMATION;
+  PProcessInformation = LPPROCESS_INFORMATION;
 
 //
 //  File System time stamps are represented with the following structure:
@@ -745,11 +745,11 @@ type
     ByteSize: BYTE;        // Number of bits/byte, 4-8
     Parity: BYTE;          // 0-4=None,Odd,Even,Mark,Space
     StopBits: BYTE;        // 0,1,2 = 1, 1.5, 2
-    XonChar: Char;         // Tx and Rx X-ON character
-    XoffChar: Char;        // Tx and Rx X-OFF character
-    ErrorChar: Char;       // Error replacement char
-    EofChar: Char;         // End of Input character
-    EvtChar: Char;         // Received Event character
+    XonChar: AnsiChar;         // Tx and Rx X-ON character
+    XoffChar: AnsiChar;        // Tx and Rx X-OFF character
+    ErrorChar: AnsiChar;       // Error replacement AnsiChar
+    EofChar: AnsiChar;         // End of Input character
+    EvtChar: AnsiChar;         // Received Event character
     wReserved1: WORD;      // Fill for now.
   end;
   {$EXTERNALSYM _DCB}
@@ -1574,7 +1574,7 @@ type
     nErrCode: Word;
     Reserved1: Word;
     Reserved2: Word;
-    szPathName: array [0..OFS_MAXPATHNAME - 1] of CHAR;
+    szPathName: array [0..OFS_MAXPATHNAME - 1] of AnsiChar;
   end;
   {$EXTERNALSYM _OFSTRUCT}
   OFSTRUCT = _OFSTRUCT;
@@ -2040,13 +2040,12 @@ procedure FatalExit(ExitCode: Integer); stdcall;
 function GetEnvironmentStringsW: LPWSTR; stdcall;
 {$EXTERNALSYM GetEnvironmentStringsW}
 
-function GetEnvironmentStrings: LPSTR; stdcall;
+function GetEnvironmentStrings: LPTSTR; stdcall;
 {$EXTERNALSYM GetEnvironmentStrings}
 
-{$IFNDEF UNICODE}
 function GetEnvironmentStringsA: LPSTR; stdcall;
 {$EXTERNALSYM GetEnvironmentStringsA}
-{$ENDIF !UNICODE}
+
 
 
 {$IFDEF WIN2003_UP}
@@ -2596,7 +2595,7 @@ function SetCommState(hFile: HANDLE; const lpDCB: DCB): BOOL; stdcall;
 function SetCommTimeouts(hFile: HANDLE; const lpCommTimeouts: COMMTIMEOUTS): BOOL; stdcall;
 {$EXTERNALSYM SetCommTimeouts}
 
-function TransmitCommChar(hFile: HANDLE; cChar: Char): BOOL; stdcall;
+function TransmitCommChar(hFile: HANDLE; cChar: AnsiChar): BOOL; stdcall;
 {$EXTERNALSYM TransmitCommChar}
 
 function WaitCommEvent(hFile: HANDLE; var lpEvtMask: DWORD;
@@ -3277,8 +3276,8 @@ type
     nFileSizeLow: DWORD;
     dwReserved0: DWORD;
     dwReserved1: DWORD;
-    cFileName: array [0..MAX_PATH - 1] of CHAR;
-    cAlternateFileName: array [0..13] of CHAR;
+    cFileName: array [0..MAX_PATH - 1] of AnsiChar;
+    cAlternateFileName: array [0..13] of AnsiChar;
   end;
   {$EXTERNALSYM _WIN32_FIND_DATAA}
   WIN32_FIND_DATAA = _WIN32_FIND_DATAA;
@@ -5511,8 +5510,8 @@ type
   {$EXTERNALSYM LPHW_PROFILE_INFOA}
   tagHW_PROFILE_INFOA = record
     dwDockInfo: DWORD;
-    szHwProfileGuid: array [0..HW_PROFILE_GUIDLEN - 1] of CHAR;
-    szHwProfileName: array [0..MAX_PROFILE_LEN - 1] of CHAR;
+    szHwProfileGuid: array [0..HW_PROFILE_GUIDLEN - 1] of AnsiChar;
+    szHwProfileName: array [0..MAX_PROFILE_LEN - 1] of AnsiChar;
   end;
   {$EXTERNALSYM tagHW_PROFILE_INFOA}
   HW_PROFILE_INFOA = tagHW_PROFILE_INFOA;
@@ -7578,8 +7577,6 @@ begin
   end;
 end;
 
-{$IFNDEF UNICODE}
-
 var
   _GetEnvironmentStringsA: Pointer;
 
@@ -7593,7 +7590,6 @@ begin
   end;
 end;
 
-{$ENDIF !UNICODE}
 
 {$IFDEF WIN2003_UP}
 var
@@ -19085,9 +19081,7 @@ function GetExitCodeProcess; external kernel32 name 'GetExitCodeProcess';
 procedure FatalExit; external kernel32 name 'FatalExit';
 function GetEnvironmentStringsW; external kernel32 name 'GetEnvironmentStringsW';
 function GetEnvironmentStrings; external kernel32 name 'GetEnvironmentStrings' + AWSuffix;
-{$IFNDEF UNICODE}
 function GetEnvironmentStringsA; external kernel32 name 'GetEnvironmentStringsA';
-{$ENDIF !UNICODE}
 
 {$IFDEF WIN2003_UP}
 function SetEnvironmentStringsA; external kernel32 name 'SetEnvironmentStringsA';

@@ -291,6 +291,7 @@ These files are included a second time in the implementation section!
 
 {$I JwaWinDLLNames.pas}
 {$I JwaWinType.pas}
+{$I JwaBitFields.pas}
 {$I JwaNtStatus.pas}
 {$I JwaWinNT.pas}
 {$I JwaWinBase.pas}
@@ -617,6 +618,21 @@ The list has no order!}
 {$I JwaBCrypt.pas}
 {$I JwaNCrypt.pas}
 
+{$I JwaEventDefs.pas}
+{$I JwaEventTracing.pas}
+{$I JwaEvntProv.pas}
+{$I JwaEvntCons.pas}
+
+{$I JwaWabDefs.pas}
+{$I JwaWabCode.pas}
+{$I JwaWabIab.pas}
+{$I JwaWabApi.pas}
+{$I JwaWabMem.pas}
+{$I JwaWabUtil.pas}
+{$I JwaWabTags.pas}
+{$I JwaWabNot.pas}
+
+
 
 
 
@@ -652,6 +668,7 @@ These files must be in a correct order!
 
 {$I JwaWinDLLNames.pas}
 {$I JwaWinType.pas}
+{$I JwaBitFields}
 {$I JwaNtStatus.pas}
 {$I JwaWinNT.pas}
 {$I JwaWinBase.pas}
@@ -978,6 +995,20 @@ The list has no order!}
 
 {$I JwaBCrypt.pas}
 {$I JwaNCrypt.pas}
+
+{$I JwaEventDefs.pas}
+{$I JwaEventTracing.pas}
+{$I JwaEvntProv.pas}
+{$I JwaEvntCons.pas}
+
+{$I JwaWabDefs.pas}
+{$I JwaWabCode.pas}
+{$I JwaWabIab.pas}
+{$I JwaWabApi.pas}
+{$I JwaWabMem.pas}
+{$I JwaWabUtil.pas}
+{$I JwaWabTags.pas}
+{$I JwaWabNot.pas}
 
 
 {$I JwaModuleLoader.pas}

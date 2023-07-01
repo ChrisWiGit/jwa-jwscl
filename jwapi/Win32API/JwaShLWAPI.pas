@@ -5,15 +5,15 @@
 { Portions created by Microsoft are Copyright (C) 1995-2005 Microsoft          }
 { Corporation. All Rights Reserved.                                            }
 {                                                                              }
-{ The initial developer of the original translation is Rudy Velthuis		   }
+{ The initial developer of the original translation is Rudy Velthuis		       }
 {                                                                              }
 { Portions created by Rudy Velthuis are Copyright (C) 2005-2008                }
-{ All Rights Reserved.                                      				   }
+{ All Rights Reserved.                                      				           }
 {                                                                              }
 { Adapted for JEDI API Library by Christian Wimmer                             }
 {                                                                              }
 { Obtained through: Joint Endeavour of Delphi Innovators (Project JEDI)        }
-{ The original code is: shlwapi.h, released 2005.                			   }
+{ The original code is: shlwapi.h, released 2005.                			         }
 {                                                                              }
 { You may retrieve the latest version of this file at the Project JEDI         }
 { APILIB home page, located at http://jedi-apilib.sourceforge.net              }
@@ -300,7 +300,7 @@ function SHLoadIndirectString(pszSource, pszOutBuf: PWideChar; cchOutBuf: UINT; 
   {$EXTERNALSYM IsCharSpaceW}
   function IsCharSpaceW(wch: WideChar): BOOL stdcall;
   {$EXTERNALSYM IsCharSpace}
-  function IsCharSpace(wch: Char): BOOL; stdcall;
+  function IsCharSpace(wch: AnsiChar): BOOL; stdcall;
 
   {$EXTERNALSYM StrCmpCA}
   function StrCmpCA(pszStr1, pszStr2: PAnsiChar): Integer stdcall;
@@ -427,7 +427,7 @@ function PathBuildRootA(pszRoot: PAnsiChar; iDrive: Integer): PAnsiChar; stdcall
 {$EXTERNALSYM PathBuildRootW}
 function PathBuildRootW(pszRoot: PWideChar; iDrive: Integer): PWideChar; stdcall;
 {$EXTERNALSYM PathBuildRoot}
-function PathBuildRoot(pszRoot: PTSTR; iDrive: Integer): PAnsiChar; stdcall;
+function PathBuildRoot(pszRoot: PTSTR; iDrive: Integer): PTSTR; stdcall;
 {$EXTERNALSYM PathCanonicalizeA}
 function PathCanonicalizeA(pszBuf, pszPath: PAnsiChar): BOOL; stdcall;
 {$EXTERNALSYM PathCanonicalizeW}
@@ -439,7 +439,7 @@ function PathCombineA(pszDest, pszDir, pszFile: PAnsiChar): PAnsiChar; stdcall;
 {$EXTERNALSYM PathCombineW}
 function PathCombineW(pszDest, pszDir, pszFile: PWideChar): PWideChar; stdcall;
 {$EXTERNALSYM PathCombine}
-function PathCombine(pszDest, pszDir, pszFile: PTSTR): PAnsiChar; stdcall;
+function PathCombine(pszDest, pszDir, pszFile: PTSTR): PTSTR; stdcall;
 {$EXTERNALSYM PathCompactPathA}
 function PathCompactPathA(hDC: HDC; pszPath: PAnsiChar; dx: UINT): BOOL; stdcall;
 {$EXTERNALSYM PathCompactPathW}
@@ -694,7 +694,7 @@ function PathSkipRootA(pszPath: PAnsiChar): PAnsiChar; stdcall;
 {$EXTERNALSYM PathSkipRootW}
 function PathSkipRootW(pszPath: PWideChar): PWideChar; stdcall;
 {$EXTERNALSYM PathSkipRoot}
-function PathSkipRoot(pszPath: PTSTR): PAnsiChar; stdcall;
+function PathSkipRoot(pszPath: PTSTR): PTSTR; stdcall;
 {$EXTERNALSYM PathStripPathA}
 procedure PathStripPathA(pszPath: PAnsiChar); stdcall;
 {$EXTERNALSYM PathStripPathW}
@@ -917,6 +917,8 @@ function UrlIsOpaque(pszURL: PTSTR): BOOL; stdcall;
 function UrlIsNoHistoryA(pszURL: PAnsiChar): BOOL; stdcall;
 {$EXTERNALSYM UrlIsNoHistoryW}
 function UrlIsNoHistoryW(pszURL: PWideChar): BOOL; stdcall;
+{$EXTERNALSYM UrlIsNoHistory}
+function UrlIsNoHistory(pszURL: PTSTR): BOOL; stdcall;
 {$EXTERNALSYM UrlIsFileUrlA}
 function UrlIsFileUrlA(pszURL: PAnsiChar): BOOL;
 {$EXTERNALSYM UrlIsFileUrlW}
@@ -934,7 +936,7 @@ function UrlGetLocationA(psz1: PAnsiChar): PAnsiChar; stdcall;
 {$EXTERNALSYM UrlGetLocationW}
 function UrlGetLocationW(psz1: PWideChar): PWideChar; stdcall;
 {$EXTERNALSYM UrlGetLocation}
-function UrlGetLocation(psz1: PTSTR): PAnsiChar; stdcall;
+function UrlGetLocation(psz1: PTSTR): PTSTR; stdcall;
 {$EXTERNALSYM UrlUnescapeA}
 function UrlUnescapeA(pszUrl, pszUnescaped: PAnsiChar; pcchUnescaped: PDWORD; dwFlags: DWORD): HResult; stdcall;
 {$EXTERNALSYM UrlUnescapeW}
@@ -1941,6 +1943,49 @@ type
 {$EXTERNALSYM IsInternetESCEnabled}
 function IsInternetESCEnabled: BOOL stdcall;
 
+{$IFDEF WINXP_UP}
+
+//stOrM!------------------------------------------------------------------------------------------------------------------------------------------------
+
+const
+  MB_TIMEDOUT = 32000; 
+
+function MessageBoxTimeOut(
+      hWnd: HWND; lpText: PTSTR; lpCaption: PTSTR;
+      uType: UINT; wLanguageId: WORD; dwMilliseconds: DWORD): Integer; stdcall;
+
+function MessageBoxTimeOutA(
+      hWnd: HWND; lpText: PAnsiChar; lpCaption: PAnsiChar;
+      uType: UINT; wLanguageId: WORD; dwMilliseconds: DWORD): Integer; stdcall;
+
+function MessageBoxTimeOutW(
+      hWnd: HWND; lpText: PWideChar; lpCaption: PWideChar;
+      uType: UINT; wLanguageId: WORD; dwMilliseconds: DWORD): Integer; stdcall;
+
+//-------------------------------------------------------------------------------------------------------------------------------------------stOrM!
+{$ENDIF WINXP_UP}
+
+//stOrM!------------------------------------------------------------------------------------------------------------------------------------------
+
+{$IFDEF WIN2000_UP}
+
+function MessageBoxCheck(
+      hWnd: HWND; lpText: PTSTR; lpCaption: PTSTR;
+      uType: UINT;  Default: Integer; RegVal: PTSTR) : Integer; stdcall;
+
+function MessageBoxCheckA(
+      hWnd: HWND; lpText: PAnsiChar; lpCaption: PAnsiChar;
+      uType: UINT;  Default: Integer; RegVal: PAnsiChar) : Integer; stdcall;
+
+
+function MessageBoxCheckW(
+      hWnd: HWND; lpText: PWideChar; lpCaption: PWideChar;
+      uType: UINT;  Default: Integer; RegVal: PWideChar) : Integer; stdcall;
+
+{$ENDIF WIN2000_UP}
+
+//------------------------------------------------------------------------------------------------------------------------------------------stOrM!
+
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
@@ -2371,6 +2416,7 @@ function UrlIsOpaqueW; external shlwapidll name 'UrlIsOpaqueW';
 function UrlIsOpaque; external shlwapidll name 'UrlIsOpaque'+AWSuffix;
 function UrlIsNoHistoryA; external shlwapidll name 'UrlIsNoHistoryA';
 function UrlIsNoHistoryW; external shlwapidll name 'UrlIsNoHistoryW';
+function UrlIsNoHistory; external shlwapidll name 'UrlIsNoHistory'+AWSuffix;
 function UrlIsA; external shlwapidll name 'UrlIsA';
 function UrlIsW; external shlwapidll name 'UrlIsW';
 function UrlIs; external shlwapidll name 'UrlIs'+AWSuffix;
@@ -2534,6 +2580,29 @@ function SHUnlockShared; external shlwapidll name 'SHUnlockShared';
 function SHCreateThreadRef; external shlwapidll name 'SHCreateThreadRef';
 function IsInternetESCEnabled; external shlwapidll name 'IsInternetESCEnabled';
 
+{$IFDEF WINXP_UP}
+//stOrM!------------------------------------------------------------------------------------------------------------------------------------------
+
+function MessageBoxTimeOut;  external user32 name 'MessageBoxTimeout'+AWSuffix;
+function MessageBoxTimeOutA; external user32 name 'MessageBoxTimeoutA';
+function MessageBoxTimeOutW; external user32 name 'MessageBoxTimeoutW';
+
+//------------------------------------------------------------------------------------------------------------------------------------------stOrM!
+{$ENDIF WINXP_UP}
+
+//stOrM!------------------------------------------------------------------------------------------------------------------------------------------
+
+{$IFDEF WIN2000_UP}
+
+//function MessageBoxCheck, function MessageBoxCheckA, function MessageBoxCheckW
+
+function MessageBoxCheck; external shlwapidll Index {$IFDEF UNICODE}191{$ELSE}185{$ENDIF UNICODE};
+function MessageBoxCheckA; external shlwapidll Index 185; //'SHMessageBoxCheckA'
+function MessageBoxCheckW; external shlwapidll Index 191; //'SHMessageBoxCheckW'
+
+{$ENDIF WIN2000_UP}
+
+//------------------------------------------------------------------------------------------------------------------------------------------stOrM!
 {$ELSE}
 var
   _StrChrA: Pointer;
@@ -6282,6 +6351,20 @@ begin
 end;
 
 var
+  _UrlIsNoHistory: Pointer;
+
+function UrlIsNoHistory;
+begin
+  GetProcedureAddress(_UrlIsNoHistory, shlwapidll, 'UrlIsNoHistory'+AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_UrlIsNoHistory]
+  end;
+end;
+
+
+var
   _UrlIsA: Pointer;
 
 function UrlIsA;
@@ -8374,8 +8457,99 @@ begin
   end;
 end;
 
-{$ENDIF DYNAMIC_LINK}
+{$IFDEF WINXP_UP}
+//stOrM!------------------------------------------------------------------------------------------------------------------------------------------
 
+var
+  _MessageBoxTimeOutA: Pointer;
+
+function MessageBoxTimeOutA;
+begin
+  GetProcedureAddress(_MessageBoxTimeOutA, user32, 'MessageBoxTimeoutA');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_MessageBoxTimeOutA]
+  end;
+end;
+
+var
+  _MessageBoxTimeOutW: Pointer;
+
+function MessageBoxTimeOutW;
+begin
+  GetProcedureAddress(_MessageBoxTimeOutW, user32, 'MessageBoxTimeoutW');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_MessageBoxTimeOutW]
+  end;
+end;
+
+var
+  _MessageBoxTimeOut: Pointer;
+
+function MessageBoxTimeOut;
+begin
+  GetProcedureAddress(_MessageBoxTimeOut, user32, 'MessageBoxTimeout' + AWSuffix);
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_MessageBoxTimeOut]
+  end;
+end;
+
+
+//------------------------------------------------------------------------------------------------------------------------------------------stOrM!
+{$ENDIF WINXP_UP}
+
+{$IFDEF WIN2000_UP}
+
+var
+  _MessageBoxCheckA: Pointer;
+
+function MessageBoxCheckA;
+begin
+  GetProcedureAddress(_MessageBoxCheckA, shlwapidll,  185);  //'SHMessageBoxCheckA'
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_MessageBoxCheckA]
+  end;
+end;
+
+var
+  _MessageBoxCheckW: Pointer;
+
+function MessageBoxCheckW;
+begin
+  GetProcedureAddress(_MessageBoxCheckW, shlwapidll, 191); //'SHMessageBoxCheckW'
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_MessageBoxCheckW]
+  end;
+end;
+
+var
+  _MessageBoxCheck: Pointer;
+
+function MessageBoxCheck;
+begin
+  GetProcedureAddress(_MessageBoxCheck, shlwapidll, {$IFDEF UNICODE}191{$ELSE}185{$ENDIF UNICODE});
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_MessageBoxCheck]
+  end;
+end;
+
+{$ENDIF WIN2000_UP}
+
+//------------------------------------------------------------------------------------------------------------------------------------------stOrM!
+
+{$ENDIF DYNAMIC_LINK}
+                
 {$ENDIF JWA_INTERFACESECTION}
 
 {$IFNDEF JWA_OMIT_SECTIONS}
