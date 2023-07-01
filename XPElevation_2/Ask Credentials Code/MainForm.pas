@@ -1,0 +1,518 @@
+unit MainForm;
+
+interface
+
+uses
+  jwaWindows,
+  Messages, ActiveX, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ExtCtrls, JvExControls, JvButton, JvTransparentButton, StdCtrls,
+  SessionPipe, CredentialUtils, JwsclComUtils, JwsclDesktops,
+  JwsclStrings, JwsclProcess,
+  Menus, JvComponent, ImgList, Buttons,  JvExExtCtrls, EaseAccessMan,
+  ComCtrls, JvExComCtrls, JvProgressBar;
+
+type
+  TFormMain = class(TForm)
+    Image1: TImage;
+    JvTransparentButton1: TJvTransparentButton;
+    JvTransparentButton2: TJvTransparentButton;
+    PopupMenuMain: TPopupMenu;
+    Screenzoom1: TMenuItem;
+    Screenkeyboard1: TMenuItem;
+    N1: TMenuItem;
+    Center1: TMenuItem;
+    N2: TMenuItem;
+    Beenden1: TMenuItem;
+    ImageListButtons: TImageList;
+    ImageListMask: TImageList;
+    ImageListAlpha: TImageList;
+    MenuCmd: TMenuItem;
+    procedure FormCreate(Sender: TObject);
+    procedure JvTransparentButton1Click(Sender: TObject);
+    procedure Center1Click(Sender: TObject);
+    procedure Screenzoom1Click(Sender: TObject);
+    procedure Screenkeyboard1Click(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure FormClick(Sender: TObject);
+    procedure Beenden1Click(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure PopupMenuMainPopup(Sender: TObject);
+    procedure MenuCmdClick(Sender: TObject);
+  private
+    { Private-Deklarationen }
+    fButtons : array of TJvTransparentButton;
+
+    fResolution : Trect;
+    fScreenBitmap : TBitmap;
+    fControlFlags : DWORD;
+    fDesktop : TJwSecurityDesktop;
+
+    fJobs : TJwJobObject;
+    fEaseAppList : TEaseAppList;
+
+    //resets the parent of all visible and foreign windows to this form
+    procedure SetupAllForeignWindows;
+
+    procedure CreateParams(var Params: TCreateParams); override;
+
+    procedure AddToJob(ProcessHandle : THandle);
+  public
+    { Public-Deklarationen }
+    class function StartShellExecute(const PathName, Parameters : WideString;
+      const UseCreateProcess : Boolean;
+      const Desktop : WideString
+      ) : DWORD;
+
+
+    //Size of this form to be used
+    property Resolution : Trect read fResolution write fResolution;
+
+    //Background bitmap to be used. If set to nil, the background will be black
+    property ScreenBitmap : TBitmap read fScreenBitmap write fScreenBitmap;
+
+    property ControlFlags : DWORD read fControlFlags write fControlFlags;
+
+    property Desktop : TJwSecurityDesktop write fDesktop;
+
+    property EaseAppList : TEaseAppList write fEaseAppList;
+  end;
+
+var
+  FormMain: TFormMain;
+
+
+
+implementation
+
+uses Types, CredentialsForm, CredentialsThread;
+
+{$R *.dfm}
+
+function EnumWindowsProc(hwnd : HWND; lParam : Pointer) : Boolean; stdcall;
+var X : array[0..MAX_PATH] of char;
+  P : DWORD;
+begin
+  GetWindowThreadProcessId(hwnd, @p);
+  if p <> GetCurrentProcessId then
+    SetParent(Hwnd,THandle(lparam))
+end;
+
+
+function QuitEnumWindowsProc(hwnd : HWND; lParam : Pointer) : Boolean; stdcall;
+var X : array[0..MAX_PATH] of char;
+  P : DWORD;
+  hProc : THandle;
+begin
+  GetWindowThreadProcessId(hwnd, @p);
+
+  if p <> GetCurrentProcessId then
+  begin
+
+    PostMessage(Hwnd, WM_QUIT,0,0);
+    hProc := OpenProcess(MAXIMUM_ALLOWED, false, p);
+    if hProc <> 0 then
+    begin
+      if WaitForSingleObject(hProc, 200) <> WAIT_OBJECT_0 then
+        jwaWindows.TerminateProcess(hProc, 0);
+      CloseHandle(hProc);
+    end;
+  end;
+end;
+
+
+procedure TFormMain.CreateParams(var Params: TCreateParams);
+begin
+  inherited CreateParams(Params);
+{$IFNDEF FORMONLY}
+  if GetDesktopWindow <> 0 then
+  begin
+    Params.WndParent := GetDesktopWindow;
+    //sets the window as bottom most (like explorer's desktop)
+    Params.Style := WS_CHILD or WS_CLIPCHILDREN or WS_CLIPSIBLINGS;
+  end;
+{$ENDIF FORMONLY}
+end;
+
+procedure TFormMain.FormClick(Sender: TObject);
+begin
+  JvTransparentButton1.Click;
+end;
+
+
+
+procedure TFormMain.FormCreate(Sender: TObject);
+begin
+//  BackWindow;
+  Self.DoubleBuffered := true;
+  fJobs := TJwJobObject.Create('XPCredentialsJob_'+IntToStr(GetCurrentProcessId),true, nil);
+  fJobs.TerminateOnDestroy := true;
+end;
+
+
+procedure TFormMain.FormDestroy(Sender: TObject);
+var
+  i : Integer;
+  Proc : THandle;
+begin
+  fEaseAppList.AddManagedApp('osk.exe',ShGetPath(CSIDL_SYSTEM), false, false);
+  fEaseAppList.AddManagedApp('magnify.exe',ShGetPath(CSIDL_SYSTEM), false, true);
+
+  if Assigned(fDesktop) then
+  begin
+    //first try graceful shutdown of all window applications on the secure desktop
+    EnumWindows(@QuitEnumWindowsProc,0);
+    Sleep(100);
+  end;
+
+  FreeAndNil(fJobs);
+end;
+
+procedure TFormMain.FormShow(Sender: TObject);
+  //centers a form in a given monitor
+  procedure Center(F : TControl; I : Integer);
+  var SX, SY : Integer;
+  begin
+    SX := abs(abs(Screen.Monitors[I].BoundsRect.Right) - abs(Screen.Monitors[I].BoundsRect.Left));
+    F.Left := Screen.Monitors[I].Left + ((SX div 2) - (F.Width div 2));
+
+    SY := abs(abs(Screen.Monitors[I].BoundsRect.Bottom) - abs(Screen.Monitors[I].BoundsRect.Top));
+    F.Top := Screen.Monitors[I].Top + ((SY div 2) - (F.Height div 2));
+  end;
+
+  //get the left bottom corner of a monitor
+  procedure LeftBottom(F : TControl; I : Integer);
+  var SX, SY : Integer;
+  begin
+    SX := abs(abs(Screen.Monitors[I].BoundsRect.Right) - abs(Screen.Monitors[I].BoundsRect.Left));
+    F.Left := Screen.Monitors[I].Left;// + (F.Width);
+
+    SY := abs(abs(Screen.Monitors[I].BoundsRect.Bottom) - abs(Screen.Monitors[I].BoundsRect.Top));
+    F.Top := Screen.Monitors[I].Top + SY - (F.Height);
+  end;
+
+var
+  i : Integer;
+  NewImage{, BackGround} : TBitmap;
+  Image, Mask : array of TBitmap;
+
+  ImageListAlphas : array of TImageList;
+
+  R : TRect;
+begin
+  SetupAllForeignWindows;
+  Visible := true;
+
+  //set the size
+  Image1.BoundsRect := Resolution;
+  //set standard black screen bitmap if we don't have any
+  if not Assigned(ScreenBitmap) then
+  begin
+    ScreenBitmap := TBitmap.Create;
+    ScreenBitmap.Width := abs(abs(Resolution.Right) - abs(Resolution.Left));
+    ScreenBitmap.Height := abs(abs(Resolution.Bottom) - abs(Resolution.Top));
+    SetRect(R, 0,0, ScreenBitmap.Width, ScreenBitmap.Height);
+    ScreenBitmap.Canvas.Brush.Color := clBlack;
+    ScreenBitmap.Canvas.FillRect(R);
+  end;
+  TJwAutoPointer.Wrap(ScreenBitmap); //auto destroy after this function
+  Image1.Picture.Bitmap.Assign(ScreenBitmap);
+
+
+  Align := alNone;
+  BoundsRect := Resolution;
+
+
+  //reads 2 images and 2 masks from the imagelists
+  SetLength(Image, 2);
+  Image[0] := TBitmap.Create;
+  ImageListButtons.GetBitmap(0, Image[0]);
+  TJwAutoPointer.Wrap(Image[0]); //autodestroy
+
+
+  Image[1] := TBitmap.Create;
+  ImageListButtons.GetBitmap(1, Image[1]);
+  TJwAutoPointer.Wrap(Image[1]);
+
+  SetLength(Mask, 2);
+  Mask[0] := TBitmap.Create;
+  ImageListMask.GetBitmap(0, Mask[0]);
+  TJwAutoPointer.Wrap(Mask[0]);
+
+
+  Mask[1] := TBitmap.Create;
+  ImageListMask.GetBitmap(1, Mask[1]);
+  TJwAutoPointer.Wrap(Mask[1]);
+
+  //get the given background image
+ { BackGround := TBitmap.Create;
+  BackGround.Assign(Image1.Picture.Bitmap);
+  TJwAutoPointer.Wrap(BackGround);      }
+
+
+  SetLength(fButtons, Screen.MonitorCount);
+  SetLength(ImageListAlphas, Screen.MonitorCount);
+
+  for i := low(fButtons) to high(fButtons) do
+  begin
+    ImageListAlphas[i] := TImageList.Create(self);
+    ImageListAlphas[i].Height := Image[0].Height;
+    ImageListAlphas[i].Width := Image[0].Width;
+    ImageListAlphas[i].BkColor := clNone;
+
+    fButtons[i] := TJvTransparentButton.Create(Self);
+    fButtons[i].Width := Image[0].Width;
+    fButtons[i].Height := Image[0].Height;
+    Center(fButtons[i], i);
+
+    NewImage := AlphaBlendImage(Image[0], Mask[0], ScreenBitmap, fButtons[i].Left, fButtons[i].Top);
+    ImageListAlphas[i].Add(NewImage, nil);
+    NewImage.Free;
+
+    NewImage := AlphaBlendImage(Image[1], Mask[1], ScreenBitmap, fButtons[i].Left, fButtons[i].Top);
+    ImageListAlphas[i].Add(NewImage, nil);
+    NewImage.Free;
+
+   fButtons[i].Images.ActiveImage := ImageListAlphas[i];
+   fButtons[i].Images.ActiveIndex := 1;
+   fButtons[i].Images.DownImage := ImageListAlphas[i];
+   fButtons[i].Images.DownIndex := 0;
+
+    fButtons[i].Parent := self;
+    fButtons[i].HotTrack := true;
+    fButtons[i].AutoGray := false;
+    fButtons[i].FrameStyle := fsNone;
+    fButtons[i].PressOffset := 0;
+
+    fButtons[i].Tag := i;
+    fButtons[i].OnClick := JvTransparentButton1Click;
+    fButtons[i].Visible := true;
+
+
+    fButtons[i] := TJvTransparentButton.Create(Self);
+    fButtons[i].Width := JvTransparentButton1.Width;
+    fButtons[i].Height := JvTransparentButton1.Height;
+
+    LeftBottom(fButtons[i], i);
+    fButtons[i].Glyph.Assign(JvTransparentButton2.Glyph);
+    fButtons[i].Parent := self;
+    fButtons[i].HotTrack := true;
+    fButtons[i].AutoGray := false;
+    fButtons[i].FrameStyle := fsNone;;
+
+    fButtons[i].PopupMenu := PopupMenuMain;
+    fButtons[i].DropDownMenu := PopupMenuMain;
+    fButtons[i].Tag := i;
+
+    fButtons[i].Visible := true;
+  end;
+
+  PopupMenu := PopupMenuMain;
+
+  //DimTimer.Enabled := true;
+{$IFDEF TEST}
+  Visible := false;
+{$ENDIF}
+  if Assigned(fDesktop) then
+  begin
+    try
+      fDesktop.SwitchDesktop;
+    except
+      //log
+      on E : Exception do
+      begin
+        try
+          FormCredentials.BitBtnCancel.Click;
+        except
+        end;
+      end;
+    end;
+  end
+  else
+  begin
+    if Assigned(FormCredentials) then
+    begin
+     //in delphi debug mode this prevents the Delphi IDE from responding
+     //so we omit the stayontop flag
+{$IFNDEF DEBUG}
+     {The order of stay on top activation is important.
+      First stay on top the background windows up to the front window
+     }
+     FormStyle := fsStayOnTop;
+     FormCredentials.FormStyle := fsStayOnTop;
+{$ENDIF DEBUG}
+    end;
+  end;
+end;
+
+
+
+
+procedure TFormMain.JvTransparentButton1Click(Sender: TObject);
+begin
+{$IFDEF FORMONLY}
+//  ShowMessage('OK');
+  exit;
+{$ENDIF FORMONLY}
+  try
+    FormCredentials.CenterInMonitor((Sender as TControl).Tag);
+    FormCredentials.BringToFront;
+  except
+  end;
+end;
+
+
+
+procedure TFormMain.PopupMenuMainPopup(Sender: TObject);
+begin
+  MenuCmd.Visible := {$IFDEF DEBUG}true;{$ELSE}false;{$ENDIF DEBUG}
+end;
+
+procedure TFormMain.SetupAllForeignWindows;
+begin
+  if not Assigned(fDesktop) then
+    exit;
+{$IFNDEF FORMONLY}
+  EnumWindows(@EnumWindowsProc,Handle);
+{$ENDIF FORMONLY}
+
+
+{  SetWindowPos(Handle,HWND_NOTOPMOST,0,0,100,100,
+    SWP_NOZORDER or
+    SWP_NOSIZE or SWP_NOMOVE or SWP_NOACTIVATE);}
+end;
+
+procedure TFormMain.Beenden1Click(Sender: TObject);
+begin
+{$IFNDEF FORMONLY}
+  try
+    FormCredentials.BitBtnCancel.Click;
+  except
+  end;
+{$ENDIF FORMONLY}
+end;
+
+procedure TFormMain.Center1Click(Sender: TObject);
+var ProcInfo: PROCESS_INFORMATION;
+    StartInfo : TStartupInfo;
+begin
+end;
+
+function StartProcess(const PathName : WideString) : THandle;
+var ProcInfo: PROCESS_INFORMATION;
+    StartInfo : TStartupInfoW;
+begin
+  ZeroMemory(@StartInfo, sizeof(StartInfo));
+  StartInfo.cb := sizeof(StartInfo);
+  StartInfo.lpDesktop := PWideChar('winsta0\'+SecureDesktopName);
+
+
+  if not CreateProcessW(PWideChar(PathName),nil,nil,nil,true, 0, nil, nil, StartInfo, ProcInfo) then
+    ShowMessage(Format('The application could not be started: (%d) %s',[GetLastError,SysErrorMessage(GetLastError)]));
+
+  CloseHandle(ProcInfo.hThread);
+  result := ProcInfo.hProcess;
+end;
+
+function GetSystem32Path : WideString;
+var Path : Array[0..MAX_PATH] of Widechar;
+begin
+  Result := '';
+  if SUCCEEDED(SHGetFolderPathW(0,CSIDL_SYSTEM,0,SHGFP_TYPE_DEFAULT, @Path)) then
+    result := IncludeTrailingBackslash(Path);  //Oopps, may convert unicode to ansicode
+end;
+
+
+class function TFormMain.StartShellExecute(const PathName, Parameters : WideString;
+  const UseCreateProcess : Boolean;
+  const Desktop : WideString) : DWORD;
+var
+  Sh : TShellExecuteInfoW;
+  ProcessEntry32 : TProcessEntry32W;
+  ProcInfo: PROCESS_INFORMATION;
+  StartInfo : TStartupInfoW;
+  lpCmd : WideString;
+  pEnv : Pointer;
+begin
+  if UseCreateProcess then
+  begin
+    ZeroMemory(@StartInfo, sizeof(StartInfo));
+    StartInfo.cb := sizeof(StartInfo);
+
+    StartInfo.lpDesktop := PWidechar(Desktop);
+   { StartInfo.dwFlags := STARTF_USESHOWWINDOW or STARTF_USEPOSITION;
+    StartInfo.wShowWindow := SW_SHOW;
+    StartInfo.dwY := 0;
+    StartInfo.dwX := 0;      }
+
+    CreateEnvironmentBlock(@pEnv,0, true);
+
+    if Length(Parameters) > 0 then
+      lpCmd := '"'+PathName+'" '+Parameters
+    else
+      lpCmd := '"'+PathName+'"';;
+
+    result := INVALID_HANDLE_VALUE;
+    if not CreateProcessW(PWideChar(PathName),PWideChar(lpCmd),nil,nil,false,
+        CREATE_BREAKAWAY_FROM_JOB or CREATE_NEW_CONSOLE or CREATE_UNICODE_ENVIRONMENT, pEnv, nil, StartInfo, ProcInfo) then
+      ShowMessage(SysErrorMessage(GetLastError))
+    else
+    begin
+      result := ProcInfo.hProcess;
+      CloseHandle(ProcInfo.hThread)
+    end;
+  end
+  else
+  begin
+    ZeroMemory(@Sh, sizeof(Sh));
+    Sh.cbSize := sizeof(Sh);
+    if Assigned(Application) and Assigned(Application.MainForm) then
+      Sh.hwnd := Application.MainForm.Handle;
+    Sh.lpVerb := 'open';
+
+    Sh.lpFile := PWideChar(PathName);
+    if Length(Parameters) > 0 then
+      Sh.lpParameters := PWideChar(WideString(Parameters));
+    Sh.fMask := SEE_MASK_NOCLOSEPROCESS
+      or SEE_MASK_NOASYNC
+      or SEE_MASK_HMONITOR
+      or SEE_MASK_FLAG_NO_UI;
+    Sh.nShow := SW_SHOW;
+
+    if Assigned(Application) and Assigned(Application.MainForm) then
+      Sh.u.hMonitor := Application.MainForm.Monitor.MonitorNum;
+
+    if not ShellExecuteExW(Sh) then
+    begin
+      ShowMessage(SysErrorMessage(GetLastError));
+      result := 0;
+    end
+    else
+      result := Sh.hProcess;
+  end;
+end;
+
+
+
+procedure TFormMain.AddToJob(ProcessHandle : THandle);
+begin
+  fJobs.AssignProcessToJobObject(ProcessHandle, nil);
+  CloseHandle(ProcessHandle);
+end;
+
+
+procedure TFormMain.Screenzoom1Click(Sender: TObject);
+begin
+  AddToJob(StartShellExecute(GetSystem32Path+'magnify.exe','', true,'winsta0\'+SecureDesktopName));
+end;
+
+procedure TFormMain.Screenkeyboard1Click(Sender: TObject);
+begin
+  AddToJob(StartShellExecute(GetSystem32Path+'osk.exe','', false,'winsta0\'+SecureDesktopName));
+end;
+
+procedure TFormMain.MenuCmdClick(Sender: TObject);
+begin
+  AddToJob(StartShellExecute(GetSystem32Path+'cmd.exe','', true,'winsta0\'+SecureDesktopName));
+end;
+
+end.
