@@ -958,7 +958,7 @@ type
   PACCESS_MASK = ^ACCESS_MASK;
   {$EXTERNALSYM PACCESS_MASK}
   TAccessMask = ACCESS_MASK;
-  PAccessMask = PACCESS_MASK;  
+  PAccessMask = PACCESS_MASK;
 
 ////////////////////////////////////////////////////////////////////////
 //                                                                    //
@@ -1520,7 +1520,7 @@ type
     WinNewEnterpriseReadonlyControllersSid {= 77},
     WinBuiltinCertSvcDComAccessGroup {= 78}
 {$ELSE}
-    WinNullSid,               
+    WinNullSid,
     WinWorldSid,
     WinLocalSid,
     WinCreatorOwnerSid,
@@ -2008,7 +2008,7 @@ type
   PACCESS_ALLOWED_CALLBACK_ACE = ^ACCESS_ALLOWED_CALLBACK_ACE;
   {$EXTERNALSYM PACCESS_ALLOWED_CALLBACK_ACE}
   TAccessAllowedCallBackAce = ACCESS_ALLOWED_CALLBACK_ACE;
-  PAccessAllowedCallBackAce = PACCESS_ALLOWED_CALLBACK_ACE;  
+  PAccessAllowedCallBackAce = PACCESS_ALLOWED_CALLBACK_ACE;
 
   _ACCESS_DENIED_CALLBACK_ACE = record
     Header: ACE_HEADER;
@@ -2945,7 +2945,7 @@ type
   PTOKEN_ORIGIN = ^TOKEN_ORIGIN;
   {$EXTERNALSYM PTOKEN_ORIGIN}
   TTokenOrigin = TOKEN_ORIGIN;
-  PTokenOrigin = PTOKEN_ORIGIN;  
+  PTokenOrigin = PTOKEN_ORIGIN;
 
 //
 // Security Tracking Mode
@@ -3011,7 +3011,7 @@ type
   PSECURITY_INFORMATION = ^SECURITY_INFORMATION;
   {$EXTERNALSYM PSECURITY_INFORMATION}
   TSecurityInformation = SECURITY_INFORMATION;
-  PSecurityInformation = PSECURITY_INFORMATION;  
+  PSecurityInformation = PSECURITY_INFORMATION;
 
 const
   OWNER_SECURITY_INFORMATION = $00000001;
@@ -3056,10 +3056,30 @@ const
   {$EXTERNALSYM PROCESS_QUERY_INFORMATION}
   PROCESS_SUSPEND_RESUME    = $0800;
   {$EXTERNALSYM PROCESS_SUSPEND_RESUME}
+  PROCESS_QUERY_LIMITED_INFORMATION = $1000;
+  {$EXTERNALSYM PROCESS_QUERY_LIMITED_INFORMATION}
+
+
   PROCESS_ALL_ACCESS        = STANDARD_RIGHTS_REQUIRED or SYNCHRONIZE or $FFF;
   {$EXTERNALSYM PROCESS_ALL_ACCESS}
+{$IFDEF WINVISTA_UP}
+  //Since Windows Vista (6.0) the all access has been changed.
+  //If you implement solely for Vista and newer you can use THREAD_ALL_ACCESS6
+  //Otherwise you should not use XXX_ALL_ACCESS at all and instead
+  //use the specific access rights necessary.
+  PROCESS_ALL_ACCESS6  = STANDARD_RIGHTS_REQUIRED or SYNCHRONIZE or $FFFF;
+{$ENDIF WINVISTA_UP}
 
-  MAXIMUM_PROCESSORS = 32;
+
+{$IFDEF WIN64}
+  MAXIMUM_PROC_PER_GROUP  = 64;
+  {$EXTERNALSYM MAXIMUM_PROC_PER_GROUP}
+{$ELSE}
+  MAXIMUM_PROC_PER_GROUP  = 32;
+  {$EXTERNALSYM MAXIMUM_PROC_PER_GROUP}
+{$ENDIF WIN64}
+
+  MAXIMUM_PROCESSORS    = MAXIMUM_PROC_PER_GROUP;
   {$EXTERNALSYM MAXIMUM_PROCESSORS}
 
   THREAD_TERMINATE            = $0001;
@@ -3080,9 +3100,20 @@ const
   {$EXTERNALSYM THREAD_IMPERSONATE}
   THREAD_DIRECT_IMPERSONATION = $0200;
   {$EXTERNALSYM THREAD_DIRECT_IMPERSONATION}
+  THREAD_SET_LIMITED_INFORMATION   = $0400;
+  {$EXTERNALSYM THREAD_SET_LIMITED_INFORMATION}
+  THREAD_QUERY_LIMITED_INFORMATION = $0800;
+  {$EXTERNALSYM THREAD_QUERY_LIMITED_INFORMATION}
 
   THREAD_ALL_ACCESS = STANDARD_RIGHTS_REQUIRED or SYNCHRONIZE or $3FF;
   {$EXTERNALSYM THREAD_ALL_ACCESS}
+{$IFDEF WINVISTA_UP}
+  //Since Windows Vista (6.0) the all access has been changed.
+  //If you implement solely for Vista and newer you can use THREAD_ALL_ACCESS6
+  //Otherwise you should not use XXX_ALL_ACCESS at all and instead
+  //use the specific access rights necessary.
+  THREAD_ALL_ACCESS6  = STANDARD_RIGHTS_REQUIRED or SYNCHRONIZE or $FFFF;
+{$ENDIF WINVISTA_UP}
 
   JOB_OBJECT_ASSIGN_PROCESS          = $0001;
   {$EXTERNALSYM JOB_OBJECT_ASSIGN_PROCESS}
@@ -3311,7 +3342,7 @@ type
   PQUOTA_LIMITS_EX = ^QUOTA_LIMITS_EX;
   {$EXTERNALSYM PQUOTA_LIMITS_EX}
   TQuotaLimitsEx = QUOTA_LIMITS_EX;
-  PQuotaLimitsEx = PQUOTA_LIMITS_EX;  
+  PQuotaLimitsEx = PQUOTA_LIMITS_EX;
 
   PIO_COUNTERS = ^IO_COUNTERS;
   {$EXTERNALSYM PIO_COUNTERS}
@@ -3465,7 +3496,7 @@ type
   PJOBOBJECT_JOBSET_INFORMATION = ^JOBOBJECT_JOBSET_INFORMATION;
   {$EXTERNALSYM PJOBOBJECT_JOBSET_INFORMATION}
   TJobObjectSetInformation = JOBOBJECT_JOBSET_INFORMATION;
-  PJobObjectSetInformation = PJOBOBJECT_JOBSET_INFORMATION;  
+  PJobObjectSetInformation = PJOBOBJECT_JOBSET_INFORMATION;
 
 const
   JOB_OBJECT_TERMINATE_AT_END_OF_JOB = 0;
@@ -3653,7 +3684,7 @@ const
   {$EXTERNALSYM TIME_ZONE_ID_DAYLIGHT}
 
 type
-  _LOGICAL_PROCESSOR_RELATIONSHIP = (RelationProcessorCore, RelationNumaNode);
+  _LOGICAL_PROCESSOR_RELATIONSHIP = (RelationProcessorCore{ = 0}, RelationNumaNode{ = 1}, RelationCache{ = 2}, RelationProcessorPackage{ = 3});
   {$EXTERNALSYM _LOGICAL_PROCESSOR_RELATIONSHIP}
   LOGICAL_PROCESSOR_RELATIONSHIP = _LOGICAL_PROCESSOR_RELATIONSHIP;
   {$EXTERNALSYM LOGICAL_PROCESSOR_RELATIONSHIP}
@@ -3677,7 +3708,7 @@ type
   {$EXTERNALSYM SYSTEM_LOGICAL_PROCESSOR_INFORMATION}
   PSYSTEM_LOGICAL_PROCESSOR_INFORMATION = ^SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
   TSystemLogicalProcessorInformation = SYSTEM_LOGICAL_PROCESSOR_INFORMATION;
-  PSystemLogicalProcessorInformation = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION;  
+  PSystemLogicalProcessorInformation = PSYSTEM_LOGICAL_PROCESSOR_INFORMATION;
 
 const
   PROCESSOR_INTEL_386     = 386;
@@ -3775,6 +3806,18 @@ const
   {$EXTERNALSYM PF_PAE_ENABLED}
   PF_XMMI64_INSTRUCTIONS_AVAILABLE   = 10;
   {$EXTERNALSYM PF_XMMI64_INSTRUCTIONS_AVAILABLE}
+  PF_SSE_DAZ_MODE_AVAILABLE         = 11;
+  {$EXTERNALSYM PF_SSE_DAZ_MODE_AVAILABLE}
+  PF_NX_ENABLED                     = 12;
+  {$EXTERNALSYM PF_NX_ENABLED}
+  PF_SSE3_INSTRUCTIONS_AVAILABLE    = 13;
+  {$EXTERNALSYM PF_SSE3_INSTRUCTIONS_AVAILABLE}
+  PF_COMPARE_EXCHANGE128            = 14;
+  {$EXTERNALSYM PF_COMPARE_EXCHANGE128}
+  PF_COMPARE64_EXCHANGE128          = 15;
+  {$EXTERNALSYM PF_COMPARE64_EXCHANGE128}
+  PF_CHANNELS_ENABLED               = 16;
+  {$EXTERNALSYM PF_CHANNELS_ENABLED}
 
 type
   PMEMORY_BASIC_INFORMATION = ^MEMORY_BASIC_INFORMATION;
@@ -5287,7 +5330,7 @@ type
 
 function IMAGE_FIRST_SECTION(NtHeader: PImageNtHeaders): PImageSectionHeader;
 {$EXTERNALSYM IMAGE_FIRST_SECTION}
-  
+
 const
   IMAGE_SIZEOF_SECTION_HEADER = 40;
   {$EXTERNALSYM IMAGE_SIZEOF_SECTION_HEADER}
@@ -7297,7 +7340,7 @@ type
   PSLIST_ENTRY = PSINGLE_LIST_ENTRY;
   {$EXTERNALSYM PSLIST_ENTRY}
   TSListEntry = SLIST_ENTRY;
-  PSListEntry = PSLIST_ENTRY;  
+  PSListEntry = PSLIST_ENTRY;
 
 type
   _SLIST_HEADER = record
@@ -7315,7 +7358,7 @@ type
   PSLIST_HEADER = ^SLIST_HEADER;
   {$EXTERNALSYM PSLIST_HEADER}
   TSListHeader = SLIST_HEADER;
-  PSListHeader = PSLIST_HEADER;  
+  PSListHeader = PSLIST_HEADER;
 
 procedure RtlInitializeSListHead(ListHead: PSLIST_HEADER); stdcall;
 function RtlFirstEntrySList(ListHead: PSLIST_HEADER): PSLIST_ENTRY; stdcall;
@@ -7778,8 +7821,8 @@ type
 
     //
     // Filled by verifier provider DLL
-    // 
-    
+    //
+
     ProviderNtdllHeapFreeCallback: RTL_VERIFIER_NTDLLHEAPFREE_CALLBACK;
   end;
   {$EXTERNALSYM _RTL_VERIFIER_PROVIDER_DESCRIPTOR}
@@ -9119,7 +9162,7 @@ type
 
   TMandatoryLevel = MANDATORY_LEVEL;
   PMandatoryLevel = ^TMandatoryLevel;
-  
+
 const
   //A principal with a lower mandatory level than the object cannot write to the object.
   SYSTEM_MANDATORY_LABEL_NO_WRITE_UP = $1;
@@ -9308,13 +9351,6 @@ uses JwaWinDLLNames;
 {$IFNDEF JWA_INTERFACESECTION}
 
 
-{$IFNDEF JWA_OMIT_SECTIONS}
-const
-  ntdll = 'ntdll.dll';
-  kernel32 = 'kernel32.dll';
-{$ENDIF JWA_OMIT_SECTIONS}
-
-
 function WT_SET_MAX_THREADPOOL_THREADS(var Flags: DWORD; Limit: DWORD): DWORD;
 begin
   Flags := Flags or (Limit shl 16);
@@ -9358,7 +9394,7 @@ end;
 function NtCurrentTeb: PNT_TIB;
 asm
 {$ifdef cpu386}
-        MOV     EAX, FS:[024]   // was zero        
+        MOV     EAX, FS:[024]   // was zero
 {$endif cpu386}
 {$ifdef cpux86_64}
         movq     RAX, GS:[48]
@@ -9632,7 +9668,7 @@ var
 
 procedure RtlInitializeSListHead;
 begin
-  GetProcedureAddress(_RtlInitializeSListHead, 'ntdll.dll', 'RtlInitializeSListHead');
+  GetProcedureAddress(_RtlInitializeSListHead, ntdll, 'RtlInitializeSListHead');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -9646,7 +9682,7 @@ var
 
 function RtlFirstEntrySList;
 begin
-  GetProcedureAddress(_RtlFirstEntrySList, 'ntdll.dll', 'RtlFirstEntrySList');
+  GetProcedureAddress(_RtlFirstEntrySList, ntdll, 'RtlFirstEntrySList');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -9659,7 +9695,7 @@ var
 
 function RtlInterlockedPopEntrySList;
 begin
-  GetProcedureAddress(_RtlInterlockedPopEntrySList, 'ntdll.dll', 'RtlInterlockedPopEntrySList');
+  GetProcedureAddress(_RtlInterlockedPopEntrySList, ntdll, 'RtlInterlockedPopEntrySList');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -9673,7 +9709,7 @@ var
 
 function RtlInterlockedPushEntrySList;
 begin
-  GetProcedureAddress(_RtlInterlockedPushEntrySList, 'ntdll.dll', 'RtlInterlockedPushEntrySList');
+  GetProcedureAddress(_RtlInterlockedPushEntrySList, ntdll, 'RtlInterlockedPushEntrySList');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -9687,7 +9723,7 @@ var
 
 function RtlInterlockedFlushSList;
 begin
-  GetProcedureAddress(_RtlInterlockedFlushSList, 'ntdll.dll', 'RtlInterlockedFlushSList');
+  GetProcedureAddress(_RtlInterlockedFlushSList, ntdll, 'RtlInterlockedFlushSList');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -9701,7 +9737,7 @@ var
 
 function RtlQueryDepthSList;
 begin
-  GetProcedureAddress(_RtlQueryDepthSList, 'ntdll.dll', 'RtlQueryDepthSList');
+  GetProcedureAddress(_RtlQueryDepthSList, ntdll, 'RtlQueryDepthSList');
   asm
         MOV     ESP, EBP
         POP     EBP
@@ -9716,16 +9752,16 @@ procedure RtlCaptureContext; external ntdll name 'RtlCaptureContext';
 function RtlCompareMemory; external ntdll name 'RtlCompareMemory';
 function VerSetConditionMask; external kernel32 name 'VerSetConditionMask';
 
-procedure RtlInitializeSListHead; external 'ntdll.dll' name 'RtlInitializeSListHead';
+procedure RtlInitializeSListHead; external ntdll name 'RtlInitializeSListHead';
 
-function RtlFirstEntrySList; external 'ntdll.dll' name 'RtlFirstEntrySList';
-function RtlInterlockedPopEntrySList; external 'ntdll.dll' name 'RtlInterlockedPopEntrySList';
+function RtlFirstEntrySList; external ntdll name 'RtlFirstEntrySList';
+function RtlInterlockedPopEntrySList; external ntdll name 'RtlInterlockedPopEntrySList';
 {$IFNDEF JWA_INCLUDEMODE}
-function RtlInterlockedPushEntrySList; external 'ntdll.dll' name 'RtlInterlockedPushEntrySList';
+function RtlInterlockedPushEntrySList; external ntdll name 'RtlInterlockedPushEntrySList';
 {$ENDIF JWA_INCLUDEMODE}
 
-function RtlInterlockedFlushSList; external 'ntdll.dll' name 'RtlInterlockedFlushSList';
-function RtlQueryDepthSList; external 'ntdll.dll' name 'RtlQueryDepthSList';
+function RtlInterlockedFlushSList; external ntdll name 'RtlInterlockedFlushSList';
+function RtlQueryDepthSList; external ntdll name 'RtlQueryDepthSList';
 
 {$IFDEF WINVISTA_UP}
 function AddMandatoryAce(pAcl: PACL; dwAceRevision, AceFlags, MandatoryPolicy: DWORD;

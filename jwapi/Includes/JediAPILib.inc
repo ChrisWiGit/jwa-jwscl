@@ -1,4 +1,3 @@
-
 {$IFNDEF JEDIAPILIB_INC}
 {$DEFINE JEDIAPILIB_INC}
 
@@ -43,7 +42,11 @@
 // It defines several mutually exclusive IFDEFs which determine
 // the Windows version the API conversion is usable with.
 
-{$I ..\Includes\jedi.inc}
+
+//contains the JEDI inclusion that is shared amongst all JEDI projects
+//it is an external svn repo
+{$I ..\includes\jproject\jedi.inc}
+
 
 {$IFNDEF JEDI_INC}
 ALERT_jedi_inc_incompatible
@@ -114,7 +117,19 @@ Standalone compiling would be useless!
 {$ENDIF DELPHI7_UP}
 {$ENDIF DEBUG}
 
-
+//remove defs
+{$UNDEF WIN95}
+{$UNDEF WIN98}
+{$UNDEF WIN98SE}
+{$UNDEF WIN98ME}
+{$UNDEF WINNT4}
+{$UNDEF WIN2000}
+{$UNDEF WINXP}
+{$UNDEF WIN2003}
+{$UNDEF WINVISTA}
+{$UNDEF WIN2008}
+{$UNDEF WIN2008R2}
+{$UNDEF WIN7}
 
 // Global switch for the Windows version the files are compatible with
 // ONLY A SINGLE ONE IS ALLOWED TO BE ACTIVATED BY CHANGING THE DOT TO A DOLLAR SIGN!
@@ -127,8 +142,11 @@ Standalone compiling would be useless!
 {.DEFINE WIN2000}
 {.$DEFINE WINXP}
 {.DEFINE WIN2003}
-{$DEFINE WINVISTA}
+{.$DEFINE WINVISTA}
 {.$DEFINE WIN2008}
+{.$DEFINE WIN2008R2}
+{$DEFINE WIN7}
+
 
 {.DEFINE SERVICEPACK_1}
 {.DEFINE SERVICEPACK_2}
@@ -160,6 +178,21 @@ Standalone compiling would be useless!
 {$DEFINE HTMLHELP12}
 
 // secondary IFDEFs for "_UP" which means also any later OS version
+{$IFDEF WIN2008R2}
+ {$DEFINE WIN95_UP}
+ {$DEFINE WIN98_UP}
+ {$DEFINE WIN98SE_UP}
+ {$DEFINE WIN98ME_UP}
+ {$DEFINE WINNT4_UP}
+ {$DEFINE WIN2000_UP}
+ {$DEFINE WINXP_UP}
+ {$DEFINE WIN2003_UP}
+ {$DEFINE WINVISTA_UP}
+ {$DEFINE WIN2008_UP}
+ {$DEFINE WIN2008R2_UP}
+ {$DEFINE WIN7_UP}
+{$ENDIF WIN2008}
+
 
 {$IFDEF WIN2008}
  {$DEFINE WIN95_UP}
@@ -173,6 +206,19 @@ Standalone compiling would be useless!
  {$DEFINE WINVISTA_UP}
  {$DEFINE WIN2008_UP}
 {$ENDIF WIN2008}
+
+{$IFDEF WIN7}
+ {$DEFINE WIN95_UP}
+ {$DEFINE WIN98_UP}
+ {$DEFINE WIN98SE_UP}
+ {$DEFINE WIN98ME_UP}
+ {$DEFINE WINNT4_UP}
+ {$DEFINE WIN2000_UP}
+ {$DEFINE WINXP_UP}
+ {$DEFINE WIN2003_UP}
+ {$DEFINE WINVISTA_UP}
+ {$DEFINE WIN7_UP}
+{$ENDIF WIN7}
 
 {$IFDEF WINVISTA}
  {$DEFINE WIN95_UP}
@@ -356,3 +402,12 @@ Standalone compiling would be useless!
 {$ENDIF HTMLHELP11}
 
 {$ENDIF ~JEDIAPILIB_INC}
+
+// Define JWA_USE_INCORRECT_IDENTIFIERS to activate types, constants and so on
+// which don't exist in original headers. They may have been written incorrectly
+// and are now corrected but remain for backwards compatibility.
+{.$DEFINE JWA_USE_INCORRECT_IDENTIFIERS}
+
+//This include must be at the end of include definitions
+//If this does not work, you forgot to add JWA source folder to your LIBRARY path.
+{$INCLUDE ..\includes\jwaAdditionals.inc}

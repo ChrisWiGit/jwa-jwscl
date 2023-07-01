@@ -83,6 +83,7 @@ const
   iphlpapilib = 'iphlpapi.dll';
   kernel32 = 'kernel32.dll';
   kernel32dll = kernel32;
+  KtmW32Lib = 'ktmw32.dll';
   ktmw32 = 'ktmw32.dll';
   ldaplib = 'wldap32.dll';
   loadperflib = 'loadperf.dll';
@@ -101,6 +102,7 @@ const
   ntdll = 'ntdll.dll';
   ntdsapilib = 'ntdsapi.dll';
   ntdsbclilib = 'ntdsbclilib.dll';
+  ole32 = 'Ole32.dll';
   opengl32 = 'opengl32.dll';
   patchapi = 'mspatcha.dll';
   patchwiz = 'patchwiz.dll';
@@ -131,6 +133,7 @@ const
   userenvlib = 'userenv.dll';
   utildll = 'utildll.dll';
   versionlib = 'version.dll';
+  VirtDisklib = 'VirtDisk.dll';
   winberapi = 'wldap32.dll';
   winfax = 'winfax.dll';
   wimgapi = 'wimgapi.dll';
@@ -145,11 +148,11 @@ const
   wsock32 = 'wsock32.dll';
   wtsapi = 'wtsapi32.dll';
   {The list is sorted alphabetically!}
-  
 
 
-  
-  
+
+
+
 
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 
@@ -171,7 +174,3 @@ implementation
 {$IFNDEF JWA_OMIT_SECTIONS}
 end.
 {$ENDIF JWA_OMIT_SECTIONS}
-
-
-
-

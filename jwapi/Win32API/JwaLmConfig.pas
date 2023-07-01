@@ -46,7 +46,7 @@
 unit JwaLmConfig;
 
 {$I ..\Includes\JediAPILib.inc}
-{$I ..\Includes\jedi.inc} //used for D5 compiling
+
 
 {$WEAKPACKAGEUNIT}
 
@@ -112,7 +112,7 @@ type
   LPCONFIG_INFO_0 = ^CONFIG_INFO_0;
   {$EXTERNALSYM LPCONFIG_INFO_0}
   TConfigInfo0 = CONFIG_INFO_0;
-  PConfigInfo0 = PCONFIG_INFO_0;  
+  PConfigInfo0 = PCONFIG_INFO_0;
 
 {$ENDIF JWA_IMPLEMENTATIONSECTION}
 

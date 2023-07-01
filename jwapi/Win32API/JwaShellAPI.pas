@@ -1,19 +1,19 @@
 {******************************************************************************}
 {                                                                              }
-{ Shell32 API Interface Unit for Object Pascal                     		       }
+{ Shell32 API Interface Unit for Object Pascal                                 }
 {                                                                              }
 { Portions created by Microsoft are Copyright (C) 1995-2005 Microsoft          }
 { Corporation. All Rights Reserved.                                            }
 {                                                                              }
-{ The initial developer of the original translation is Rudy Velthuis		   }
+{ The initial developer of the original translation is Rudy Velthuis           }
 {                                                                              }
 { Portions created by Rudy Velthuis are Copyright (C) 2005-2008                }
-{ All Rights Reserved.                                      				   }
+{ All Rights Reserved.                                                         }
 {                                                                              }
 { Adapted for JEDI API Library by Christian Wimmer                             }
 {                                                                              }
 { Obtained through: Joint Endeavour of Delphi Innovators (Project JEDI)        }
-{ The original code is: shellapi.h, released 2005.                			   }
+{ The original code is: shellapi.h, released 2005.                             }
 {                                                                              }
 { You may retrieve the latest version of this file at the Project JEDI         }
 { APILIB home page, located at http://jedi-apilib.sourceforge.net              }
@@ -67,7 +67,7 @@ type
 
 {$IFNDEF JWA_INCLUDEMODE}
   PPWideChar = ^PWideChar;
-{$ENDIF JWA_INCLUDEMODE}  
+{$ENDIF JWA_INCLUDEMODE}
 
 {$EXTERNALSYM DragQueryFileA}
 function DragQueryFileA(hDrop: HDROP; iFile: UINT; lpszFile: PAnsiChar; cch: UINT): UINT; stdcall;
@@ -991,12 +991,12 @@ function SHInvokePrinterCommand(hwnd: HWND; uAction: UINT; lpBuf1, lpBuf2: PTSTR
 // identifers that are not currently loaded.  This is useful if an
 // overlay identifier did not load at shell startup but is needed
 // and can be loaded at a later time.  Identifiers already loaded
-// are not affected.  Overlay identifiers implement the 
+// are not affected.  Overlay identifiers implement the
 // IShellIconOverlayIdentifier interface.
 //
 // Returns:
 //      S_OK
-// 
+//
 {$EXTERNALSYM SHLoadNonloadedIconOverlayIdentifiers}
 function SHLoadNonloadedIconOverlayIdentifiers: HRESULT; stdcall;
 
@@ -1223,7 +1223,7 @@ function IsLFNDriveA; external Shell32 name 'IsLFNDriveA';
 function IsLFNDriveW; external Shell32 name 'IsLFNDriveW';
 function IsLFNDrive; external Shell32 name 'IsLFNDrive'+ AWSuffix;
 function SHTestTokenMembership; external Shell32 name 'SHTestTokenMembership';
-function SHGetImageList; external Shell32 name 'SHGetImageList';  
+function SHGetImageList; external Shell32 name 'SHGetImageList';
 function SHGetUnreadMailCountW; external Shell32 name 'SHGetUnreadMailCountW';
 function SHEnumerateUnreadMailAccountsW; external Shell32 name 'SHEnumerateUnreadMailAccountsW';
 function SHSetUnreadMailCountW; external Shell32 name 'SHSetUnreadMailCountW';

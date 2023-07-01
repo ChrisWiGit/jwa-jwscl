@@ -1,19 +1,19 @@
 {******************************************************************************}
 {                                                                              }
-{ URL Monikers Interface Unit for Object Pascal                     		   }
+{ URL Monikers Interface Unit for Object Pascal                                }
 {                                                                              }
 { Portions created by Microsoft are Copyright (C) 1995-2005 Microsoft          }
 { Corporation. All Rights Reserved.                                            }
 {                                                                              }
-{ The initial developer of the original translation is Rudy Velthuis		   }
+{ The initial developer of the original translation is Rudy Velthuis           }
 {                                                                              }
 { Portions created by Rudy Velthuis are Copyright (C) 2005-2008                }
-{ All Rights Reserved.                                      				   }
+{ All Rights Reserved.                                                         }
 {                                                                              }
 { Adapted for JEDI API Library by Christian Wimmer                             }
 {                                                                              }
 { Obtained through: Joint Endeavour of Delphi Innovators (Project JEDI)        }
-{ The original code is: urlmon.h, released 2005.                			   }
+{ The original code is: urlmon.h, released 2005.                               }
 {                                                                              }
 { You may retrieve the latest version of this file at the Project JEDI         }
 { APILIB home page, located at http://jedi-apilib.sourceforge.net              }
@@ -510,7 +510,7 @@ const
   {$EXTERNALSYM INET_E_CANNOT_INSTANTIATE_OBJECT}
   INET_E_CANNOT_INSTANTIATE_OBJECT = HResult($800C0010);
   {$EXTERNALSYM INET_E_REDIRECT_FAILED}
-  INET_E_REDIRECT_FAILED           = HResult($800C0014);   
+  INET_E_REDIRECT_FAILED           = HResult($800C0014);
   {$EXTERNALSYM INET_E_REDIRECT_TO_DIR}
   INET_E_REDIRECT_TO_DIR           = HResult($800C0015);
   {$EXTERNALSYM INET_E_CANNOT_LOCK_REQUEST}

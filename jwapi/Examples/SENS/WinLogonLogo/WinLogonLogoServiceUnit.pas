@@ -31,7 +31,7 @@ type
      procedure OnNewJobObject(Sender : TJwJobObjectSessionList;
         ProcessHandle : TJwProcessHandle;
         ProcessSessionID,
-        CurrentSessionID : Cardinal;
+        CurrentSessionID : TJwSessionId;
         var NewJobObject : TJwJobObject);
      procedure OnJobNotification(Sender : TJwJobObject; ProcessId : TJwProcessId;
         JobMessages : TJwJobMessages; Data : Pointer);
@@ -78,7 +78,7 @@ begin
 end;
 
 procedure TSENSTestService.OnNewJobObject(Sender: TJwJobObjectSessionList;
-  ProcessHandle: TJwProcessHandle; ProcessSessionID, CurrentSessionID: Cardinal;
+  ProcessHandle: TJwProcessHandle; ProcessSessionID, CurrentSessionID: TJwSessionId;
   var NewJobObject: TJwJobObject);
 var Name : TJwString;
 begin
@@ -251,7 +251,7 @@ begin
 {$IFNDEF LIVE_DEBUG}
     {
     By default start our app on every console session it finds.
-    So the logo is even shown if the service restarts in every users logon desktop. 
+    So the logo is even shown if the service restarts in every users logon desktop.
     }
     RunDefaultAppsISessions;
 {$ENDIF LIVE_DEBUG}

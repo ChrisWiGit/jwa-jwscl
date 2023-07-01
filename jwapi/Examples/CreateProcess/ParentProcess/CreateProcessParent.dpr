@@ -1,39 +1,38 @@
 {******************************************************************************}
-{ JEDI "Set Parent Process" Example Project											   }
-{ http://jedi-apilib.sourceforge.net										   }
-{ 																			   }
+{ JEDI "Set Parent Process" Example Project                                    }
+{ http://jedi-apilib.sourceforge.net                                           }
+{                                                                              }
 { Obtained through: Joint Endeavour of Delphi Innovators (Project JEDI)        }
-{ 																			   }
-{ Author(s): Christian Wimmer												   }
-{ Creation date: 24th October 2008 					   				   			   }
-{ Last modification date: 24th October 2008										   }
-{ 																			   }
-{ Description: This examples demonstrates how to use CreateProcess and  		   }
-{ 	reset the parent process of the new process.													   }
-{ 	The new process will have the given process as its parent. 	    		   }
-{ 	The parent process ID is read from command line.						   }
-{ 																			   }
-{ 	The following necessary functions	are used:																	   }
-{ 	* InitializeProcThreadAttributeList																		   }
-{ 	* UpdateProcThreadAttribute																		   }
-{ 	* DeleteProcThreadAttributeList																		   }
-{ 	* CreateProcess																		   }
-
-{ 																			   }
-{ Preparations: JWA must be ready to use.       							   }
-{ 	It only works on Windows VISTA.																	   }
-{ 																			   }
-{ Todo: Not written for unicode! Needs some $IFDEF UNICODE					   }
-{ 																			   }
-{ Version history: 24th October 2008 initial release				     		   }
-{ 																			   }
+{                                                                              }
+{ Author(s): Christian Wimmer                                                  }
+{ Creation date: 24th October 2008                                             }
+{ Last modification date: 24th October 2008                                    }
+{                                                                              }
+{ Description: This examples demonstrates how to use CreateProcess and         }
+{   reset the parent process of the new process.                               }
+{   The new process will have the given process as its parent.                 }
+{   The parent process ID is read from command line.                           }
+{                                                                              }
+{   The following necessary functions are used:                                }
+{   * InitializeProcThreadAttributeList                                        }
+{   * UpdateProcThreadAttribute                                                }
+{   * DeleteProcThreadAttributeList                                            }
+{   * CreateProcess                                                            }
+{                                                                              }
+{ Preparations: JWA must be ready to use.                                      }
+{   It only works on Windows VISTA.                                            }
+{                                                                              }
+{ Todo: Not written for unicode! Needs some $IFDEF UNICODE                     }
+{                                                                              }
+{ Version history: 24th October 2008 initial release                           }
+{                                                                              }
 { No license. Use this example with no warranty at all and on your own risk.   }
-{ This example is just for learning purposes and should not be used in 		   }
-{ productive environments.													   }
-{ The code has surely some errors that need to be fixed. In such a case	   	   }
+{ This example is just for learning purposes and should not be used in         }
+{ productive environments.                                                     }
+{ The code has surely some errors that need to be fixed. In such a case        }
 { you can contact the author(s) through the JEDI API hompage, the mailinglist  }
-{ or via the article link.													   }
-{ 																			   }	 	 		
+{ or via the article link.                                                     }
+{                                                                              }
 {******************************************************************************}
 program CreateProcessParent;
 
@@ -51,11 +50,11 @@ type
   //just a return container for SetParentProcess
   TAttributesList = record
     //Attribute count of List
-	  Count   : DWORD;
+    Count   : DWORD;
     //List of attributes
-	  List    : PProcThreadAttributeList;
+    List    : PProcThreadAttributeList;
     //pointer to process handle stored in List
-	  Process : PHANDLE;
+    Process : PHANDLE;
   end;
 
 function SetParentProcess(ProcessID : DWORD; AddAttribute : DWORD = 0) : PAttributesList;
@@ -69,13 +68,13 @@ begin
   //get size of necessary memory
   if (not InitializeProcThreadAttributeList(
     nil,//__out_opt   LPPROC_THREAD_ATTRIBUTE_LIST lpAttributesList,
-		1 + AddAttribute,//__in        DWORD dwAttributeCount,
-		0,//__reserved  DWORD dwFlags,
-		Size//__inout     PSIZE_T lpSize
-  	)) then
+    1 + AddAttribute,//__in        DWORD dwAttributeCount,
+    0,//__reserved  DWORD dwFlags,
+    Size//__inout     PSIZE_T lpSize
+    )) then
   begin
     if (GetLastError() = ERROR_INSUFFICIENT_BUFFER) then
-		begin
+    begin
 
       GetMem(List, Size);
 
@@ -105,16 +104,16 @@ begin
 
       //set the parent process attribute
       if (not UpdateProcThreadAttribute(
-			  List,//__inout    LPPROC_THREAD_ATTRIBUTE_LIST lpAttributesList,
-			  0,//__in       DWORD dwFlags,
-			  PROC_THREAD_ATTRIBUTE_PARENT_PROCESS,//__in       DWORD_PTR Attribute,
-			  hProcess,//__in       PVOID lpValue,
-			  sizeof(hProcess^),//__in       SIZE_T cbSize,
-			  nil,//__out_opt  PVOID lpPreviousValue,
-			  nil//__in_opt   PSIZE_T lpReturnSize
-			)) then
-			begin
-		    FreeMem(List);
+        List,//__inout    LPPROC_THREAD_ATTRIBUTE_LIST lpAttributesList,
+        0,//__in       DWORD dwFlags,
+        PROC_THREAD_ATTRIBUTE_PARENT_PROCESS,//__in       DWORD_PTR Attribute,
+        hProcess,//__in       PVOID lpValue,
+        sizeof(hProcess^),//__in       SIZE_T cbSize,
+        nil,//__out_opt  PVOID lpPreviousValue,
+        nil//__in_opt   PSIZE_T lpReturnSize
+      )) then
+      begin
+        FreeMem(List);
         Dispose(hProcess);
         exit;
       end;
@@ -122,38 +121,38 @@ begin
       //create the return values
       new(result);
       result^.Count := 1 + AddAttribute;
-			result^.Process := hProcess;
-			result^.List := List;
+      result^.Process := hProcess;
+      result^.List := List;
     end;
   end;
 end;
 
 procedure FreeAttributesList(var AttributesList : PAttributesList);
 begin
-	if (AttributesList = nil) then
-		exit;
+  if (AttributesList = nil) then
+    exit;
 
-	if (AttributesList^.List <> nil) then
+  if (AttributesList^.List <> nil) then
   begin
-		DeleteProcThreadAttributeList(AttributesList^.List);
+    DeleteProcThreadAttributeList(AttributesList^.List);
     FreeMem(AttributesList^.List);
   end;
 
-	if (AttributesList^.Process <> nil) then
-	begin
-		CloseHandle(AttributesList^.Process^);
+  if (AttributesList^.Process <> nil) then
+  begin
+    CloseHandle(AttributesList^.Process^);
     Dispose(AttributesList^.Process);
   end;
 
-	FreeMem(AttributesList);
-	AttributesList := nil;
+  FreeMem(AttributesList);
+  AttributesList := nil;
 end;
 
 
 var
   AttributesList : PAttributesList;
-	pi : PROCESS_INFORMATION;
-	si : STARTUPINFOEX;
+  pi : PROCESS_INFORMATION;
+  si : STARTUPINFOEX;
   CommandLine : String;
   WinPath : array[0..MAX_PATH] of Char;
   PID : DWORD;

@@ -451,7 +451,7 @@ type
   LPCRITICAL_SECTION_DEBUG = PRTL_CRITICAL_SECTION_DEBUG;
   {$EXTERNALSYM LPCRITICAL_SECTION_DEBUG}
   TCriticalSectionDebug = CRITICAL_SECTION_DEBUG;
-  PCriticalSectionDebug = PCRITICAL_SECTION_DEBUG;  
+  PCriticalSectionDebug = PCRITICAL_SECTION_DEBUG;
 
   LPLDT_ENTRY = PLDT_ENTRY;
   {$EXTERNALSYM LPLDT_ENTRY}
@@ -2712,7 +2712,7 @@ type
   PTimeZoneInformation = PTIME_ZONE_INFORMATION;
 
 function SystemTimeToTzSpecificLocalTime(lpTimeZoneInformation: LPTIME_ZONE_INFORMATION;
-  var lpUniversalTime, lpLocalTime: SYSTEMTIME): BOOL; stdcall;
+  lpUniversalTime: SYSTEMTIME; var lpLocalTime: SYSTEMTIME): BOOL; stdcall;
 {$EXTERNALSYM SystemTimeToTzSpecificLocalTime}
 
 function TzSpecificLocalTimeToSystemTime(const lpTimeZoneInformation: TIME_ZONE_INFORMATION;
@@ -3208,7 +3208,7 @@ type
   function PROC_THREAD_ATTRIBUTE_PARENT_PROCESS : DWORD;
   {Macro function}
   function PROC_THREAD_ATTRIBUTE_EXTENDED_FLAGS : DWORD;
-  {Macro function}  
+  {Macro function}
   function PROC_THREAD_ATTRIBUTE_HANDLE_LIST : DWORD;
 
 type
@@ -4103,6 +4103,11 @@ function GetSystemWow64Directory(lpBuffer: LPTSTR; uSize: UINT): UINT; stdcall;
 
 function Wow64EnableWow64FsRedirection(Wow64FsEnableRedirection: BOOL): BOOL; stdcall;
 {$EXTERNALSYM Wow64EnableWow64FsRedirection}
+function Wow64DisableWow64FsRedirection(out OldValue: PVOID): BOOL; stdcall;
+{$EXTERNALSYM Wow64DisableWow64FsRedirection}
+function Wow64RevertWow64FsRedirection(const OldValue: PVOID): BOOL; stdcall;
+{$EXTERNALSYM Wow64RevertWow64FsRedirection}
+
 
 //
 // for GetProcAddress
@@ -6084,7 +6089,7 @@ type
   {$EXTERNALSYM PCACTCTX_SECTION_KEYED_DATA_ASSEMBLY_METADATA}
   TActCtxSectionKeyedDataAssemblyMetadata = ACTCTX_SECTION_KEYED_DATA_ASSEMBLY_METADATA;
   PActCtxSectionKeyedDataAssemblyMetadata = PACTCTX_SECTION_KEYED_DATA_ASSEMBLY_METADATA;
-  
+
   tagACTCTX_SECTION_KEYED_DATA = record
     cbSize: ULONG;
     ulDataFormatVersion: ULONG;
@@ -6185,7 +6190,7 @@ const
 //
 // String are placed after the structs.
 //
-  
+
 function QueryActCtxW(dwFlags: DWORD; hActCtx: HANDLE; pvSubInstance: PVOID;
   ulInfoClass: ULONG; pvBuffer: PVOID; cbBuffer: SIZE_T;
   pcbWrittenOrRequired: PSIZE_T): BOOL; stdcall;
@@ -6254,6 +6259,22 @@ const
   function GetNamedPipeClientComputerNameW(Pipe : HANDLE; {out} ClientComputerName : LPWSTR; ClientComputerNameLength : ULONG) : Boolean; stdcall;
   {$EXTERNALSYM GetNamedPipeClientComputerNameA}
 {$ENDIF WINVISTA_UP}
+
+
+{$IF defined(WIN7_UP) or
+     (defined(WINXP)   and defined(SERVICEPACK_2)) or
+     (defined(WIN2003) and defined(SERVICEPACK_1))}
+  {$DEFINE JWENABLE_SETSEARCHPATHMODE}
+{$IFEND}
+
+{$IFDEF JWENABLE_SETSEARCHPATHMODE}
+const
+  BASE_SEARCH_PATH_ENABLE_SAFE_SEARCHMODE     = $00000001;
+  BASE_SEARCH_PATH_DISABLE_SAFE_SEARCHMODE    = $00010000;
+  BASE_SEARCH_PATH_PERMANENT                  = $00008000;
+
+  function SetSearchPathMode({__in} Flags : DWORD) : BOOL; stdcall;
+{$ENDIF}
 
 
 
@@ -6349,11 +6370,11 @@ Marco
 }
 function InterlockedExchangePointer(var Target: PVOID; Value: PVOID): PVOID;
 begin
-{$ifdef CPU64}
+{$ifdef WIN64}
   Result := PVOID(InterlockedExchange64(LONGLONG(Target), LONGLONG(Value)));
 {$else}
   Result := PVOID(InterlockedExchange(LONG(Target), LONG(Value)));
-{$endif CPU64}
+{$endif WIN64}
 end;
 
 {added tweak from
@@ -6362,13 +6383,13 @@ by Marco
 }
 function InterlockedCompareExchangePointer(var Destination: PVOID; Exchange, Comperand: PVOID): PVOID;
 begin
-{$ifdef CPU64}
+{$ifdef WIN64}
   Result := PVOID(InterlockedCompareExchange64(LONGLONG(Destination),
               LONGLONG(Exchange), LONGLONG(Comperand)));
-{$else CPU64}
+{$else}
   Result := PVOID(InterlockedCompareExchange(LONG(Destination),
     LONG(Exchange), LONG(Comperand)));
-{$endif CPU64}
+{$endif WIN64}
 end;
 
 function UnlockResource(hResData: HANDLE): BOOL;
@@ -6475,7 +6496,7 @@ begin
   result := CreateMutexW(lpMutexAttributes, bInitialOwner, lpName);
 {$ELSE}
   result := CreateMutexA(lpMutexAttributes, bInitialOwner, lpName);
-{$ENDIF UNICODE}  
+{$ENDIF UNICODE}
 end;
 
 {$IFDEF DYNAMIC_LINK}
@@ -13576,6 +13597,32 @@ begin
 end;
 
 var
+  _Wow64DisableWow64FsRedirection: Pointer;
+
+function Wow64DisableWow64FsRedirection;
+begin
+  GetProcedureAddress(_Wow64DisableWow64FsRedirection, kernel32, 'Wow64DisableWow64FsRedirection');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_Wow64DisableWow64FsRedirection]
+  end;
+end;
+
+var
+  _Wow64RevertWow64FsRedirection: Pointer;
+
+function Wow64RevertWow64FsRedirection;
+begin
+  GetProcedureAddress(_Wow64RevertWow64FsRedirection, kernel32, 'Wow64RevertWow64FsRedirection');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_Wow64RevertWow64FsRedirection]
+  end;
+end;
+
+var
   _SetCurrentDirectoryA: Pointer;
 
 function SetCurrentDirectoryA;
@@ -19303,6 +19350,21 @@ end;
 
 {$ENDIF WINVISTA_UP}
 
+{$IFDEF JWENABLE_SETSEARCHPATHMODE}
+var
+  _SetSearchPathMode: Pointer;
+
+function SetSearchPathMode;
+begin
+  GetProcedureAddress(_SetSearchPathMode, kernel32, 'SetSearchPathMode');
+  asm
+        MOV     ESP, EBP
+        POP     EBP
+        JMP     [_SetSearchPathMode]
+  end;
+end;
+{$ENDIF}
+
 {$ELSE}
 
 
@@ -19855,6 +19917,8 @@ function GetSystemWow64DirectoryA; external kernel32 name 'GetSystemWow64Directo
 function GetSystemWow64DirectoryW; external kernel32 name 'GetSystemWow64DirectoryW';
 function GetSystemWow64Directory; external kernel32 name 'GetSystemWow64Directory' + AWSuffix;
 function Wow64EnableWow64FsRedirection; external kernel32 name 'Wow64EnableWow64FsRedirection';
+function Wow64DisableWow64FsRedirection; external kernel32 name 'Wow64DisableWow64FsRedirection';
+function Wow64RevertWow64FsRedirection; external kernel32 name 'Wow64RevertWow64FsRedirection';
 function SetCurrentDirectoryA; external kernel32 name 'SetCurrentDirectoryA';
 function SetCurrentDirectoryW; external kernel32 name 'SetCurrentDirectoryW';
 function SetCurrentDirectory; external kernel32 name 'SetCurrentDirectory' + AWSuffix;
@@ -20301,6 +20365,10 @@ function GetNamedPipeClientComputerName; external kernel32 name 'GetNamedPipeCli
 function GetNamedPipeClientComputerNameA; external kernel32 name 'GetNamedPipeClientComputerNameA';
 function GetNamedPipeClientComputerNameW; external kernel32 name 'GetNamedPipeClientComputerNameW';
 {$ENDIF WINVISTA_UP}
+
+{$IFDEF JWENABLE_SETSEARCHPATHMODE}
+function SetSearchPathMode; external kernel32 name 'SetSearchPathMode';
+{$ENDIF}
 
 
 {$ENDIF DYNAMIC_LINK}

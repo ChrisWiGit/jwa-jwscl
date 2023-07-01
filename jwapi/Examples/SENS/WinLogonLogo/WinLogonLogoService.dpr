@@ -28,7 +28,7 @@ begin
   if not Application.DelayInitialize or Application.Installing then
     Application.Initialize;
   Application.CreateForm(TSENSTestService, SENSTestService);
-{$IFDEF LIVE_DEBUG}
+  {$IFDEF LIVE_DEBUG}
   SENSTestService.ServiceCreate(nil);
   B := true;
   SENSTestService.ServiceStart(nil, B);
@@ -37,8 +37,8 @@ begin
     SENSTestService.ServiceExecute(nil);
     SENSTestService.ServiceShutdown(nil);
     SENSTestService.ServiceDestroy(nil);
-  end;  
+  end;
 {$ELSE}
   Application.Run;
-{$ENDIF LIVE_DEBUG}  
+{$ENDIF LIVE_DEBUG}
 end.

@@ -130,7 +130,7 @@ the one of the project.
 
   {Opens up Windows Vista (and above) declarations.
    See jediapilib.inc for more declarations}
-  {$DEFINE WINVISTA}
+  {.$DEFINE WINVISTA} //now defined in JediAPILib.inc
 
 
   {.$DEFINE JWA_NEW_WINSTA}
@@ -177,7 +177,6 @@ packages}
 
 
 //extra compiler options
-{$I ..\Includes\jedi.inc}
 {$I ..\Includes\JediAPILib.inc} //add "..\..\includes" to source path if not found
 
 
@@ -200,7 +199,7 @@ uses
   OleCtrls,
 //JwaAdsTlb.pas and JwaDde.pas use these units and is therfore excluded
 {$ENDIF JWA_INCLUDE_JWAADSTLB}
-  
+
   {$ENDIF USE_DELPHI_TYPES}
   SysUtils, // TODO
 
@@ -208,7 +207,7 @@ uses
   CommCtrl, //used by SetupAPI.pas
 {$ENDIF JWA_INCLUDE_SETUP_API}
 
-  ActiveX, Classes, ComObj 
+  ActiveX, Classes, ComObj
 {$IFNDEF NOVCL}
   ,Graphics,
   StdVCL
@@ -228,7 +227,7 @@ uses
   {$ifndef FPC}
     type PCardinal = ^Cardinal;
   {$ELSE}
-    {$ALIGN 8}  
+    {$ALIGN 8}
   {$ENDIF}
 {$ELSE}
 {$ALIGN 8}
@@ -265,7 +264,7 @@ your implementation here
 end.
 {$ENDIF JWA_OMIT_SECTIONS}
 
-*)                         
+*)
 
 {$DEFINE JWA_OMIT_SECTIONS}
 {$DEFINE JWA_INTERFACESECTION}
@@ -657,6 +656,10 @@ The list has no order!}
 {$I JwaWintrust.pas} //Allignment 8
 {$I JwaSoftpub.pas}  //Allignment 8
 
+{$I JwaCOMSecurity.pas}
+{$I JwaTaskDialog.pas}
+
+
 {******* Add here new units *******}
 
 
@@ -917,7 +920,7 @@ The list has no order!}
 {$I JwaTmSchema.pas}
 {$I JwaTraffic.pas}
 {$I JwaSceSvc.pas}
-{$I JwaSchemaDef.pas} 
+{$I JwaSchemaDef.pas}
 {$I JwaObjSel.pas}
 {$I JwaPatchApi.pas}
 {$I JwaPatchWiz.pas}
@@ -1021,21 +1024,24 @@ The list has no order!}
 {$IFDEF JWA_INCLUDE_SETUP_API}
 {$DEFINE SETUPAPI_LINKONREQUEST}
 
-{If the compiler cannot find "SetupApi.pas" its 	
+{If the compiler cannot find "SetupApi.pas" its
 because it resides in "Setup and Config Manager API".
 But the compiler cannot include folders with spaces in it.
 Simply hard link or copy the following files
 into the new folder named "SaCMAPI".
 This issue should be fixed in newer versions of JEDI API LIB.
-If you get this error you should do the things described or upgrade. 
+If you get this error you should do the things described or upgrade.
 }
 {$I ..\SaCMAPI\SetupApi.pas}
 {$I ..\SaCMAPI\Cfg.pas}
 {$I ..\SaCMAPI\CfgMgr32.pas}
 {$ENDIF JWA_INCLUDE_SETUP_API}
 
-{$I JwaWintrust.pas} //Allignment 8
-{$I JwaSoftpub.pas}  //Allignment 8
+{$I JwaWintrust.pas} //Alignment 8
+{$I JwaSoftpub.pas}  //Alignment 8
+
+{$I JwaCOMSecurity.pas}
+{$I JwaTaskDialog.pas}
 
 {******* Add here new units *******}
 
@@ -1044,7 +1050,3 @@ If you get this error you should do the things described or upgrade.
 {$UNDEF JWA_OMIT_SECTIONS}
 
 end.
-
-
-
-
